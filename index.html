@@ -1,12 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>No Están Solos VR - Zet Studios</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-teleport-controls/dist/aframe-teleport-controls.min.js"></script>
+    <script src="dist\aframe.min.js"></script>
+    <script src="dist\aframe-extras.min.js"></script>
     <style>
       body {
         margin: 0;
@@ -14,33 +14,22 @@
       }
     </style>
   </head>
+
   <body>
     <a-scene>
       <a-assets>
-        <a-asset-item
-          id="cloudModel"
-          src="https://cdn.glitch.global/50f25016-8ce5-425a-b75f-972427c94461/nube.glb?v=1744943196551"
-        ></a-asset-item>
+        <a-asset-item id="cloudModel" src="assets\nube.glb"></a-asset-item>
 
-        <a-asset-item
-          id="samuuModel"
-          src="https://cdn.glitch.global/50f25016-8ce5-425a-b75f-972427c94461/samuu.glb?v=1744771021232"
-        >
-        </a-asset-item>
+        <a-asset-item id="samuuModel" src="assets\samuu.glb"></a-asset-item>
 
         <a-asset-item
           id="flamingoModel"
-          src="https://cdn.glitch.global/50f25016-8ce5-425a-b75f-972427c94461/flamengo.glb?v=1744945565636"
-        >
-        </a-asset-item>
-        
-        <a-asset-item
-          id="groundModel"
-          src="https://cdn.glitch.global/50f25016-8ce5-425a-b75f-972427c94461/ground.glb?v=1745616821424"
-        >
-        </a-asset-item>
-        
+          src="assets\flamengo.glb"
+        ></a-asset-item>
+
+        <a-asset-item id="groundModel" src="assets\ground.glb"></a-asset-item>
       </a-assets>
+
       <!-- Fade overlay -->
       <a-entity
         id="fadeOverlay"
@@ -95,11 +84,14 @@
       </a-entity>
 
       <!-- Camera Rig -->
+
       <a-entity id="cameraRig" position="0 1.6 0">
         <a-camera
           cursor="rayOrigin: mouse"
           raycaster="objects: .clickable"
         ></a-camera>
+
+        <!-- Left Hand -->
 
         <a-entity
           laser-controls="hand: left"
@@ -115,6 +107,8 @@
             position="0 -0.3 0.1"
           ></a-entity>
         </a-entity>
+
+        <!-- Right Hand -->
 
         <a-entity
           laser-controls="hand: right"
@@ -134,9 +128,22 @@
     </a-scene>
 
     <!-- Scene Templates -->
+
+    <!-- Scene #1 - Intro-->>
+
     <template id="scene1">
       <a-entity>
-        <a-sky color="lightblue"></a-sky>
+        <!-- Skybox con textura personalizada -->
+        <a-sky src="assets/skybox.png"></a-sky>
+
+        <!-- Ocean -->
+        <a-ocean
+          width="50"
+          depth="50"
+          density="40"
+          opacity="1"
+          position="0 0 0"
+        ></a-ocean>
 
         <!-- White Clouds -->
 
@@ -194,7 +201,7 @@
           animation-mixer="clip: fly-loop; timeScale: 1.5"
         >
         </a-entity>
-        
+
         <a-entity
           gltf-model="#flamingoModel"
           position="-10 3 -13"
@@ -203,7 +210,7 @@
           animation-mixer="clip: fly-loop; timeScale: 1.4"
         >
         </a-entity>
-        
+
         <a-entity
           gltf-model="#flamingoModel"
           position="-5 3 -16"
@@ -212,7 +219,7 @@
           animation-mixer="clip: fly-loop; timeScale: 1.5"
         >
         </a-entity>
-        
+
         <a-entity
           gltf-model="#flamingoModel"
           position="0 3 -20"
@@ -221,7 +228,7 @@
           animation-mixer="clip: fly-loop; timeScale: 1.8"
         >
         </a-entity>
-        
+
         <a-entity
           gltf-model="#flamingoModel"
           position="5 3 -16"
@@ -230,7 +237,7 @@
           animation-mixer="clip: fly-loop; timeScale: 1.4"
         >
         </a-entity>
-        
+
         <a-entity
           gltf-model="#flamingoModel"
           position="10 3 -13"
@@ -251,15 +258,13 @@
 
         <!-- Animated Ground -->
         <a-entity
-        gltf-model="#groundModel"
-        position="150 -100 0"
-        scale="100 100 100"
-        rotation="0 0 0"
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 60000; easing: linear"
-      >
-      </a-entity>
-        
-        
+          gltf-model="#groundModel"
+          position="150 -100 0"
+          scale="100 100 100"
+          rotation="0 0 0"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 60000; easing: linear"
+        >
+        </a-entity>
       </a-entity>
     </template>
 
@@ -327,9 +332,6 @@
           animation="property: rotation; to: -90 360 0; loop: true; dur: 30000; easing: linear"
         >
         </a-entity>
-        
-        
-        
       </a-entity>
 
       <!-- Arboles -->
@@ -345,19 +347,35 @@
 
     <!-- Reinsert the script to handle scene switching and cloud enhancement -->
     <script>
+      // Índice de la escena actualmente cargada (1, 2 o 3)
       let currentSceneIndex = 1;
 
+      /**
+       * fadeInOverlay
+       * - Anima la superposición negra (`#fadeOverlay`) para hacer un fade-in
+       *   (opacidad 0 -> 1) usando el componente `animation` de A-Frame.
+       * - Devuelve una Promise que se resuelve después de la duración de la animación
+       *   (500 ms). Útil para encadenar transiciones de escena de forma asincrónica.
+       */
       function fadeInOverlay() {
         const overlay = document.querySelector("#fadeOverlay");
+        // Coloca una animación que sube la opacidad de 0 a 1 en 500ms
         overlay.setAttribute(
           "animation",
           "property: material.opacity; from: 0; to: 1; dur: 500"
         );
+        // Retorna una promise que se resuelve cuando termina la animación
         return new Promise((res) => setTimeout(res, 500));
       }
 
+      /**
+       * fadeOutOverlay
+       * - El inverso de fadeInOverlay: anima la opacidad de 1 -> 0.
+       * - También devuelve una Promise que se resuelve tras 500 ms.
+       */
       function fadeOutOverlay() {
         const overlay = document.querySelector("#fadeOverlay");
+        // Coloca una animación que baja la opacidad de 1 a 0 en 500ms
         overlay.setAttribute(
           "animation",
           "property: material.opacity; from: 1; to: 0; dur: 500"
@@ -365,6 +383,14 @@
         return new Promise((res) => setTimeout(res, 500));
       }
 
+      /**
+       * detachCloudHandlers
+       * - Clona cada elemento con clase `.cloud` y reemplaza el original por el clon.
+       * - Esto elimina (efectivamente) todos los listeners añadidos por `addEventListener`
+       *   en el elemento original, ya que el clon no tiene listeners.
+       * - Se usa antes de remover/recargar la escena para evitar handlers duplicados
+       *   o fugas de memoria cuando se vuelvan a `attachCloudHandlers`.
+       */
       function detachCloudHandlers() {
         document.querySelectorAll(".cloud").forEach((cloud) => {
           const clone = cloud.cloneNode(true);
@@ -372,23 +398,48 @@
         });
       }
 
+      /**
+       * loadScene
+       * - Carga la plantilla `#scene{index}` dentro del `<a-scene>` principal.
+       * - Flujo:
+       *    1. fadeInOverlay() para ocultar la transición.
+       *    2. actualiza `currentSceneIndex`.
+       *    3. llama a detachCloudHandlers() para limpiar listeners antiguos.
+       *    4. borra todos los elementos con la clase `.dynamic` (escena previa).
+       *    5. clona el template correspondiente y marca sus nodos como `.dynamic`.
+       *    6. adjunta los handlers a las nubes nuevas con attachCloudHandlers().
+       *    7. fadeOutOverlay() para mostrar la nueva escena.
+       * - Parámetros:
+       *    - index: número de la escena a cargar (1, 2 o 3).
+       */
       async function loadScene(index) {
         await fadeInOverlay();
         currentSceneIndex = index;
         const scene = document.querySelector("a-scene");
+        // Quita event listeners previos en las nubes
         detachCloudHandlers();
+        // Remueve entidades dinámicas que pertenecen a la escena previa
         const oldSceneEntities = scene.querySelectorAll(".dynamic");
         oldSceneEntities.forEach((el) => el.remove());
+        // Clona el contenido del template correspondiente
         const template = document.querySelector(`#scene${index}`);
         const clone = template.content.cloneNode(true);
+        // Marca todos los nodos del template como 'dynamic' para poder limpiarlos luego
         clone
           .querySelectorAll("*")
           .forEach((el) => el.classList.add("dynamic"));
         scene.appendChild(clone);
+        // Añade los listeners (mouseenter/mouseleave/click) a las nubes de la nueva escena
         attachCloudHandlers();
         await fadeOutOverlay();
       }
 
+      /**
+       * showClickText / hideClickText
+       * - Muestran u ocultan el texto hijo (`a-text`) dentro de una nube.
+       * - Reciben `entity`, que es el elemento `.cloud` (o cualquier contenedor que tenga
+       *   un `a-text` como hijo). No lanzan error si no existe el `a-text`.
+       */
       function showClickText(entity) {
         const text = entity.querySelector("a-text");
         if (text) text.setAttribute("visible", "true");
@@ -399,9 +450,21 @@
         if (text) text.setAttribute("visible", "false");
       }
 
+      /**
+       * enhanceCloud
+       * - Añade interactividad a un nodo `.cloud`:
+       *    - mouseenter: cambia color (más oscuro para nubes rojas) y muestra texto.
+       *    - mouseleave: restaura el color original y oculta el texto.
+       *    - click: si la nube roja tiene un id especial (redCloud1/2/3) llama a loadScene
+       *             con la escena correspondiente; si no, teletransporta la cámara
+       *             al punto de posición de la nube (ajustando la altura).
+       * - Parámetro:
+       *    - cloud: elemento DOM que representa la nube.
+       */
       function enhanceCloud(cloud) {
         cloud.addEventListener("mouseenter", () => {
           const isRed = cloud.classList.contains("red-cloud");
+          // Cambia color según si es nube roja o no
           cloud.setAttribute("material", "color", isRed ? "darkred" : "gray");
           showClickText(cloud);
         });
@@ -412,10 +475,13 @@
         });
 
         cloud.addEventListener("click", () => {
+          // Si la nube es una de las nubes rojas especiales, carga la escena asociada
           if (cloud.id === "redCloud1") loadScene(1);
           else if (cloud.id === "redCloud2") loadScene(2);
           else if (cloud.id === "redCloud3") loadScene(3);
           else {
+            // Si no es una nube roja, teletransporta el `#cameraRig` a la posición de la nube
+            // Ajusta la altura sumando 1.6 para mantener la altura del usuario/cámara
             const pos = cloud.getAttribute("position");
             document
               .querySelector("#cameraRig")
@@ -427,10 +493,17 @@
         });
       }
 
+      /**
+       * attachCloudHandlers
+       * - Recorre todas las nubes del documento y aplica `enhanceCloud` a cada una.
+       * - Debe llamarse después de insertar elementos dinámicos en la escena.
+       */
       function attachCloudHandlers() {
         document.querySelectorAll(".cloud").forEach(enhanceCloud);
       }
 
+      // Cuando la página termina de cargar, attachCloudHandlers enlaza la interactividad
+      // y se carga la escena inicial (1).
       window.addEventListener("load", () => {
         attachCloudHandlers();
         loadScene(1);
