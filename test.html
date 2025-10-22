@@ -26,7 +26,8 @@
   </head>
   <body>
     <div class="hint">
-      WASD / arrow keys to move, mouse to look. Explore the forest!
+      WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
+      and controllers to point. Explore the forest!
     </div>
 
     <a-scene background="color: #87ceeb">
@@ -59,13 +60,50 @@
         position="0 0.01 0"
       ></a-entity>
 
-      <!-- Camera rig with WASD controls -->
-      <a-entity id="cameraRig" position="0 1.6 0">
+      <!-- Camera rig with WASD and VR controls -->
+      <a-entity
+        id="cameraRig"
+        position="0 1.6 0"
+        movement-controls="enabled: true; speed: 0.1;"
+        vr-thumbstick-controls
+      >
+        <!-- Camera and cursor -->
         <a-entity
+          id="head"
           camera
-          look-controls
-          wasd-controls="acceleration: 20"
-        ></a-entity>
+          look-controls="pointerLockEnabled: false"
+          position="0 0 0"
+          wasd-controls="enabled: false"
+        >
+          <a-entity
+            cursor="fuse: false"
+            raycaster="objects: .clickable"
+            position="0 0 -1"
+            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+            material="color: white; shader: flat"
+          >
+          </a-entity>
+        </a-entity>
+
+        <!-- Left Controller -->
+        <a-entity
+          id="leftHand"
+          hand-controls="hand: left"
+          laser-controls="hand: left"
+          raycaster="objects: .clickable"
+          line="color: #FF0000"
+        >
+        </a-entity>
+
+        <!-- Right Controller -->
+        <a-entity
+          id="rightHand"
+          hand-controls="hand: right"
+          laser-controls="hand: right"
+          raycaster="objects: .clickable"
+          line="color: #FF0000"
+        >
+        </a-entity>
       </a-entity>
 
       <!-- Trees replaced by samuu GLTF models (placeholders) -->
@@ -142,6 +180,46 @@
       ></a-entity>
 
       <script>
+        // VR Movement Controls component
+        AFRAME.registerComponent("vr-thumbstick-controls", {
+          init: function () {
+            this.moveSpeed = 0.1;
+            this.moveVec = new THREE.Vector3();
+            this.bindMethods();
+            this.setupListeners();
+          },
+
+          bindMethods: function () {
+            this.onAxisMove = this.onAxisMove.bind(this);
+          },
+
+          setupListeners: function () {
+            var el = this.el;
+            el.addEventListener("axismove", this.onAxisMove);
+          },
+
+          onAxisMove: function (evt) {
+            var dPad = evt.detail.axis;
+            // Only move if the thumbstick is being pushed
+            if (Math.abs(dPad[0]) > 0.2 || Math.abs(dPad[1]) > 0.2) {
+              // Get camera direction
+              var rotation = this.el.querySelector("#head").object3D.rotation.y;
+
+              // Calculate movement vector
+              this.moveVec.x = dPad[0];
+              this.moveVec.z = dPad[1];
+
+              // Apply camera rotation to movement
+              this.moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
+
+              // Update position
+              var pos = this.el.object3D.position;
+              pos.x -= this.moveVec.x * this.moveSpeed;
+              pos.z -= this.moveVec.z * this.moveSpeed;
+            }
+          },
+        });
+
         // Simple animal movement using circular paths
         AFRAME.registerComponent("animal-behavior", {
           schema: {
