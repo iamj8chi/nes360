@@ -65,7 +65,7 @@
         id="cameraRig"
         position="0 1.6 0"
         movement-controls="enabled: true; speed: 0.1;"
-        vr-thumbstick-controls
+        vr-locomotion="controllerHand: left"
       >
         <!-- Camera and cursor -->
         <a-entity
@@ -259,44 +259,109 @@
       ></a-entity>
 
       <script>
-        // VR Movement Controls component
-        AFRAME.registerComponent("vr-thumbstick-controls", {
+        // Improved VR locomotion component
+        AFRAME.registerComponent('vr-locomotion', {
+          schema: {
+            speed: { type: 'number', default: 2.0 },         // m/s
+            acceleration: { type: 'number', default: 6.0 },  // lerp factor per second
+            deceleration: { type: 'number', default: 8.0 },  // lerp factor per second
+            deadZone: { type: 'number', default: 0.18 },     // thumbstick deadzone
+            controllerHand: { type: 'string', default: 'left' }, // 'left'|'right'|'both'
+            useHeadDirection: { type: 'boolean', default: true },
+            stayGrounded: { type: 'boolean', default: true }
+          },
+
           init: function () {
-            this.moveSpeed = 0.1;
+            this.velocity = new THREE.Vector3();
             this.moveVec = new THREE.Vector3();
-            this.bindMethods();
-            this.setupListeners();
-          },
-
-          bindMethods: function () {
             this.onAxisMove = this.onAxisMove.bind(this);
+            this.bindControllerListeners();
+
+            // make collider-check available if present
+            this.colliderCheck = document.querySelector('a-scene').components['collider-check'];
           },
 
-          setupListeners: function () {
-            var el = this.el;
-            el.addEventListener("axismove", this.onAxisMove);
+          bindControllerListeners: function () {
+            // Listen on rig and also on possible controller entities
+            this.el.addEventListener('axismove', this.onAxisMove);
+            const left = this.el.querySelector('[hand-controls="hand: left"]');
+            const right = this.el.querySelector('[hand-controls="hand: right"]');
+            if (left) left.addEventListener('axismove', this.onAxisMove);
+            if (right) right.addEventListener('axismove', this.onAxisMove);
           },
 
           onAxisMove: function (evt) {
-            var dPad = evt.detail.axis;
-            // Only move if the thumbstick is being pushed
-            if (Math.abs(dPad[0]) > 0.2 || Math.abs(dPad[1]) > 0.2) {
-              // Get camera direction
-              var rotation = this.el.querySelector("#head").object3D.rotation.y;
+            const axes = evt.detail && evt.detail.axis;
+            if (!axes || axes.length < 2) return;
 
-              // Calculate movement vector
-              this.moveVec.x = dPad[0];
-              this.moveVec.z = dPad[1];
+            // Determine which hand produced the event (if available)
+            const target = evt.target;
+            const handAttr = (target && target.getAttribute) ? target.getAttribute('hand-controls') : null;
+            const isLeft = handAttr && handAttr.indexOf('left') !== -1;
+            const isRight = handAttr && handAttr.indexOf('right') !== -1;
 
-              // Apply camera rotation to movement
-              this.moveVec.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
+            if (this.data.controllerHand === 'left' && !isLeft) return;
+            if (this.data.controllerHand === 'right' && !isRight) return;
 
-              // Update position
-              var pos = this.el.object3D.position;
-              pos.x -= this.moveVec.x * this.moveSpeed;
-              pos.z -= this.moveVec.z * this.moveSpeed;
+            let ax = axes[0];
+            let ay = axes[1];
+
+            // Apply deadzone
+            if (Math.abs(ax) < this.data.deadZone) ax = 0;
+            if (Math.abs(ay) < this.data.deadZone) ay = 0;
+
+            // Store the desired local movement vector (x right, z forward)
+            this.moveVec.set(ax, 0, ay);
+          },
+
+          tick: function (time, dt) {
+            const delta = (dt || 0) / 1000;
+            if (delta <= 0) return;
+
+            // Desired local movement
+            if (this.moveVec.lengthSq() > 0.000001) {
+              const stickMag = Math.min(1, this.moveVec.length());
+              const desiredLocal = this.moveVec.clone().normalize().multiplyScalar(this.data.speed * stickMag);
+
+              if (this.data.useHeadDirection) {
+                const head = this.el.querySelector('#head');
+                if (head && head.object3D) {
+                  const yaw = head.object3D.rotation.y; // radians
+                  desiredLocal.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                }
+              }
+
+              // Smooth acceleration
+              this.velocity.lerp(desiredLocal, Math.min(1, this.data.acceleration * delta));
+            } else {
+              // Smooth deceleration to zero
+              this.velocity.lerp(new THREE.Vector3(0, 0, 0), Math.min(1, this.data.deceleration * delta));
+            }
+
+            // Apply velocity scaled by dt
+            const step = this.velocity.clone().multiplyScalar(delta);
+            const pos = this.el.object3D.position;
+            pos.add(step);
+
+            // Keep grounded if requested
+            if (this.data.stayGrounded) {
+              if (pos.y < 1.6) pos.y = 1.6;
+            }
+
+            // Run simple collider correction if the scene has collider-check
+            if (this.colliderCheck && typeof this.colliderCheck.tick === 'function') {
+              // call collider-check tick to nudge the rig out of colliders (best-effort)
+              try { this.colliderCheck.tick(); } catch (e) { /* ignore */ }
             }
           },
+
+          remove: function () {
+            this.el.removeEventListener('axismove', this.onAxisMove);
+            const left = this.el.querySelector('[hand-controls="hand: left"]');
+            const right = this.el.querySelector('[hand-controls="hand: right"]');
+            if (left) left.removeEventListener('axismove', this.onAxisMove);
+            if (right) right.removeEventListener('axismove', this.onAxisMove);
+          }
         });
 
         // Animal movement with organic motion
@@ -381,16 +446,6 @@
             // Apply rotation with wiggle
             this.el.setAttribute("rotation", 
               `${rotWiggleX} ${baseYaw + rotWiggleY} ${rotWiggleZ}`);
-            const curY = this.el.getAttribute("position")?.y ?? this.center.y;
-            this.el.setAttribute("position", `${nx} ${curY} ${nz}`);
-
-            // compute tangent direction and add yaw offset
-            const tx = Math.sin(ang) * r;
-            const tz = Math.cos(ang) * r;
-            // angle in radians where 0 points along +X; convert to degrees and set rotation around Y
-            const yaw =
-              (Math.atan2(tz, tx) * (180 / Math.PI)) + this.data.yawOffset + this.data.modelRotation;
-            this.el.setAttribute("rotation", `0 ${yaw} 0`);
           },
         });
 
@@ -446,54 +501,7 @@
         // enable collider-check on the scene so it runs each tick
         document.querySelector("a-scene").setAttribute("collider-check", "");
 
-        // Add random trees on page load
-        window.addEventListener("load", () => {
-          const treeContainer = document.querySelector("#trees");
-          const numTrees = 15; // number of additional random trees
-          const minDist = 5; // minimum distance between trees
-          const maxRadius = 40; // maximum distance from center
-
-          // Helper to get random position with minimum distance from existing trees
-          function getValidPosition() {
-            for (let attempts = 0; attempts < 50; attempts++) {
-              const angle = Math.random() * Math.PI * 2;
-              const radius = Math.random() * maxRadius;
-              const x = Math.cos(angle) * radius;
-              const z = Math.sin(angle) * radius;
-
-              // Check distance from existing trees
-              let valid = true;
-              const existingTrees = treeContainer.children;
-              for (let tree of existingTrees) {
-                const pos = tree.getAttribute("position");
-                const dx = x - pos.x;
-                const dz = z - pos.z;
-                const dist = Math.sqrt(dx * dx + dz * dz);
-                if (dist < minDist) {
-                  valid = false;
-                  break;
-                }
-              }
-              if (valid) return { x, z };
-            }
-            return null; // no valid position found
-          }
-
-          // Add random trees
-          for (let i = 0; i < numTrees; i++) {
-            const pos = getValidPosition();
-            if (pos) {
-              const scale = 2 + Math.random(); // random scale between 2-3
-              const tree = document.createElement("a-entity");
-              tree.setAttribute("gltf-model", "#samuuModel");
-              tree.setAttribute("position", `${pos.x} 0 ${pos.z}`);
-              tree.setAttribute("scale", `${scale} ${scale} ${scale}`);
-              tree.setAttribute("data-collider", "true");
-              tree.setAttribute("data-collider-radius", "1.6");
-              treeContainer.appendChild(tree);
-            }
-          }
-        });
+        // Random tree generator removed; trees are now placed statically in the scene.
       </script>
     </a-scene>
   </body>
