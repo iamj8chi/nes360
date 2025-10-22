@@ -60,6 +60,14 @@
         position="0 0.01 0"
       ></a-entity>
 
+      <!-- Yellow Ground (slightly raised) -->
+      <a-entity
+        geometry="primitive: circle; radius: 25; segments: 32"
+        material="color: #cfcf23"
+        rotation="-90 0 0"
+        position="0 0.03 0"
+      ></a-entity>
+
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
         id="cameraRig"
@@ -502,6 +510,46 @@
         document.querySelector("a-scene").setAttribute("collider-check", "");
 
         // Random tree generator removed; trees are now placed statically in the scene.
+        
+        // Ensure controllers appear reliably when entering VR
+        (function() {
+          const scene = document.querySelector('a-scene');
+          function initControllers() {
+            // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
+            ['leftHand','rightHand'].forEach(id => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              // If hand-controls already initialized, re-set to force re-check
+              const hand = el.getAttribute('hand-controls');
+              const laser = el.getAttribute('laser-controls');
+              if (hand) {
+                el.removeAttribute('hand-controls');
+                // small delay to let removal propagate
+                setTimeout(() => el.setAttribute('hand-controls', hand), 50);
+              }
+              if (laser) {
+                el.removeAttribute('laser-controls');
+                setTimeout(() => el.setAttribute('laser-controls', laser), 60);
+              }
+            });
+          }
+
+          // When session enters VR, try to initialize controllers (some browsers require this)
+          scene.addEventListener('enter-vr', () => {
+            // delay a little to allow XR session to start
+            setTimeout(initControllers, 200);
+          });
+
+          // When a controller connects, ensure its visuals are visible
+          window.addEventListener('gamepadconnected', (ev) => {
+            // re-init just in case
+            initControllers();
+          });
+          // A-Frame-specific event for WebXR controller connection
+          scene.addEventListener('controllerconnected', (ev) => {
+            initControllers();
+          });
+        })();
       </script>
     </a-scene>
   </body>
