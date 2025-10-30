@@ -173,6 +173,14 @@
     <a-scene
       fog="type: exponential; color: #FFD178; density: 0.02"
       background="color: #FFD178"
+      renderer="antialias: true; 
+                colorManagement: true; 
+                sortObjects: true; 
+                physicallyCorrectLights: false;
+                powerPreference: high-performance;
+                precision: mediump;
+                logarithmicDepthBuffer: false"
+      vr-mode-ui="enabled: true"
     >
       <a-assets>
         <!-- Model assets -->
@@ -215,7 +223,7 @@
       <a-ocean
         width="500"
         depth="500"
-        density="40"
+        density="20"
         opacity="0.9"
         position="30 -0.5 -10"
       ></a-ocean>
@@ -238,6 +246,8 @@
         scale="2 2 2"
         animation-mixer="clip: idle"
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
       <a-entity
         id="jaguarete"
@@ -247,6 +257,8 @@
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
       <a-entity
         id="nandu"
@@ -256,6 +268,8 @@
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
       <a-entity
         id="jurumi"
@@ -265,6 +279,8 @@
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
       <a-entity
         id="tagua"
@@ -274,6 +290,8 @@
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
       <a-entity
         id="tatu"
@@ -283,6 +301,8 @@
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
       ></a-entity>
 
       <!-- Camera rig with WASD and VR controls -->
@@ -301,11 +321,13 @@
           wasd-controls="enabled: false"
         >
           <a-entity
+            id="cursor"
             cursor="fuse: false"
             raycaster="objects: .clickable"
             position="0 0 -1"
             geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-            material="color: white; shader: flat"
+            material="color: white; shader: flat; opacity: 0.8"
+            visible="true"
           >
           </a-entity>
         </a-entity>
@@ -857,6 +879,7 @@
           animal-behavior="radius: 8; pathRotation: 30;"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -865,6 +888,7 @@
           animal-behavior="radius: 10; pathRotation: 20;"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -873,6 +897,7 @@
           animal-behavior="radius: 12; pathRotation: 10;"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -881,6 +906,7 @@
           animal-behavior="radius: 14; pathRotation: 0;"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -889,6 +915,7 @@
           animal-behavior="radius: 16; pathRotation: 10"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -897,6 +924,7 @@
           animal-behavior="radius: 18; pathRotation: 20"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
         <a-entity
           gltf-model="#flamengoModel"
@@ -905,6 +933,7 @@
           animal-behavior="radius: 20; pathRotation: 30"
           animation-mixer
           staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
         ></a-entity>
       </a-entity>
 
@@ -1451,6 +1480,105 @@
           },
         });
 
+        // Material optimizer for VR performance
+        AFRAME.registerComponent("material-optimizer", {
+          init: function () {
+            this.el.addEventListener("model-loaded", () => {
+              const obj = this.el.getObject3D("mesh");
+              if (!obj) return;
+
+              obj.traverse((node) => {
+                if (node.isMesh && node.material) {
+                  // Optimize material settings for VR
+                  if (Array.isArray(node.material)) {
+                    node.material.forEach((mat) => this.optimizeMaterial(mat));
+                  } else {
+                    this.optimizeMaterial(node.material);
+                  }
+
+                  // Enable geometry frustum culling
+                  node.frustumCulled = true;
+
+                  // Reduce shadow quality if far from camera
+                  if (node.castShadow) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                  }
+                }
+              });
+            });
+          },
+
+          optimizeMaterial: function (material) {
+            if (!material) return;
+
+            // Reduce shader precision for better performance
+            material.precision = "mediump";
+
+            // Disable features that are expensive in VR
+            if (material.map) {
+              material.map.anisotropy = 4; // Reduce from default 16
+            }
+
+            // Force material update
+            material.needsUpdate = true;
+          },
+        });
+
+        // Performance optimization: distance-based LOD and culling
+        AFRAME.registerComponent("performance-optimizer", {
+          schema: {
+            updateInterval: { type: "number", default: 200 }, // ms
+            nearDistance: { type: "number", default: 15 },
+            midDistance: { type: "number", default: 30 },
+            farDistance: { type: "number", default: 50 },
+          },
+          init: function () {
+            this.camera = null;
+            this.lastUpdate = 0;
+            this.tick = AFRAME.utils.throttleTick(
+              this.tick,
+              this.data.updateInterval,
+              this
+            );
+          },
+          tick: function (time, timeDelta) {
+            if (!this.camera) {
+              const cameraEl = document.querySelector("[camera]");
+              if (cameraEl) this.camera = cameraEl.object3D;
+              return;
+            }
+
+            const distance = this.el.object3D.position.distanceTo(
+              this.camera.position
+            );
+            const obj = this.el.object3D;
+
+            // Frustum culling - hide objects too far away
+            if (distance > this.data.farDistance) {
+              obj.visible = false;
+              return;
+            } else {
+              obj.visible = true;
+            }
+
+            // Distance-based animation optimization
+            const animMixer = this.el.components["animation-mixer"];
+            if (animMixer && animMixer.mixer) {
+              if (distance > this.data.midDistance) {
+                // Far objects: slow down or pause animations
+                animMixer.mixer.timeScale = 0.5;
+              } else if (distance > this.data.nearDistance) {
+                // Mid-range objects: normal speed
+                animMixer.mixer.timeScale = 0.8;
+              } else {
+                // Near objects: full speed
+                animMixer.mixer.timeScale = 1.0;
+              }
+            }
+          },
+        });
+
         // Staggered start: random negative delay to desynchronize animations
         AFRAME.registerComponent("staggered-start", {
           schema: {
@@ -1562,8 +1690,8 @@
 
                 light.castShadow = true;
                 // shadow map resolution - lower on slow devices if needed
-                light.shadow.mapSize.width = 8192; //2048
-                light.shadow.mapSize.height = 8192; //2048
+                light.shadow.mapSize.width = 2048; // Reduced from 8192 for VR performance
+                light.shadow.mapSize.height = 2048; // Reduced from 8192 for VR performance
                 var cam = light.shadow.camera;
                 // Expand the shadow camera frustum to cover the visible ground area.
                 // Ground is radius 50; give some padding.
@@ -1618,6 +1746,8 @@
         // Ensure controllers appear reliably when entering VR
         (function () {
           const scene = document.querySelector("a-scene");
+          const cursor = document.getElementById("cursor");
+          
           function initControllers() {
             // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
             ["leftHand", "rightHand"].forEach((id) => {
@@ -1640,8 +1770,19 @@
 
           // When session enters VR, try to initialize controllers (some browsers require this)
           scene.addEventListener("enter-vr", () => {
+            // Hide cursor in VR mode (controllers will be used instead)
+            if (cursor) {
+              cursor.setAttribute("visible", false);
+            }
             // delay a little to allow XR session to start
             setTimeout(initControllers, 200);
+          });
+          
+          // When exiting VR, show cursor again for desktop mode
+          scene.addEventListener("exit-vr", () => {
+            if (cursor) {
+              cursor.setAttribute("visible", true);
+            }
           });
 
           // When a controller connects, ensure its visuals are visible
