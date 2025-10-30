@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project is a 3D environment built using HTML and JavaScript, leveraging WebGL and A-Frame for rendering. The architecture is modular, with distinct components for models, controls, and scene management.
+This project is a 3D environment built using HTML and JavaScript, leveraging WebGL and A-Frame for rendering. The architecture is modular, with distinct components for models, controls, and scene management. The `.bbmodel` files are edited in Blockbench and then exported to `.glb` format for use within the project.
 
 ## Architecture
 
-- **Components**: The project is structured around reusable components, primarily located in the `assets/models` directory. Each model is defined in `.bbmodel` files, which are loaded dynamically.
+- **Components**: The project is structured around reusable components, primarily located in the `assets/models` directory. Each model is defined in `.glb` files, which are loaded dynamically.
 - **Data Flow**: Data is passed between components through properties and events. For example, the speed and acceleration of objects are managed through the `this.data` object in the JavaScript files.
 - **Service Boundaries**: The main service boundaries are defined by the different models and their interactions within the scene. Understanding how these models communicate is crucial for extending functionality.
 
@@ -18,7 +18,7 @@ This project is a 3D environment built using HTML and JavaScript, leveraging Web
 
 ## Project-Specific Conventions
 
-- **Model Naming**: Models in the `assets/models` directory follow a naming convention that reflects their purpose (e.g., `flamingo.bbmodel` for a flamingo model).
+- **Model Naming**: Models in the `assets/models` directory follow a naming convention that reflects their purpose (e.g., `flamingo.glb` for a flamingo model).
 - **Event Handling**: Custom events are used for communication between components. For example, when a model is clicked, it triggers an event that other components can listen to.
 
 ## Integration Points
