@@ -237,6 +237,25 @@
         position="0 0.01 0"
       ></a-entity>
 
+      <!-- Height reference cube: 1.7 meters tall -->
+      <a-box
+        id="heightReference"
+        position="0 0.85 -3"
+        width="0.3"
+        height="1.7"
+        depth="0.3"
+        color="#FF6B6B"
+        shadow="cast: true; receive: true"
+      >
+        <a-text
+          value="1.7m"
+          align="center"
+          position="0 0.9 0"
+          scale="0.5 0.5 0.5"
+          color="#FFFFFF"
+        ></a-text>
+      </a-box>
+
       <!-- New showcase models -->
       <a-entity
         id="flamengo"
@@ -312,7 +331,7 @@
         movement-controls="enabled: true; speed: 0.1;"
         vr-locomotion="controllerHand: left"
       >
-        <!-- Camera and cursor -->
+        <!-- Camera -->
         <a-entity
           id="head"
           camera
@@ -320,16 +339,6 @@
           position="0 0 0"
           wasd-controls="enabled: false"
         >
-          <a-entity
-            id="cursor"
-            cursor="fuse: false"
-            raycaster="objects: .clickable"
-            position="0 0 -1"
-            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-            material="color: white; shader: flat; opacity: 0.8"
-            visible="true"
-          >
-          </a-entity>
         </a-entity>
 
         <!-- Left Controller -->
@@ -1746,8 +1755,7 @@
         // Ensure controllers appear reliably when entering VR
         (function () {
           const scene = document.querySelector("a-scene");
-          const cursor = document.getElementById("cursor");
-          
+
           function initControllers() {
             // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
             ["leftHand", "rightHand"].forEach((id) => {
@@ -1770,19 +1778,8 @@
 
           // When session enters VR, try to initialize controllers (some browsers require this)
           scene.addEventListener("enter-vr", () => {
-            // Hide cursor in VR mode (controllers will be used instead)
-            if (cursor) {
-              cursor.setAttribute("visible", false);
-            }
             // delay a little to allow XR session to start
             setTimeout(initControllers, 200);
-          });
-          
-          // When exiting VR, show cursor again for desktop mode
-          scene.addEventListener("exit-vr", () => {
-            if (cursor) {
-              cursor.setAttribute("visible", true);
-            }
           });
 
           // When a controller connects, ensure its visuals are visible
