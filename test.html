@@ -183,8 +183,11 @@
       vr-mode-ui="enabled: true"
     >
       <!-- Safari Game Manager -->
-      <a-entity id="gameManager" safari-game-manager="timeLimit: 300"></a-entity>
-      
+      <a-entity
+        id="gameManager"
+        safari-game-manager="timeLimit: 300"
+      ></a-entity>
+
       <a-assets>
         <!-- Model assets -->
         <a-asset-item id="samuuModel" src="assets/samuu.glb"></a-asset-item>
@@ -1025,95 +1028,117 @@
 
       <script>
         // ===== SAFARI GAME COMPONENTS =====
-        
+
         // Safari Game Manager - Core game logic
         AFRAME.registerComponent("safari-game-manager", {
           schema: {
             timeLimit: { type: "number", default: 300 }, // 5 minutes in seconds
           },
-          
+
           init: function () {
             this.gameActive = false;
             this.timeRemaining = this.data.timeLimit;
             this.animalsFound = new Set();
             this.totalAnimals = 6;
-            this.animalTypes = ["flamingo", "jaguarete", "nandu", "jurumi", "tagua", "tatu"];
-            
+            this.animalTypes = [
+              "flamingo",
+              "jaguarete",
+              "nandu",
+              "jurumi",
+              "tagua",
+              "tatu",
+            ];
+
             // Bind methods
             this.startGame = this.startGame.bind(this);
             this.endGame = this.endGame.bind(this);
             this.resetGame = this.resetGame.bind(this);
             this.checkAnimal = this.checkAnimal.bind(this);
-            
+
             // Listen for start game event
-            this.el.sceneEl.addEventListener("safari-start-game", this.startGame);
-            
+            this.el.sceneEl.addEventListener(
+              "safari-start-game",
+              this.startGame
+            );
+
             // Listen for animal found events
             this.el.sceneEl.addEventListener("safari-animal-clicked", (evt) => {
               if (this.gameActive) {
                 this.checkAnimal(evt.detail.animalType);
               }
             });
-            
+
             console.log("Safari Game Manager initialized");
           },
-          
+
           startGame: function () {
             console.log("Starting Safari Game!");
             this.gameActive = true;
             this.timeRemaining = this.data.timeLimit;
             this.animalsFound.clear();
-            
+
             // Hide orbs
             const gameOrbs = document.getElementById("gameOrbs");
             if (gameOrbs) {
               gameOrbs.setAttribute("visible", false);
             }
-            
+
             // Emit game started event
             this.el.sceneEl.emit("safari-game-started");
-            
+
             // Show start message
             this.showMessage("FIND ALL 6 ANIMALS!", 3000);
           },
-          
+
           checkAnimal: function (animalType) {
             if (!this.gameActive) return;
-            
+
             if (this.animalsFound.has(animalType)) {
               console.log(`Animal ${animalType} already found!`);
               return;
             }
-            
+
             this.animalsFound.add(animalType);
-            console.log(`Found ${animalType}! (${this.animalsFound.size}/${this.totalAnimals})`);
-            
+            console.log(
+              `Found ${animalType}! (${this.animalsFound.size}/${this.totalAnimals})`
+            );
+
             // Emit animal found event
             this.el.sceneEl.emit("safari-animal-found", {
               animalType: animalType,
               totalFound: this.animalsFound.size,
-              totalAnimals: this.totalAnimals
+              totalAnimals: this.totalAnimals,
             });
-            
+
             // Check win condition
             if (this.animalsFound.size >= this.totalAnimals) {
               setTimeout(() => this.endGame(true), 500);
             }
           },
-          
+
           endGame: function (won) {
             if (!this.gameActive) return;
-            
+
             this.gameActive = false;
-            
+
             if (won) {
-              const minutes = Math.floor((this.data.timeLimit - this.timeRemaining) / 60);
+              const minutes = Math.floor(
+                (this.data.timeLimit - this.timeRemaining) / 60
+              );
               const seconds = (this.data.timeLimit - this.timeRemaining) % 60;
-              this.showMessage(`YOU WIN!\nTime: ${minutes}:${seconds.toString().padStart(2, '0')}`, 5000);
+              this.showMessage(
+                `YOU WIN!\nTime: ${minutes}:${seconds
+                  .toString()
+                  .padStart(2, "0")}`,
+                5000
+              );
             } else {
-              this.showMessage(`TIME'S UP!\nFound: ${this.animalsFound.size}/${this.totalAnimals}`, 5000);
+              this.showMessage(
+                `TIME'S UP!\nFound: ${this.animalsFound.size}/${this.totalAnimals}`,
+                5000
+              );
             }
-            
+
             // Show orbs again after delay
             setTimeout(() => {
               const gameOrbs = document.getElementById("gameOrbs");
@@ -1121,20 +1146,20 @@
                 gameOrbs.setAttribute("visible", true);
               }
             }, 5000);
-            
+
             // Emit game ended event
             this.el.sceneEl.emit("safari-game-ended", { won: won });
           },
-          
+
           resetGame: function () {
             this.gameActive = false;
             this.timeRemaining = this.data.timeLimit;
             this.animalsFound.clear();
-            
+
             // Reset all animals
             this.el.sceneEl.emit("safari-game-reset");
           },
-          
+
           showMessage: function (text, duration) {
             // Create or update message entity
             let messageEl = document.getElementById("gameMessage");
@@ -1148,42 +1173,42 @@
               messageEl.setAttribute("shader", "flat");
               this.el.sceneEl.appendChild(messageEl);
             }
-            
+
             messageEl.setAttribute("value", text);
             messageEl.setAttribute("visible", true);
-            
+
             if (duration) {
               setTimeout(() => {
                 messageEl.setAttribute("visible", false);
               }, duration);
             }
           },
-          
+
           tick: function (time, timeDelta) {
             if (!this.gameActive) return;
-            
+
             // Update timer
             this.timeRemaining -= timeDelta / 1000;
-            
+
             if (this.timeRemaining <= 0) {
               this.timeRemaining = 0;
               this.endGame(false);
             }
-            
+
             // Emit timer update
             this.el.sceneEl.emit("safari-timer-update", {
               timeRemaining: this.timeRemaining,
-              timeLimit: this.data.timeLimit
+              timeLimit: this.data.timeLimit,
             });
-          }
+          },
         });
-        
+
         // Animal Highlighter - Visual feedback when pointing at animals
         AFRAME.registerComponent("animal-highlighter", {
           init: function () {
             this.originalMaterials = new Map();
             this.highlighted = null;
-            
+
             // Listen for raycaster intersection events
             this.el.addEventListener("raycaster-intersection", (evt) => {
               const intersectedEl = evt.detail.els[0];
@@ -1191,50 +1216,55 @@
                 this.highlightAnimal(intersectedEl);
               }
             });
-            
-            this.el.addEventListener("raycaster-intersection-cleared", (evt) => {
-              if (this.highlighted) {
-                this.unhighlightAnimal(this.highlighted);
+
+            this.el.addEventListener(
+              "raycaster-intersection-cleared",
+              (evt) => {
+                if (this.highlighted) {
+                  this.unhighlightAnimal(this.highlighted);
+                }
               }
-            });
+            );
           },
-          
+
           highlightAnimal: function (animalEl) {
             if (this.highlighted === animalEl) return;
-            
+
             // Unhighlight previous
             if (this.highlighted) {
               this.unhighlightAnimal(this.highlighted);
             }
-            
+
             this.highlighted = animalEl;
             const obj = animalEl.getObject3D("mesh");
             if (!obj) return;
-            
+
             // Store original materials and apply highlight
             obj.traverse((node) => {
               if (node.isMesh && node.material) {
                 if (!this.originalMaterials.has(node)) {
                   this.originalMaterials.set(node, {
-                    emissive: node.material.emissive ? node.material.emissive.clone() : null,
-                    emissiveIntensity: node.material.emissiveIntensity || 0
+                    emissive: node.material.emissive
+                      ? node.material.emissive.clone()
+                      : null,
+                    emissiveIntensity: node.material.emissiveIntensity || 0,
                   });
                 }
-                
+
                 // Add highlight glow
                 if (node.material.emissive) {
-                  node.material.emissive.setHex(0xFFFF00); // Yellow glow
+                  node.material.emissive.setHex(0xffff00); // Yellow glow
                   node.material.emissiveIntensity = 0.5;
                   node.material.needsUpdate = true;
                 }
               }
             });
           },
-          
+
           unhighlightAnimal: function (animalEl) {
             const obj = animalEl.getObject3D("mesh");
             if (!obj) return;
-            
+
             // Restore original materials
             obj.traverse((node) => {
               if (node.isMesh && node.material) {
@@ -1248,29 +1278,29 @@
                 }
               }
             });
-            
+
             this.highlighted = null;
-          }
+          },
         });
-        
+
         // Animal Clickable - Handle clicking on animals
         AFRAME.registerComponent("animal-clickable", {
           init: function () {
             this.found = false;
             this.animalType = this.el.getAttribute("data-animal-type");
-            
+
             // Listen for click events from raycaster
             this.el.addEventListener("click", () => {
               if (!this.found) {
                 this.onFound();
               }
             });
-            
+
             // Listen for game reset
             this.el.sceneEl.addEventListener("safari-game-reset", () => {
               this.reset();
             });
-            
+
             // Check if animal was found
             this.el.sceneEl.addEventListener("safari-animal-found", (evt) => {
               if (evt.detail.animalType === this.animalType) {
@@ -1278,41 +1308,41 @@
               }
             });
           },
-          
+
           onFound: function () {
             console.log(`Clicked on ${this.animalType}`);
-            
+
             // Emit animal clicked event
             this.el.sceneEl.emit("safari-animal-clicked", {
               animalType: this.animalType,
-              element: this.el
+              element: this.el,
             });
           },
-          
+
           markAsFound: function () {
             this.found = true;
             const obj = this.el.getObject3D("mesh");
             if (!obj) return;
-            
+
             // Add permanent green glow
             obj.traverse((node) => {
               if (node.isMesh && node.material) {
                 if (node.material.emissive) {
-                  node.material.emissive.setHex(0x00FF00); // Green glow
+                  node.material.emissive.setHex(0x00ff00); // Green glow
                   node.material.emissiveIntensity = 0.8;
                   node.material.needsUpdate = true;
                 }
               }
             });
-            
+
             console.log(`${this.animalType} marked as found!`);
           },
-          
+
           reset: function () {
             this.found = false;
             const obj = this.el.getObject3D("mesh");
             if (!obj) return;
-            
+
             // Reset to original
             obj.traverse((node) => {
               if (node.isMesh && node.material) {
@@ -1323,9 +1353,9 @@
                 }
               }
             });
-          }
+          },
         });
-        
+
         // Orb Controller - Handle orb clicks
         AFRAME.registerComponent("orb-controller", {
           init: function () {
@@ -1334,41 +1364,41 @@
                 this.el.sceneEl.emit("safari-start-game");
               }
             });
-          }
+          },
         });
-        
+
         // Progress UI - Display on left hand
         AFRAME.registerComponent("progress-ui", {
           init: function () {
             this.animalsFound = new Set();
             this.timeRemaining = 300;
-            
+
             // Create UI panel
             this.createUI();
-            
+
             // Listen for game events
             this.el.sceneEl.addEventListener("safari-game-started", () => {
               this.show();
               this.reset();
             });
-            
+
             this.el.sceneEl.addEventListener("safari-animal-found", (evt) => {
               this.updateAnimal(evt.detail.animalType, true);
             });
-            
+
             this.el.sceneEl.addEventListener("safari-timer-update", (evt) => {
               this.updateTimer(evt.detail.timeRemaining);
             });
-            
+
             this.el.sceneEl.addEventListener("safari-game-ended", () => {
               setTimeout(() => this.hide(), 3000);
             });
-            
+
             this.el.sceneEl.addEventListener("safari-game-reset", () => {
               this.reset();
             });
           },
-          
+
           createUI: function () {
             // Main panel
             const panel = document.createElement("a-plane");
@@ -1381,7 +1411,7 @@
             panel.setAttribute("opacity", "0.9");
             panel.setAttribute("visible", "false");
             this.el.appendChild(panel);
-            
+
             // Title
             const title = document.createElement("a-text");
             title.setAttribute("value", "ANIMALS");
@@ -1392,42 +1422,59 @@
             title.setAttribute("scale", "0.6 0.6 0.6");
             title.setAttribute("color", "#FFFFFF");
             this.el.appendChild(title);
-            
+
             // Animal icons (2 rows x 3 columns)
-            const animals = ["flamingo", "jaguarete", "nandu", "jurumi", "tagua", "tatu"];
+            const animals = [
+              "flamingo",
+              "jaguarete",
+              "nandu",
+              "jurumi",
+              "tagua",
+              "tatu",
+            ];
             const labels = ["F", "J", "N", "JR", "T", "TT"];
             const positions = [
-              [-0.12, 0.09], [-0.08, 0.09], [-0.04, 0.09],  // Top row
-              [-0.12, 0.05], [-0.08, 0.05], [-0.04, 0.05]   // Bottom row
+              [-0.12, 0.09],
+              [-0.08, 0.09],
+              [-0.04, 0.09], // Top row
+              [-0.12, 0.05],
+              [-0.08, 0.05],
+              [-0.04, 0.05], // Bottom row
             ];
-            
+
             this.icons = {};
-            
+
             animals.forEach((animal, i) => {
               // Icon background
               const iconBg = document.createElement("a-plane");
               iconBg.setAttribute("id", `icon-${animal}`);
-              iconBg.setAttribute("position", `${positions[i][0]} ${positions[i][1]} -0.119`);
+              iconBg.setAttribute(
+                "position",
+                `${positions[i][0]} ${positions[i][1]} -0.119`
+              );
               iconBg.setAttribute("rotation", "15 45 0");
               iconBg.setAttribute("width", "0.03");
               iconBg.setAttribute("height", "0.03");
               iconBg.setAttribute("color", "#444444");
               this.el.appendChild(iconBg);
-              
+
               // Icon label
               const iconLabel = document.createElement("a-text");
               iconLabel.setAttribute("value", labels[i]);
               iconLabel.setAttribute("align", "center");
-              iconLabel.setAttribute("position", `${positions[i][0]} ${positions[i][1]} -0.118`);
+              iconLabel.setAttribute(
+                "position",
+                `${positions[i][0]} ${positions[i][1]} -0.118`
+              );
               iconLabel.setAttribute("rotation", "15 45 0");
               iconLabel.setAttribute("width", "0.15");
               iconLabel.setAttribute("scale", "0.4 0.4 0.4");
               iconLabel.setAttribute("color", "#FFFFFF");
               this.el.appendChild(iconLabel);
-              
+
               this.icons[animal] = iconBg;
             });
-            
+
             // Timer display
             this.timerText = document.createElement("a-text");
             this.timerText.setAttribute("id", "timerDisplay");
@@ -1439,32 +1486,32 @@
             this.timerText.setAttribute("scale", "0.5 0.5 0.5");
             this.timerText.setAttribute("color", "#FFFFFF");
             this.el.appendChild(this.timerText);
-            
+
             console.log("Progress UI created");
           },
-          
+
           show: function () {
             const panel = this.el.querySelector("#progressPanel");
             if (panel) panel.setAttribute("visible", true);
           },
-          
+
           hide: function () {
             const panel = this.el.querySelector("#progressPanel");
             if (panel) panel.setAttribute("visible", false);
           },
-          
+
           reset: function () {
             this.animalsFound.clear();
-            Object.keys(this.icons).forEach(animal => {
+            Object.keys(this.icons).forEach((animal) => {
               this.updateAnimal(animal, false);
             });
             this.updateTimer(300);
           },
-          
+
           updateAnimal: function (animalType, found) {
             const icon = this.icons[animalType];
             if (!icon) return;
-            
+
             if (found) {
               this.animalsFound.add(animalType);
               icon.setAttribute("color", "#00FF00"); // Green
@@ -1472,15 +1519,15 @@
               icon.setAttribute("color", "#444444"); // Gray
             }
           },
-          
+
           updateTimer: function (seconds) {
             const minutes = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
-            const timeStr = `${minutes}:${secs.toString().padStart(2, '0')}`;
-            
+            const timeStr = `${minutes}:${secs.toString().padStart(2, "0")}`;
+
             if (this.timerText) {
               this.timerText.setAttribute("value", timeStr);
-              
+
               // Change color based on time
               if (seconds < 60) {
                 this.timerText.setAttribute("color", "#FF0000"); // Red
@@ -1490,7 +1537,7 @@
                 this.timerText.setAttribute("color", "#FFFFFF"); // White
               }
             }
-          }
+          },
         });
 
         // Composite tree: combines base model and animated canopy
