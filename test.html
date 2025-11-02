@@ -207,6 +207,21 @@
         <a-asset-item id="jurumiModel" src="assets/jurumi.glb"></a-asset-item>
         <a-asset-item id="taguaModel" src="assets/tagua.glb"></a-asset-item>
         <a-asset-item id="tatuModel" src="assets/tatu.glb"></a-asset-item>
+
+        <!-- UI assets for animal tracker -->
+        <img id="trackerBg" src="assets/ui/tracker-background.png" />
+        <img id="flamengoCheck" src="assets/ui/flamengo-check.png" />
+        <img id="flamengoUncheck" src="assets/ui/flamengo-uncheck.png" />
+        <img id="jaguareteCheck" src="assets/ui/jaguarete-check.png" />
+        <img id="jaguareteUncheck" src="assets/ui/jaguarete-uncheck.png" />
+        <img id="nanduCheck" src="assets/ui/nandu-check.png" />
+        <img id="nanduUncheck" src="assets/ui/nandu-uncheck.png" />
+        <img id="jurumiCheck" src="assets/ui/jurumi-check.png" />
+        <img id="jurumiUncheck" src="assets/ui/jurumi-uncheck.png" />
+        <img id="taguaCheck" src="assets/ui/tagua-check.png" />
+        <img id="taguaUncheck" src="assets/ui/tagua-uncheck.png" />
+        <img id="tatuCheck" src="assets/ui/tatu-check.png" />
+        <img id="tatuUncheck" src="assets/ui/tatu-uncheck.png" />
       </a-assets>
 
       <!-- Sky -->
@@ -401,7 +416,7 @@
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
         id="cameraRig"
-        position="0 0 0"
+        position="0 -1.6 0"
         movement-controls="enabled: true; speed: 0.1;"
         vr-locomotion="controllerHand: left"
       >
@@ -1424,7 +1439,7 @@
           },
         });
 
-        // Progress UI - Display on left hand
+        // Progress UI - Display on left hand with image-based tracker
         AFRAME.registerComponent("progress-ui", {
           init: function () {
             this.animalsFound = new Set();
@@ -1457,33 +1472,44 @@
           },
 
           createUI: function () {
-            // Main panel
-            const panel = document.createElement("a-plane");
-            panel.setAttribute("id", "progressPanel");
-            panel.setAttribute("position", "-0.08 0.05 -0.12");
-            panel.setAttribute("rotation", "15 45 0");
-            panel.setAttribute("width", "0.15");
-            panel.setAttribute("height", "0.2");
-            panel.setAttribute("color", "#222222");
-            panel.setAttribute("opacity", "0.9");
-            panel.setAttribute("visible", "false");
-            this.el.appendChild(panel);
+            // Background tracker image
+            const bgTracker = document.createElement("a-image");
+            bgTracker.setAttribute("id", "trackerBackground");
+            bgTracker.setAttribute("src", "#trackerBg");
+            bgTracker.setAttribute("position", "-0.08 0.08 -0.12");
+            bgTracker.setAttribute("rotation", "15 45 0");
+            bgTracker.setAttribute("width", "0.2");
+            bgTracker.setAttribute("height", "0.24");
+            bgTracker.setAttribute("visible", "false");
+            bgTracker.setAttribute("shader", "flat");
+            this.el.appendChild(bgTracker);
 
-            // Title
-            const title = document.createElement("a-text");
-            title.setAttribute("value", "ANIMALS");
-            title.setAttribute("align", "center");
-            title.setAttribute("position", "-0.08 0.14 -0.11");
-            title.setAttribute("rotation", "15 45 0");
-            title.setAttribute("width", "0.15");
-            title.setAttribute("scale", "0.6 0.6 0.6");
-            title.setAttribute("color", "#FFFFFF");
-            title.setAttribute("shader", "msdf");
-            title.setAttribute("outline-width", "10%");
-            title.setAttribute("outline-color", "#000000");
-            this.el.appendChild(title);
+            // Animal icon mapping
+            const animalData = {
+              flamingo: {
+                checkId: "#flamengoCheck",
+                uncheckId: "#flamengoUncheck",
+              },
+              jaguarete: {
+                checkId: "#jaguareteCheck",
+                uncheckId: "#jaguareteUncheck",
+              },
+              nandu: { checkId: "#nanduCheck", uncheckId: "#nanduUncheck" },
+              jurumi: { checkId: "#jurumiCheck", uncheckId: "#jurumiUncheck" },
+              tagua: { checkId: "#taguaCheck", uncheckId: "#taguaUncheck" },
+              tatu: { checkId: "#tatuCheck", uncheckId: "#tatuUncheck" },
+            };
 
-            // Animal icons (2 rows x 3 columns)
+            // Layout positions for icons (2 rows x 3 columns)
+            const positions = [
+              [-0.13, 0.15], // flamingo - top left
+              [-0.08, 0.15], // jaguarete - top center
+              [-0.03, 0.15], // nandu - top right
+              [-0.13, 0.08], // jurumi - bottom left
+              [-0.08, 0.08], // tagua - bottom center
+              [-0.03, 0.08], // tatu - bottom right
+            ];
+
             const animals = [
               "flamingo",
               "jaguarete",
@@ -1492,78 +1518,90 @@
               "tagua",
               "tatu",
             ];
-            const labels = ["F", "J", "N", "JR", "T", "TT"];
-            const positions = [
-              [-0.12, 0.09],
-              [-0.08, 0.09],
-              [-0.04, 0.09], // Top row
-              [-0.12, 0.05],
-              [-0.08, 0.05],
-              [-0.04, 0.05], // Bottom row
-            ];
-
             this.icons = {};
 
             animals.forEach((animal, i) => {
-              // Icon background
-              const iconBg = document.createElement("a-plane");
-              iconBg.setAttribute("id", `icon-${animal}`);
-              iconBg.setAttribute(
+              // Create checked version (initially hidden)
+              const checkedIcon = document.createElement("a-image");
+              checkedIcon.setAttribute("id", `icon-${animal}-checked`);
+              checkedIcon.setAttribute("src", animalData[animal].checkId);
+              checkedIcon.setAttribute(
                 "position",
                 `${positions[i][0]} ${positions[i][1]} -0.119`
               );
-              iconBg.setAttribute("rotation", "15 45 0");
-              iconBg.setAttribute("width", "0.03");
-              iconBg.setAttribute("height", "0.03");
-              iconBg.setAttribute("color", "#444444");
-              this.el.appendChild(iconBg);
+              checkedIcon.setAttribute("rotation", "15 45 0");
+              checkedIcon.setAttribute("width", "0.04");
+              checkedIcon.setAttribute("height", "0.04");
+              checkedIcon.setAttribute("visible", "false");
+              checkedIcon.setAttribute("shader", "flat");
+              checkedIcon.setAttribute("transparent", "true");
+              this.el.appendChild(checkedIcon);
 
-              // Icon label
-              const iconLabel = document.createElement("a-text");
-              iconLabel.setAttribute("value", labels[i]);
-              iconLabel.setAttribute("align", "center");
-              iconLabel.setAttribute(
+              // Create unchecked version (initially visible)
+              const uncheckedIcon = document.createElement("a-image");
+              uncheckedIcon.setAttribute("id", `icon-${animal}-unchecked`);
+              uncheckedIcon.setAttribute("src", animalData[animal].uncheckId);
+              uncheckedIcon.setAttribute(
                 "position",
-                `${positions[i][0]} ${positions[i][1]} -0.118`
+                `${positions[i][0]} ${positions[i][1]} -0.119`
               );
-              iconLabel.setAttribute("rotation", "15 45 0");
-              iconLabel.setAttribute("width", "0.15");
-              iconLabel.setAttribute("scale", "0.4 0.4 0.4");
-              iconLabel.setAttribute("color", "#FFFFFF");
-              iconLabel.setAttribute("shader", "msdf");
-              iconLabel.setAttribute("outline-width", "8%");
-              iconLabel.setAttribute("outline-color", "#000000");
-              this.el.appendChild(iconLabel);
+              uncheckedIcon.setAttribute("rotation", "15 45 0");
+              uncheckedIcon.setAttribute("width", "0.04");
+              uncheckedIcon.setAttribute("height", "0.04");
+              uncheckedIcon.setAttribute("visible", "false");
+              uncheckedIcon.setAttribute("shader", "flat");
+              uncheckedIcon.setAttribute("transparent", "true");
+              this.el.appendChild(uncheckedIcon);
 
-              this.icons[animal] = iconBg;
+              this.icons[animal] = {
+                checked: checkedIcon,
+                unchecked: uncheckedIcon,
+              };
             });
 
-            // Timer display
+            // Timer display at the bottom
             this.timerText = document.createElement("a-text");
             this.timerText.setAttribute("id", "timerDisplay");
             this.timerText.setAttribute("value", "5:00");
             this.timerText.setAttribute("align", "center");
             this.timerText.setAttribute("position", "-0.08 0.00 -0.11");
             this.timerText.setAttribute("rotation", "15 45 0");
-            this.timerText.setAttribute("width", "0.15");
-            this.timerText.setAttribute("scale", "0.5 0.5 0.5");
+            this.timerText.setAttribute("width", "0.2");
+            this.timerText.setAttribute("scale", "0.7 0.7 0.7");
             this.timerText.setAttribute("color", "#FFFFFF");
             this.timerText.setAttribute("shader", "msdf");
-            this.timerText.setAttribute("outline-width", "10%");
+            this.timerText.setAttribute("outline-width", "12%");
             this.timerText.setAttribute("outline-color", "#000000");
+            this.timerText.setAttribute("visible", "false");
             this.el.appendChild(this.timerText);
 
-            console.log("Progress UI created");
+            console.log("Image-based Progress UI created");
           },
 
           show: function () {
-            const panel = this.el.querySelector("#progressPanel");
-            if (panel) panel.setAttribute("visible", true);
+            const bg = this.el.querySelector("#trackerBackground");
+            if (bg) bg.setAttribute("visible", true);
+            if (this.timerText) this.timerText.setAttribute("visible", true);
+
+            // Show all unchecked icons
+            Object.keys(this.icons).forEach((animal) => {
+              const icon = this.icons[animal];
+              icon.unchecked.setAttribute("visible", true);
+              icon.checked.setAttribute("visible", false);
+            });
           },
 
           hide: function () {
-            const panel = this.el.querySelector("#progressPanel");
-            if (panel) panel.setAttribute("visible", false);
+            const bg = this.el.querySelector("#trackerBackground");
+            if (bg) bg.setAttribute("visible", false);
+            if (this.timerText) this.timerText.setAttribute("visible", false);
+
+            // Hide all icons
+            Object.keys(this.icons).forEach((animal) => {
+              const icon = this.icons[animal];
+              icon.unchecked.setAttribute("visible", false);
+              icon.checked.setAttribute("visible", false);
+            });
           },
 
           reset: function () {
@@ -1580,9 +1618,11 @@
 
             if (found) {
               this.animalsFound.add(animalType);
-              icon.setAttribute("color", "#00FF00"); // Green
+              icon.unchecked.setAttribute("visible", false);
+              icon.checked.setAttribute("visible", true);
             } else {
-              icon.setAttribute("color", "#444444"); // Gray
+              icon.checked.setAttribute("visible", false);
+              icon.unchecked.setAttribute("visible", true);
             }
           },
 
