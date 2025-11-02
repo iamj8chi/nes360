@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>A-Frame Forest Demo</title>
+    <title>No Estan Solos 360° VR | Zet Studios</title>
     <script src="dist/aframe.min.js"></script>
     <script src="dist/aframe-extras.min.js"></script>
     <script>
@@ -430,24 +430,21 @@
         >
         </a-entity>
 
-        <!-- Left Controller -->
+        <!-- Left Controller - Holds the tracker UI -->
         <a-entity
           id="leftHand"
-          hand-controls="hand: left"
-          laser-controls="hand: left"
-          raycaster="objects: .clickable"
-          line="color: #FF0000"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
           progress-ui
         >
         </a-entity>
 
-        <!-- Right Controller -->
+        <!-- Right Controller - Point and click controller -->
         <a-entity
           id="rightHand"
-          hand-controls="hand: right"
+          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
           laser-controls="hand: right"
-          raycaster="objects: .clickable; far: 20"
-          line="color: #FF0000"
+          raycaster="objects: .clickable, .animal; far: 20"
+          line="color: #FF0000; opacity: 0.75"
           animal-highlighter
         >
         </a-entity>
@@ -1262,6 +1259,7 @@
               // If no animal intersected but we had one highlighted, clear it
               if (!animalFound && this.highlighted) {
                 this.unhighlightAnimal(this.highlighted);
+                this.highlighted = null;
                 this.currentIntersected = null;
               }
             });
@@ -1271,6 +1269,7 @@
               (evt) => {
                 if (this.highlighted) {
                   this.unhighlightAnimal(this.highlighted);
+                  this.highlighted = null;
                   this.currentIntersected = null;
                 }
               }
@@ -1318,10 +1317,16 @@
           },
 
           unhighlightAnimal: function (animalEl) {
-            if (!animalEl) return;
+            if (!animalEl) {
+              this.highlighted = null;
+              return;
+            }
 
             const obj = animalEl.getObject3D("mesh");
-            if (!obj) return;
+            if (!obj) {
+              this.highlighted = null;
+              return;
+            }
 
             // Check if animal is found - if so, restore green, not original
             const clickable = animalEl.components["animal-clickable"];
@@ -1340,11 +1345,19 @@
                   // Restore original materials for unfound animals
                   const original = this.originalMaterials.get(node);
                   if (original) {
-                    if (original.emissive) {
+                    if (original.emissive && node.material.emissive) {
                       node.material.emissive.copy(original.emissive);
+                    } else if (node.material.emissive) {
+                      node.material.emissive.setHex(0x000000);
                     }
                     node.material.emissiveIntensity =
                       original.emissiveIntensity;
+                  } else {
+                    // Fallback: reset to black
+                    if (node.material.emissive) {
+                      node.material.emissive.setHex(0x000000);
+                      node.material.emissiveIntensity = 0;
+                    }
                   }
                 }
                 node.material.needsUpdate = true;
@@ -1472,12 +1485,12 @@
           },
 
           createUI: function () {
-            // Background tracker image
+            // Background tracker image - positioned on wrist
             const bgTracker = document.createElement("a-image");
             bgTracker.setAttribute("id", "trackerBackground");
             bgTracker.setAttribute("src", "#trackerBg");
-            bgTracker.setAttribute("position", "-0.08 0.08 -0.12");
-            bgTracker.setAttribute("rotation", "15 45 0");
+            bgTracker.setAttribute("position", "0 0.02 -0.08");
+            bgTracker.setAttribute("rotation", "60 0 0");
             bgTracker.setAttribute("width", "0.2");
             bgTracker.setAttribute("height", "0.24");
             bgTracker.setAttribute("visible", "false");
@@ -1502,12 +1515,12 @@
 
             // Layout positions for icons (2 rows x 3 columns)
             const positions = [
-              [-0.13, 0.15], // flamingo - top left
-              [-0.08, 0.15], // jaguarete - top center
-              [-0.03, 0.15], // nandu - top right
-              [-0.13, 0.08], // jurumi - bottom left
-              [-0.08, 0.08], // tagua - bottom center
-              [-0.03, 0.08], // tatu - bottom right
+              [-0.05, 0.10], // flamingo - top left
+              [0.00, 0.10], // jaguarete - top center
+              [0.05, 0.10], // nandu - top right
+              [-0.05, 0.04], // jurumi - bottom left
+              [0.00, 0.04], // tagua - bottom center
+              [0.05, 0.04], // tatu - bottom right
             ];
 
             const animals = [
@@ -1527,9 +1540,9 @@
               checkedIcon.setAttribute("src", animalData[animal].checkId);
               checkedIcon.setAttribute(
                 "position",
-                `${positions[i][0]} ${positions[i][1]} -0.119`
+                `${positions[i][0]} ${positions[i][1]} -0.079`
               );
-              checkedIcon.setAttribute("rotation", "15 45 0");
+              checkedIcon.setAttribute("rotation", "60 0 0");
               checkedIcon.setAttribute("width", "0.04");
               checkedIcon.setAttribute("height", "0.04");
               checkedIcon.setAttribute("visible", "false");
@@ -1543,9 +1556,9 @@
               uncheckedIcon.setAttribute("src", animalData[animal].uncheckId);
               uncheckedIcon.setAttribute(
                 "position",
-                `${positions[i][0]} ${positions[i][1]} -0.119`
+                `${positions[i][0]} ${positions[i][1]} -0.079`
               );
-              uncheckedIcon.setAttribute("rotation", "15 45 0");
+              uncheckedIcon.setAttribute("rotation", "60 0 0");
               uncheckedIcon.setAttribute("width", "0.04");
               uncheckedIcon.setAttribute("height", "0.04");
               uncheckedIcon.setAttribute("visible", "false");
@@ -1564,8 +1577,8 @@
             this.timerText.setAttribute("id", "timerDisplay");
             this.timerText.setAttribute("value", "5:00");
             this.timerText.setAttribute("align", "center");
-            this.timerText.setAttribute("position", "-0.08 0.00 -0.11");
-            this.timerText.setAttribute("rotation", "15 45 0");
+            this.timerText.setAttribute("position", "0 -0.04 -0.07");
+            this.timerText.setAttribute("rotation", "60 0 0");
             this.timerText.setAttribute("width", "0.2");
             this.timerText.setAttribute("scale", "0.7 0.7 0.7");
             this.timerText.setAttribute("color", "#FFFFFF");
