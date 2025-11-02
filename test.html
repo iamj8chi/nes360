@@ -282,6 +282,9 @@
             position="0 0.35 0"
             scale="0.3 0.3 0.3"
             color="#FFFFFF"
+            shader="msdf"
+            outline-width="12%"
+            outline-color="#000000"
           ></a-text>
         </a-sphere>
 
@@ -302,6 +305,9 @@
             position="0 0.35 0"
             scale="0.25 0.25 0.25"
             color="#FFB6C1"
+            shader="msdf"
+            outline-width="12%"
+            outline-color="#000000"
           ></a-text>
         </a-sphere>
       </a-entity>
@@ -1073,9 +1079,12 @@
 
           startGame: function () {
             console.log("Starting Safari Game!");
+
+            // Reset game state first
+            this.resetGame();
+
             this.gameActive = true;
             this.timeRemaining = this.data.timeLimit;
-            this.animalsFound.clear();
 
             // Hide orbs
             const gameOrbs = document.getElementById("gameOrbs");
@@ -1161,17 +1170,28 @@
           },
 
           showMessage: function (text, duration) {
-            // Create or update message entity
+            // Create or update message entity attached to camera
             let messageEl = document.getElementById("gameMessage");
+            const camera = document.querySelector("[camera]");
+
             if (!messageEl) {
               messageEl = document.createElement("a-text");
               messageEl.setAttribute("id", "gameMessage");
-              messageEl.setAttribute("position", "0 2 -3");
+              messageEl.setAttribute("position", "0 0.5 -2");
               messageEl.setAttribute("align", "center");
-              messageEl.setAttribute("width", "6");
+              messageEl.setAttribute("width", "4");
               messageEl.setAttribute("color", "#FFFFFF");
-              messageEl.setAttribute("shader", "flat");
-              this.el.sceneEl.appendChild(messageEl);
+              messageEl.setAttribute("shader", "msdf");
+              messageEl.setAttribute("negate", "false");
+              // Add black outline for better visibility
+              messageEl.setAttribute("outline-width", "15%");
+              messageEl.setAttribute("outline-color", "#000000");
+
+              if (camera) {
+                camera.appendChild(messageEl);
+              } else {
+                this.el.sceneEl.appendChild(messageEl);
+              }
             }
 
             messageEl.setAttribute("value", text);
@@ -1208,12 +1228,26 @@
           init: function () {
             this.originalMaterials = new Map();
             this.highlighted = null;
+            this.currentIntersected = null;
 
             // Listen for raycaster intersection events
             this.el.addEventListener("raycaster-intersection", (evt) => {
-              const intersectedEl = evt.detail.els[0];
-              if (intersectedEl && intersectedEl.classList.contains("animal")) {
-                this.highlightAnimal(intersectedEl);
+              const intersectedEls = evt.detail.els;
+              let animalFound = false;
+
+              for (let el of intersectedEls) {
+                if (el && el.classList.contains("animal")) {
+                  this.currentIntersected = el;
+                  this.highlightAnimal(el);
+                  animalFound = true;
+                  break;
+                }
+              }
+
+              // If no animal intersected but we had one highlighted, clear it
+              if (!animalFound && this.highlighted) {
+                this.unhighlightAnimal(this.highlighted);
+                this.currentIntersected = null;
               }
             });
 
@@ -1222,6 +1256,7 @@
               (evt) => {
                 if (this.highlighted) {
                   this.unhighlightAnimal(this.highlighted);
+                  this.currentIntersected = null;
                 }
               }
             );
@@ -1230,8 +1265,14 @@
           highlightAnimal: function (animalEl) {
             if (this.highlighted === animalEl) return;
 
+            // Check if animal is already found - don't highlight with yellow if it is
+            const clickable = animalEl.components["animal-clickable"];
+            if (clickable && clickable.found) {
+              return; // Don't apply yellow highlight to found animals
+            }
+
             // Unhighlight previous
-            if (this.highlighted) {
+            if (this.highlighted && this.highlighted !== animalEl) {
               this.unhighlightAnimal(this.highlighted);
             }
 
@@ -1262,20 +1303,36 @@
           },
 
           unhighlightAnimal: function (animalEl) {
+            if (!animalEl) return;
+
             const obj = animalEl.getObject3D("mesh");
             if (!obj) return;
 
-            // Restore original materials
+            // Check if animal is found - if so, restore green, not original
+            const clickable = animalEl.components["animal-clickable"];
+            const isFound = clickable && clickable.found;
+
+            // Restore materials
             obj.traverse((node) => {
               if (node.isMesh && node.material) {
-                const original = this.originalMaterials.get(node);
-                if (original) {
-                  if (original.emissive) {
-                    node.material.emissive.copy(original.emissive);
+                if (isFound) {
+                  // Keep green glow for found animals
+                  if (node.material.emissive) {
+                    node.material.emissive.setHex(0x00ff00); // Green glow
+                    node.material.emissiveIntensity = 0.8;
                   }
-                  node.material.emissiveIntensity = original.emissiveIntensity;
-                  node.material.needsUpdate = true;
+                } else {
+                  // Restore original materials for unfound animals
+                  const original = this.originalMaterials.get(node);
+                  if (original) {
+                    if (original.emissive) {
+                      node.material.emissive.copy(original.emissive);
+                    }
+                    node.material.emissiveIntensity =
+                      original.emissiveIntensity;
+                  }
                 }
+                node.material.needsUpdate = true;
               }
             });
 
@@ -1421,6 +1478,9 @@
             title.setAttribute("width", "0.15");
             title.setAttribute("scale", "0.6 0.6 0.6");
             title.setAttribute("color", "#FFFFFF");
+            title.setAttribute("shader", "msdf");
+            title.setAttribute("outline-width", "10%");
+            title.setAttribute("outline-color", "#000000");
             this.el.appendChild(title);
 
             // Animal icons (2 rows x 3 columns)
@@ -1470,6 +1530,9 @@
               iconLabel.setAttribute("width", "0.15");
               iconLabel.setAttribute("scale", "0.4 0.4 0.4");
               iconLabel.setAttribute("color", "#FFFFFF");
+              iconLabel.setAttribute("shader", "msdf");
+              iconLabel.setAttribute("outline-width", "8%");
+              iconLabel.setAttribute("outline-color", "#000000");
               this.el.appendChild(iconLabel);
 
               this.icons[animal] = iconBg;
@@ -1485,6 +1548,9 @@
             this.timerText.setAttribute("width", "0.15");
             this.timerText.setAttribute("scale", "0.5 0.5 0.5");
             this.timerText.setAttribute("color", "#FFFFFF");
+            this.timerText.setAttribute("shader", "msdf");
+            this.timerText.setAttribute("outline-width", "10%");
+            this.timerText.setAttribute("outline-color", "#000000");
             this.el.appendChild(this.timerText);
 
             console.log("Progress UI created");
