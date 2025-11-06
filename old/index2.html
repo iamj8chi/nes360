@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>No Estan Solos 360° VR | Zet Studios</title>
+    <script src="dist/aframe.min.js"></script>
+    <script src="dist/aframe-extras.min.js"></script>
+    <script>
+      (function () {
+        // Simple error overlay helper
+        function showError(msg) {
+          try {
+            var overlay = document.getElementById("errorOverlay");
+            var text = document.getElementById("errorText");
+            if (text) text.textContent = msg;
+            if (overlay) overlay.style.display = "block";
+          } catch (e) {
+            // fallback to console
+            console.error("Error overlay failed", e, msg);
+          }
+        }
+
+        // Close button hook (may not exist yet if DOM not ready)
+        window.addEventListener("DOMContentLoaded", function () {
+          var btn = document.getElementById("errorClose");
+          if (btn)
+            btn.addEventListener("click", function () {
+              document.getElementById("errorOverlay").style.display = "none";
+            });
+        });
+
+        // Global error handlers
+        window.addEventListener("error", function (ev) {
+          var msg =
+            ev.message +
+            "\n" +
+            (ev.filename || "") +
+            ":" +
+            (ev.lineno || "") +
+            "\n" +
+            (ev.error && ev.error.stack ? ev.error.stack : "");
+          console.error("Captured error", ev);
+          showError(msg);
+        });
+        window.addEventListener("unhandledrejection", function (ev) {
+          var reason =
+            ev.reason && ev.reason.stack
+              ? ev.reason.stack
+              : JSON.stringify(ev.reason);
+          console.error("Unhandled rejection", ev);
+          showError("UnhandledRejection: " + reason);
+        });
+
+        // Simple dynamic loader
+        function loadScript(src, cb) {
+          var s = document.createElement("script");
+          s.src = src;
+          s.onload = function () {
+            if (cb) cb(null);
+          };
+          s.onerror = function () {
+            if (cb) cb(new Error("Failed to load " + src));
+          };
+          document.head.appendChild(s);
+        }
+
+        // If AFRAME not present (local script missing), try CDN fallback
+        function tryLoadFallbacks() {
+          if (!window.AFRAME) {
+            console.warn("AFRAME not found, loading from CDN...");
+            loadScript(
+              "https://cdn.jsdelivr.net/npm/aframe@1.4.1/dist/aframe.min.js",
+              function (err) {
+                if (err) {
+                  showError("Failed to load A-Frame from CDN: " + err.message);
+                  return;
+                }
+                console.log("Loaded A-Frame from CDN");
+              }
+            );
+          }
+          // aframe-extras fallback
+          if (
+            !window.AFRAME ||
+            !window.AFRAME.utils ||
+            !window.AFRAME.components ||
+            typeof AFRAME.registerSystem !== "function"
+          ) {
+            // still attempt to load extras; harmless if duplicates
+            loadScript(
+              "https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js",
+              function (err) {
+                if (err) console.warn("Could not load aframe-extras CDN", err);
+              }
+            );
+          }
+        }
+
+        // Try fallbacks after short delay (give local scripts time)
+        setTimeout(tryLoadFallbacks, 150);
+      })();
+    </script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      .hint {
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        color: white;
+        font-family: sans-serif;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 6px 8px;
+        border-radius: 4px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Error overlay (hidden by default) -->
+    <div
+      id="errorOverlay"
+      style="
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        color: #fff;
+        z-index: 9999;
+        padding: 18px;
+        box-sizing: border-box;
+        font-family: monospace;
+        overflow: auto;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <strong>Scene error</strong>
+        <button
+          id="errorClose"
+          style="
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            cursor: pointer;
+          "
+        >
+          Close
+        </button>
+      </div>
+      <pre
+        id="errorText"
+        style="white-space: pre-wrap; margin-top: 12px; color: #fff"
+      ></pre>
+    </div>
+    <div class="hint">
+      WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
+      and controllers to point. Explore the forest! Hands
+    </div>
+
+    <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
+
+    <a-scene
+      fog="type: exponential; color: #FFD178; density: 0.02"
+      background="color: #FFD178"
+      renderer="antialias: true; 
+                colorManagement: true; 
+                sortObjects: true; 
+                physicallyCorrectLights: false;
+                powerPreference: high-performance;
+                precision: mediump;
+                logarithmicDepthBuffer: false"
+      vr-mode-ui="enabled: true"
+      inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js"
+    >
+      <!-- Safari Game Manager -->
+      <a-entity
+        id="gameManager"
+        safari-game-manager="timeLimit: 300"
+      ></a-entity>
+
+      <a-assets>
+        <!-- Model assets -->
+        <a-asset-item id="samuuModel" src="assets/samuu.glb"></a-asset-item>
+        <a-asset-item
+          id="samuuCanopyModel"
+          src="assets/samuu-canopy.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="jaguareteModel"
+          src="assets/jaguarete.glb"
+        ></a-asset-item>
+        <a-asset-item id="nanduModel" src="assets/nandu.glb"></a-asset-item>
+        <a-asset-item
+          id="flamengoModel"
+          src="assets/flamengo.glb"
+        ></a-asset-item>
+        <a-asset-item id="jurumiModel" src="assets/jurumi.glb"></a-asset-item>
+        <a-asset-item id="taguaModel" src="assets/tagua.glb"></a-asset-item>
+        <a-asset-item id="tatuModel" src="assets/tatu.glb"></a-asset-item>
+        <a-asset-item
+          id="scenarioModel"
+          src="assets/scenario.glb"
+        ></a-asset-item>
+
+        <!-- UI assets for animal tracker -->
+        <img id="trackerBg" src="assets/ui/tracker-background.png" />
+        <img id="flamengoCheck" src="assets/ui/flamengo-check.png" />
+        <img id="flamengoUncheck" src="assets/ui/flamengo-uncheck.png" />
+        <img id="jaguareteCheck" src="assets/ui/jaguarete-check.png" />
+        <img id="jaguareteUncheck" src="assets/ui/jaguarete-uncheck.png" />
+        <img id="nanduCheck" src="assets/ui/nandu-check.png" />
+        <img id="nanduUncheck" src="assets/ui/nandu-uncheck.png" />
+        <img id="jurumiCheck" src="assets/ui/jurumi-check.png" />
+        <img id="jurumiUncheck" src="assets/ui/jurumi-uncheck.png" />
+        <img id="taguaCheck" src="assets/ui/tagua-check.png" />
+        <img id="taguaUncheck" src="assets/ui/tagua-uncheck.png" />
+        <img id="tatuCheck" src="assets/ui/tatu-check.png" />
+        <img id="tatuUncheck" src="assets/ui/tatu-uncheck.png" />
+      </a-assets>
+
+      <!-- Sky -->
+      <a-sky color="#87ceeb"></a-sky>
+
+      <!-- Lighting: hemisphere ambient + directional sun (shadows enabled in script) -->
+      <a-entity
+        light="type: hemisphere; color: #ffffff; groundColor: #556655; intensity: 0.8"
+      ></a-entity>
+
+      <a-entity
+        id="sun"
+        light="type: directional; color: #ffffff; intensity: 1.3; castShadow: true"
+        position="0 50 0"
+        rotation="0 0 0"
+      ></a-entity>
+      <!-- rotation="-45 45 0" -->
+
+      <!-- Ocean using a-ocean component -->
+      <a-ocean
+        width="500"
+        depth="500"
+        density="20"
+        opacity="0.9"
+        position="30 -0.5 -10"
+      ></a-ocean>
+
+      <!-- Ground (slightly raised) -->
+      <a-entity
+        geometry="primitive: circle; radius: 50; segments: 32"
+        material="color: #96d165"
+        shadow="receive: true"
+        rotation="-90 0 0"
+        position="0 0.01 0"
+      ></a-entity>
+
+      <!-- Player Collision Boundary Ring -->
+      <a-entity
+        id="boundaryRing"
+        visible="false"
+        geometry="primitive: cylinder; radius: 60; height: 10; openEnded: true; thetaStart: 0; thetaLength: 500"
+        material="color: #0066ff; transparent: true; opacity: 0.2; side: double"
+        position="0 5 0"
+        static-body
+      ></a-entity>
+
+      <!-- Safari Game Control Orbs -->
+      <a-entity id="gameOrbs" position="0 1.5 -2.5">
+        <!-- White Start Game Orb -->
+        <a-sphere
+          id="startOrb"
+          class="clickable orb-start"
+          radius="0.2"
+          position="-0.3 0 0"
+          material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 0.5; shader: flat"
+          shadow="cast: true"
+          animation="property: position; to: -0.3 0.1 0; dur: 2000; easing: easeInOutSine; loop: true; dir: alternate"
+          animation__pulse="property: material.emissiveIntensity; from: 0.5; to: 1.0; dur: 1500; easing: easeInOutSine; loop: true; dir: alternate"
+          orb-controller
+        >
+          <a-text
+            value="START\nSAFARI"
+            align="center"
+            position="0 0.35 0"
+            scale="0.3 0.3 0.3"
+            color="#FFFFFF"
+            shader="msdf"
+            outline-width="12%"
+            outline-color="#000000"
+          ></a-text>
+        </a-sphere>
+
+        <!-- Pink Future Minigame Orb -->
+        <a-sphere
+          id="minigameOrb"
+          class="clickable orb-minigame"
+          radius="0.2"
+          position="0.3 0 0"
+          material="color: #FF69B4; emissive: #FF69B4; emissiveIntensity: 0.3; shader: flat; opacity: 0.6"
+          shadow="cast: true"
+          animation="property: position; to: 0.3 0.1 0; dur: 2200; easing: easeInOutSine; loop: true; dir: alternate"
+          animation__pulse="property: material.emissiveIntensity; from: 0.3; to: 0.7; dur: 1700; easing: easeInOutSine; loop: true; dir: alternate"
+        >
+          <a-text
+            value="COMING\nSOON"
+            align="center"
+            position="0 0.35 0"
+            scale="0.25 0.25 0.25"
+            color="#FFB6C1"
+            shader="msdf"
+            outline-width="12%"
+            outline-color="#000000"
+          ></a-text>
+        </a-sphere>
+      </a-entity>
+
+      <!-- Scenario Model -->
+      <a-entity
+        id="scenario"
+        gltf-model="#scenarioModel"
+        position="0 0.01304 0"
+        rotation="0 180 0"
+        scale="10 10 10"
+        shadow="receive: true; cast: false"
+      ></a-entity>
+
+      <!-- New showcase models / Safari Game Animals -->
+      <a-entity
+        id="flamengo"
+        class="clickable animal"
+        data-animal-type="flamingo"
+        gltf-model="#flamengoModel"
+        position="-2 0 -5"
+        rotation="0 195.6 0"
+        scale="2 2 2"
+        animation-mixer="clip: idle"
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+      <a-entity
+        id="jaguarete"
+        class="clickable animal"
+        data-animal-type="jaguarete"
+        gltf-model="#jaguareteModel"
+        position="0 0 -6.42427"
+        rotation="0 180 0"
+        scale="2 2 2"
+        animation-mixer
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+      <a-entity
+        id="nandu"
+        class="clickable animal"
+        data-animal-type="nandu"
+        gltf-model="#nanduModel"
+        position="2 0 -6.07093"
+        rotation="0 180 0"
+        scale="2 2 2"
+        animation-mixer
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+      <a-entity
+        id="jurumi"
+        class="clickable animal"
+        data-animal-type="jurumi"
+        gltf-model="#jurumiModel"
+        position="-4 0 -5"
+        rotation="0 208.28 0"
+        scale="2 2 2"
+        animation-mixer
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+      <a-entity
+        id="tagua"
+        class="clickable animal"
+        data-animal-type="tagua"
+        gltf-model="#taguaModel"
+        position="4 0 -5"
+        rotation="0 160.4 0"
+        scale="2 2 2"
+        animation-mixer
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+      <a-entity
+        id="tatu"
+        class="clickable animal"
+        data-animal-type="tatu"
+        gltf-model="#tatuModel"
+        position="6 0 -5"
+        rotation="0 149.7 0"
+        scale="2 2 2"
+        animation-mixer
+        staggered-start="maxOffset: 1.6"
+        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+        material-optimizer
+        animal-clickable
+      ></a-entity>
+
+      <!-- Camera rig with WASD and VR controls -->
+      <a-entity
+        id="cameraRig"
+        position="0 0 0"
+        movement-controls="enabled: true; speed: 0.2;"
+        vr-locomotion="controllerHand: left"
+        boundary-collision="radius: 60"
+      >
+        <!-- Camera -->
+        <a-entity
+          id="head"
+          camera
+          look-controls="pointerLockEnabled: false"
+          position="0 1.6 0"
+          wasd-controls="enabled: false"
+        >
+        </a-entity>
+
+        <!-- Left Controller - Holds the tracker UI -->
+        <a-entity
+          id="leftHand"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
+          progress-ui
+        >
+        </a-entity>
+
+        <!-- Right Controller - Point and click controller -->
+        <a-entity
+          id="rightHand"
+          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
+          laser-controls="hand: right"
+          raycaster="objects: .clickable, .animal; far: 20"
+          line="color: #FF0000; opacity: 0.75"
+          animal-highlighter
+        >
+        </a-entity>
+      </a-entity>
+
+      <!-- Trees using composite-tree component -->
+      <a-entity id="trees">
+        <!-- Outer circle of larger trees -->
+        <a-entity
+          id="tree1"
+          position="15.14641 0 -28.37261"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree2"
+          position="-18.52326 0 -20.69546"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree3"
+          position="11.84179 0 20.00548"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree4"
+          position="21.67241 0 -7.20963"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree5"
+          position="-19.33443 0 -6.1623"
+          composite-tree="scale: 5.2"
+        ></a-entity>
+        <a-entity
+          id="tree6"
+          position="-26.25761 0 19.39807"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree7"
+          position="30.22765 0 -4.0909"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree8"
+          position="-11.73389 0 -29.4935"
+          composite-tree="scale: 5.7"
+        ></a-entity>
+        <a-entity
+          id="tree9"
+          position="10.26309 0 37.01623"
+          composite-tree="scale: 4.7"
+        ></a-entity>
+        <a-entity
+          id="tree10"
+          position="-19.30717 0 23.14858"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+        <a-entity
+          id="tree11"
+          position="-2.19092 0 17.72065"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree12"
+          position="-29.96653 0 -18.10853"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree13"
+          position="31.37212 0 3.39803"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree14"
+          position="-17.5728 -55.76659 -66.91337"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree15"
+          position="-43.87044 0 6.63835"
+          composite-tree="scale: 5.2"
+        ></a-entity>
+        <a-entity
+          id="tree16"
+          position="24.35414 0 18.78235"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree17"
+          position="17.57425 0 -17.35746"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree18"
+          position="-11.49637 0 30.89364"
+          composite-tree="scale: 5.7"
+        ></a-entity>
+        <a-entity
+          id="tree19"
+          position="20.10589 0 -9.15669"
+          composite-tree="scale: 4.7"
+        ></a-entity>
+        <a-entity
+          id="tree20"
+          position="9.25652 0 -17.34732"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+
+        <!-- Random Dead Trees -->
+        <a-entity
+          id="deadTree1"
+          position="11.40051 0 -11.77417"
+          composite-tree="scale: 4.5; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree2"
+          position="-3.164 0 -16.17421"
+          composite-tree="scale: 5.0; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree3"
+          position="-17.57078 0 0.6943"
+          composite-tree="scale: 4.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree4"
+          position="37.56497 -0.66613 9.0234"
+          composite-tree="scale: 4.8; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree5"
+          position="2.71503 0 -38.6655"
+          composite-tree="scale: 4.6; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree6"
+          position="8.07297 0 11.05505"
+          composite-tree="scale: 5.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree7"
+          position="-16.03148 0 14.90635"
+          composite-tree="scale: 4.3; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree8"
+          position="28 0 -14.79774"
+          composite-tree="scale: 4.7; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree9"
+          position="9.69772 0 -21.87106"
+          composite-tree="scale: 5.1; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree10"
+          position="42 0 -15"
+          composite-tree="scale: 4.4; type: dead"
+        ></a-entity>
+
+        <!-- Random Shrubs -->
+        <a-entity
+          id="shrub1"
+          position="-8 0 -12"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub2"
+          position="15 0 -8"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub3"
+          position="-20 0 18"
+          composite-tree="scale: 1.6; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub4"
+          position="25 0 -22"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub5"
+          position="-12 0 -28"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub6"
+          position="6.23042 0 4.94739"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub7"
+          position="-30 0 -5"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub8"
+          position="8 0 -32"
+          composite-tree="scale: 2.3; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub9"
+          position="-15 0 22"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub10"
+          position="32 0 -12"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub11"
+          position="-22 0 -38"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub12"
+          position="28 0 25"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub13"
+          position="-35 0 15"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub14"
+          position="12 0 -42"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub15"
+          position="-18 0 -15"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub16"
+          position="35 0 -28"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub17"
+          position="-25 0 32"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub18"
+          position="22 0 -35"
+          composite-tree="scale: 2.3; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub19"
+          position="-38 0 -22"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub20"
+          position="15 0 28"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+      </a-entity>
+
+      <a-entity id="trees2" rotation="0 57.703152505420334 0">
+        <!-- Outer circle of larger trees -->
+        <a-entity
+          id="tree1"
+          position="10.11644 0 19.0485"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree2"
+          position="-22.17873 0 -25"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree3"
+          position="25 0 15"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree4"
+          position="33.43294 0 4.56404"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree5"
+          position="-32.6552 0 -12.70536"
+          composite-tree="scale: 5.2"
+        ></a-entity>
+        <a-entity
+          id="tree6"
+          position="-42.13085 0 3.79615"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree7"
+          position="28 0 28"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree8"
+          position="-0.99125 0 -37.37708"
+          composite-tree="scale: 5.7"
+        ></a-entity>
+        <a-entity
+          id="tree9"
+          position="32 0 -32"
+          composite-tree="scale: 4.7"
+        ></a-entity>
+        <a-entity
+          id="tree10"
+          position="-10.28666 0 30"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+        <a-entity
+          id="tree11"
+          position="10.11644 0 42.66877"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree12"
+          position="-35.29909 0 -25"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree13"
+          position="43.14773 0 15"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree14"
+          position="44.79642 0 5.89075"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree15"
+          position="-42.69185 0 17.00153"
+          composite-tree="scale: 5.2"
+        ></a-entity>
+        <a-entity
+          id="tree16"
+          position="-30.9209 0 34.93784"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree17"
+          position="-15.00693 0 41.66305"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree18"
+          position="-0.99125 0 47.10109"
+          composite-tree="scale: 5.7"
+        ></a-entity>
+        <a-entity
+          id="tree19"
+          position="18.68266 0 -43.0372"
+          composite-tree="scale: 4.7"
+        ></a-entity>
+        <a-entity
+          id="tree20"
+          position="23.74279 0 40.22783"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+
+        <!-- Random Dead Trees -->
+        <a-entity
+          id="deadTree1"
+          position="-15 0 -35"
+          composite-tree="scale: 4.5; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree2"
+          position="-40.65659 0 -6.5323"
+          composite-tree="scale: 5.0; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree3"
+          position="-4.40376 0 22.987"
+          composite-tree="scale: 4.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree4"
+          position="6.16977 0 32.38259"
+          composite-tree="scale: 4.8; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree5"
+          position="-18 0 32"
+          composite-tree="scale: 4.6; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree6"
+          position="12 0 -38"
+          composite-tree="scale: 5.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree7"
+          position="-32 0 25"
+          composite-tree="scale: 4.3; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree8"
+          position="28 0 -14.79774"
+          composite-tree="scale: 4.7; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree9"
+          position="1.39421 0 -21.87106"
+          composite-tree="scale: 5.1; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree10"
+          position="42 0 -15"
+          composite-tree="scale: 4.4; type: dead"
+        ></a-entity>
+
+        <!-- Random Shrubs -->
+        <a-entity
+          id="shrub1"
+          position="-8 0 -12"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub2"
+          position="15 0 -8"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub3"
+          position="-20 0 18"
+          composite-tree="scale: 1.6; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub4"
+          position="25 0 -22"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub5"
+          position="-12 0 -28"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub6"
+          position="18 0 15"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub7"
+          position="-30 0 -5"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub8"
+          position="8 0 -32"
+          composite-tree="scale: 2.3; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub9"
+          position="-15 0 22"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub10"
+          position="32 0 -12"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub11"
+          position="-22 0 -38"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub12"
+          position="28 0 25"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub13"
+          position="-35 0 15"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub14"
+          position="12 0 -42"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub15"
+          position="-18 0 -15"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub16"
+          position="35 0 -28"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub17"
+          position="-25 0 32"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub18"
+          position="22 0 -35"
+          composite-tree="scale: 2.3; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub19"
+          position="-38 0 -22"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub20"
+          position="15 0 28"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+      </a-entity>
+
+      <!-- Animals replaced by flamengo GLTF models (animated with animal-behavior) -->
+      <a-entity id="animals">
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 8; pathRotation: 30;"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 10; pathRotation: 20;"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 12; pathRotation: 10;"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 14; pathRotation: 0;"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 16; pathRotation: 10"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 18; pathRotation: 20"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+        <a-entity
+          gltf-model="#flamengoModel"
+          position="0 10 0"
+          scale="2 2 2"
+          animal-behavior="radius: 20; pathRotation: 30"
+          animation-mixer
+          staggered-start="maxOffset: 2.2"
+          performance-optimizer="nearDistance: 20; midDistance: 40; farDistance: 60"
+        ></a-entity>
+      </a-entity>
+
+      <!-- Invisible plane for collisions (optional) moved slightly up to match ground -->
+      <a-entity
+        id="floor"
+        geometry="primitive: plane; width: 100; height: 100"
+        rotation="-90 0 0"
+        position="0 0.01 0"
+        visible="false"
+        shadow="receive: true"
+      ></a-entity>
+
+      <script>
+        // ===== SAFARI GAME COMPONENTS =====
+
+        // Safari Game Manager - Core game logic
+        AFRAME.registerComponent("safari-game-manager", {
+          schema: {
+            timeLimit: { type: "number", default: 300 }, // 5 minutes in seconds
+          },
+
+          init: function () {
+            this.gameActive = false;
+            this.timeRemaining = this.data.timeLimit;
+            this.animalsFound = new Set();
+            this.totalAnimals = 6;
+            this.animalTypes = [
+              "flamingo",
+              "jaguarete",
+              "nandu",
+              "jurumi",
+              "tagua",
+              "tatu",
+            ];
+
+            // Bind methods
+            this.startGame = this.startGame.bind(this);
+            this.endGame = this.endGame.bind(this);
+            this.resetGame = this.resetGame.bind(this);
+            this.checkAnimal = this.checkAnimal.bind(this);
+
+            // Listen for start game event
+            this.el.sceneEl.addEventListener(
+              "safari-start-game",
+              this.startGame
+            );
+
+            // Listen for animal found events
+            this.el.sceneEl.addEventListener("safari-animal-clicked", (evt) => {
+              if (this.gameActive) {
+                this.checkAnimal(evt.detail.animalType);
+              }
+            });
+
+            console.log("Safari Game Manager initialized");
+          },
+
+          startGame: function () {
+            console.log("Starting Safari Game!");
+
+            // Reset game state first
+            this.resetGame();
+
+            this.gameActive = true;
+            this.timeRemaining = this.data.timeLimit;
+
+            // Hide orbs
+            const gameOrbs = document.getElementById("gameOrbs");
+            if (gameOrbs) {
+              gameOrbs.setAttribute("visible", false);
+            }
+
+            // Emit game started event
+            this.el.sceneEl.emit("safari-game-started");
+
+            // Show start message
+            this.showMessage("FIND ALL 6 ANIMALS!", 3000);
+          },
+
+          checkAnimal: function (animalType) {
+            if (!this.gameActive) return;
+
+            if (this.animalsFound.has(animalType)) {
+              console.log(`Animal ${animalType} already found!`);
+              return;
+            }
+
+            this.animalsFound.add(animalType);
+            console.log(
+              `Found ${animalType}! (${this.animalsFound.size}/${this.totalAnimals})`
+            );
+
+            // Emit animal found event
+            this.el.sceneEl.emit("safari-animal-found", {
+              animalType: animalType,
+              totalFound: this.animalsFound.size,
+              totalAnimals: this.totalAnimals,
+            });
+
+            // Check win condition
+            if (this.animalsFound.size >= this.totalAnimals) {
+              setTimeout(() => this.endGame(true), 500);
+            }
+          },
+
+          endGame: function (won) {
+            if (!this.gameActive) return;
+
+            this.gameActive = false;
+
+            if (won) {
+              const minutes = Math.floor(
+                (this.data.timeLimit - this.timeRemaining) / 60
+              );
+              const seconds = (this.data.timeLimit - this.timeRemaining) % 60;
+              this.showMessage(
+                `YOU WIN!\nTime: ${minutes}:${seconds
+                  .toString()
+                  .padStart(2, "0")}`,
+                5000
+              );
+            } else {
+              this.showMessage(
+                `TIME'S UP!\nFound: ${this.animalsFound.size}/${this.totalAnimals}`,
+                5000
+              );
+            }
+
+            // Show orbs again after delay
+            setTimeout(() => {
+              const gameOrbs = document.getElementById("gameOrbs");
+              if (gameOrbs) {
+                gameOrbs.setAttribute("visible", true);
+              }
+            }, 5000);
+
+            // Emit game ended event
+            this.el.sceneEl.emit("safari-game-ended", { won: won });
+          },
+
+          resetGame: function () {
+            this.gameActive = false;
+            this.timeRemaining = this.data.timeLimit;
+            this.animalsFound.clear();
+
+            // Reset all animals
+            this.el.sceneEl.emit("safari-game-reset");
+          },
+
+          showMessage: function (text, duration) {
+            // Create or update message entity attached to camera
+            let messageEl = document.getElementById("gameMessage");
+            const camera = document.querySelector("[camera]");
+
+            if (!messageEl) {
+              messageEl = document.createElement("a-text");
+              messageEl.setAttribute("id", "gameMessage");
+              messageEl.setAttribute("position", "0 0.5 -2");
+              messageEl.setAttribute("align", "center");
+              messageEl.setAttribute("width", "4");
+              messageEl.setAttribute("color", "#FFFFFF");
+              messageEl.setAttribute("shader", "msdf");
+              messageEl.setAttribute("negate", "false");
+              // Add black outline for better visibility
+              messageEl.setAttribute("outline-width", "15%");
+              messageEl.setAttribute("outline-color", "#000000");
+
+              if (camera) {
+                camera.appendChild(messageEl);
+              } else {
+                this.el.sceneEl.appendChild(messageEl);
+              }
+            }
+
+            messageEl.setAttribute("value", text);
+            messageEl.setAttribute("visible", true);
+
+            if (duration) {
+              setTimeout(() => {
+                messageEl.setAttribute("visible", false);
+              }, duration);
+            }
+          },
+
+          tick: function (time, timeDelta) {
+            if (!this.gameActive) return;
+
+            // Update timer
+            this.timeRemaining -= timeDelta / 1000;
+
+            if (this.timeRemaining <= 0) {
+              this.timeRemaining = 0;
+              this.endGame(false);
+            }
+
+            // Emit timer update
+            this.el.sceneEl.emit("safari-timer-update", {
+              timeRemaining: this.timeRemaining,
+              timeLimit: this.data.timeLimit,
+            });
+          },
+        });
+
+        // Animal Highlighter - Visual feedback when pointing at animals
+        AFRAME.registerComponent("animal-highlighter", {
+          init: function () {
+            this.originalMaterials = new Map();
+            this.highlighted = null;
+            this.currentIntersected = null;
+
+            // Listen for raycaster intersection events
+            this.el.addEventListener("raycaster-intersection", (evt) => {
+              const intersectedEls = evt.detail.els;
+              let animalFound = false;
+
+              for (let el of intersectedEls) {
+                if (el && el.classList.contains("animal")) {
+                  this.currentIntersected = el;
+                  this.highlightAnimal(el);
+                  animalFound = true;
+                  break;
+                }
+              }
+
+              // If no animal intersected but we had one highlighted, clear it
+              if (!animalFound && this.highlighted) {
+                this.unhighlightAnimal(this.highlighted);
+                this.highlighted = null;
+                this.currentIntersected = null;
+              }
+            });
+
+            this.el.addEventListener(
+              "raycaster-intersection-cleared",
+              (evt) => {
+                if (this.highlighted) {
+                  this.unhighlightAnimal(this.highlighted);
+                  this.highlighted = null;
+                  this.currentIntersected = null;
+                }
+              }
+            );
+          },
+
+          highlightAnimal: function (animalEl) {
+            if (this.highlighted === animalEl) return;
+
+            // Check if animal is already found - don't highlight with yellow if it is
+            const clickable = animalEl.components["animal-clickable"];
+            if (clickable && clickable.found) {
+              return; // Don't apply yellow highlight to found animals
+            }
+
+            // Unhighlight previous
+            if (this.highlighted && this.highlighted !== animalEl) {
+              this.unhighlightAnimal(this.highlighted);
+            }
+
+            this.highlighted = animalEl;
+            const obj = animalEl.getObject3D("mesh");
+            if (!obj) return;
+
+            // Store original materials and apply highlight
+            obj.traverse((node) => {
+              if (node.isMesh && node.material) {
+                if (!this.originalMaterials.has(node)) {
+                  this.originalMaterials.set(node, {
+                    emissive: node.material.emissive
+                      ? node.material.emissive.clone()
+                      : null,
+                    emissiveIntensity: node.material.emissiveIntensity || 0,
+                  });
+                }
+
+                // Add highlight glow
+                if (node.material.emissive) {
+                  node.material.emissive.setHex(0xffff00); // Yellow glow
+                  node.material.emissiveIntensity = 0.5;
+                  node.material.needsUpdate = true;
+                }
+              }
+            });
+          },
+
+          unhighlightAnimal: function (animalEl) {
+            if (!animalEl) {
+              this.highlighted = null;
+              return;
+            }
+
+            const obj = animalEl.getObject3D("mesh");
+            if (!obj) {
+              this.highlighted = null;
+              return;
+            }
+
+            // Check if animal is found - if so, restore green, not original
+            const clickable = animalEl.components["animal-clickable"];
+            const isFound = clickable && clickable.found;
+
+            // Restore materials
+            obj.traverse((node) => {
+              if (node.isMesh && node.material) {
+                if (isFound) {
+                  // Keep green glow for found animals
+                  if (node.material.emissive) {
+                    node.material.emissive.setHex(0x00ff00); // Green glow
+                    node.material.emissiveIntensity = 0.8;
+                  }
+                } else {
+                  // Restore original materials for unfound animals
+                  const original = this.originalMaterials.get(node);
+                  if (original) {
+                    if (original.emissive && node.material.emissive) {
+                      node.material.emissive.copy(original.emissive);
+                    } else if (node.material.emissive) {
+                      node.material.emissive.setHex(0x000000);
+                    }
+                    node.material.emissiveIntensity =
+                      original.emissiveIntensity;
+                  } else {
+                    // Fallback: reset to black
+                    if (node.material.emissive) {
+                      node.material.emissive.setHex(0x000000);
+                      node.material.emissiveIntensity = 0;
+                    }
+                  }
+                }
+                node.material.needsUpdate = true;
+              }
+            });
+
+            this.highlighted = null;
+          },
+        });
+
+        // Animal Clickable - Handle clicking on animals
+        AFRAME.registerComponent("animal-clickable", {
+          init: function () {
+            this.found = false;
+            this.animalType = this.el.getAttribute("data-animal-type");
+
+            // Listen for click events from raycaster
+            this.el.addEventListener("click", () => {
+              if (!this.found) {
+                this.onFound();
+              }
+            });
+
+            // Listen for game reset
+            this.el.sceneEl.addEventListener("safari-game-reset", () => {
+              this.reset();
+            });
+
+            // Check if animal was found
+            this.el.sceneEl.addEventListener("safari-animal-found", (evt) => {
+              if (evt.detail.animalType === this.animalType) {
+                this.markAsFound();
+              }
+            });
+          },
+
+          onFound: function () {
+            console.log(`Clicked on ${this.animalType}`);
+
+            // Emit animal clicked event
+            this.el.sceneEl.emit("safari-animal-clicked", {
+              animalType: this.animalType,
+              element: this.el,
+            });
+          },
+
+          markAsFound: function () {
+            this.found = true;
+            const obj = this.el.getObject3D("mesh");
+            if (!obj) return;
+
+            // Add permanent green glow
+            obj.traverse((node) => {
+              if (node.isMesh && node.material) {
+                if (node.material.emissive) {
+                  node.material.emissive.setHex(0x00ff00); // Green glow
+                  node.material.emissiveIntensity = 0.8;
+                  node.material.needsUpdate = true;
+                }
+              }
+            });
+
+            console.log(`${this.animalType} marked as found!`);
+          },
+
+          reset: function () {
+            this.found = false;
+            const obj = this.el.getObject3D("mesh");
+            if (!obj) return;
+
+            // Reset to original
+            obj.traverse((node) => {
+              if (node.isMesh && node.material) {
+                if (node.material.emissive) {
+                  node.material.emissive.setHex(0x000000);
+                  node.material.emissiveIntensity = 0;
+                  node.material.needsUpdate = true;
+                }
+              }
+            });
+          },
+        });
+
+        // Orb Controller - Handle orb clicks
+        AFRAME.registerComponent("orb-controller", {
+          init: function () {
+            this.el.addEventListener("click", () => {
+              if (this.el.classList.contains("orb-start")) {
+                this.el.sceneEl.emit("safari-start-game");
+              }
+            });
+          },
+        });
+
+        // Progress UI - Display on left hand with image-based tracker
+        AFRAME.registerComponent("progress-ui", {
+          init: function () {
+            this.animalsFound = new Set();
+            this.timeRemaining = 300;
+
+            // Create UI panel
+            this.createUI();
+
+            // Listen for game events
+            this.el.sceneEl.addEventListener("safari-game-started", () => {
+              this.show();
+              this.reset();
+            });
+
+            this.el.sceneEl.addEventListener("safari-animal-found", (evt) => {
+              this.updateAnimal(evt.detail.animalType, true);
+            });
+
+            this.el.sceneEl.addEventListener("safari-timer-update", (evt) => {
+              this.updateTimer(evt.detail.timeRemaining);
+            });
+
+            this.el.sceneEl.addEventListener("safari-game-ended", () => {
+              setTimeout(() => this.hide(), 3000);
+            });
+
+            this.el.sceneEl.addEventListener("safari-game-reset", () => {
+              this.reset();
+            });
+          },
+
+          createUI: function () {
+            // Background tracker image - positioned on wrist
+            const bgTracker = document.createElement("a-image");
+            bgTracker.setAttribute("id", "trackerBackground");
+            bgTracker.setAttribute("src", "#trackerBg");
+            bgTracker.setAttribute("position", "0 0.02 -0.08");
+            bgTracker.setAttribute("rotation", "60 0 0");
+            bgTracker.setAttribute("width", "0.2");
+            bgTracker.setAttribute("height", "0.24");
+            bgTracker.setAttribute("visible", "false");
+            bgTracker.setAttribute("shader", "flat");
+            this.el.appendChild(bgTracker);
+
+            // Animal icon mapping
+            const animalData = {
+              flamingo: {
+                checkId: "#flamengoCheck",
+                uncheckId: "#flamengoUncheck",
+              },
+              jaguarete: {
+                checkId: "#jaguareteCheck",
+                uncheckId: "#jaguareteUncheck",
+              },
+              nandu: { checkId: "#nanduCheck", uncheckId: "#nanduUncheck" },
+              jurumi: { checkId: "#jurumiCheck", uncheckId: "#jurumiUncheck" },
+              tagua: { checkId: "#taguaCheck", uncheckId: "#taguaUncheck" },
+              tatu: { checkId: "#tatuCheck", uncheckId: "#tatuUncheck" },
+            };
+
+            // Layout positions for icons (2 rows x 3 columns)
+            const positions = [
+              [-0.05, 0.1], // flamingo - top left
+              [0.0, 0.1], // jaguarete - top center
+              [0.05, 0.1], // nandu - top right
+              [-0.05, 0.04], // jurumi - bottom left
+              [0.0, 0.04], // tagua - bottom center
+              [0.05, 0.04], // tatu - bottom right
+            ];
+
+            const animals = [
+              "flamingo",
+              "jaguarete",
+              "nandu",
+              "jurumi",
+              "tagua",
+              "tatu",
+            ];
+            this.icons = {};
+
+            animals.forEach((animal, i) => {
+              // Create checked version (initially hidden)
+              const checkedIcon = document.createElement("a-image");
+              checkedIcon.setAttribute("id", `icon-${animal}-checked`);
+              checkedIcon.setAttribute("src", animalData[animal].checkId);
+              checkedIcon.setAttribute(
+                "position",
+                `${positions[i][0]} ${positions[i][1]} -0.079`
+              );
+              checkedIcon.setAttribute("rotation", "60 0 0");
+              checkedIcon.setAttribute("width", "0.04");
+              checkedIcon.setAttribute("height", "0.04");
+              checkedIcon.setAttribute("visible", "false");
+              checkedIcon.setAttribute("shader", "flat");
+              checkedIcon.setAttribute("transparent", "true");
+              this.el.appendChild(checkedIcon);
+
+              // Create unchecked version (initially visible)
+              const uncheckedIcon = document.createElement("a-image");
+              uncheckedIcon.setAttribute("id", `icon-${animal}-unchecked`);
+              uncheckedIcon.setAttribute("src", animalData[animal].uncheckId);
+              uncheckedIcon.setAttribute(
+                "position",
+                `${positions[i][0]} ${positions[i][1]} -0.079`
+              );
+              uncheckedIcon.setAttribute("rotation", "60 0 0");
+              uncheckedIcon.setAttribute("width", "0.04");
+              uncheckedIcon.setAttribute("height", "0.04");
+              uncheckedIcon.setAttribute("visible", "false");
+              uncheckedIcon.setAttribute("shader", "flat");
+              uncheckedIcon.setAttribute("transparent", "true");
+              this.el.appendChild(uncheckedIcon);
+
+              this.icons[animal] = {
+                checked: checkedIcon,
+                unchecked: uncheckedIcon,
+              };
+            });
+
+            // Timer display at the bottom
+            this.timerText = document.createElement("a-text");
+            this.timerText.setAttribute("id", "timerDisplay");
+            this.timerText.setAttribute("value", "5:00");
+            this.timerText.setAttribute("align", "center");
+            this.timerText.setAttribute("position", "0 -0.04 -0.07");
+            this.timerText.setAttribute("rotation", "60 0 0");
+            this.timerText.setAttribute("width", "0.2");
+            this.timerText.setAttribute("scale", "0.7 0.7 0.7");
+            this.timerText.setAttribute("color", "#FFFFFF");
+            this.timerText.setAttribute("shader", "msdf");
+            this.timerText.setAttribute("outline-width", "12%");
+            this.timerText.setAttribute("outline-color", "#000000");
+            this.timerText.setAttribute("visible", "false");
+            this.el.appendChild(this.timerText);
+
+            console.log("Image-based Progress UI created");
+          },
+
+          show: function () {
+            const bg = this.el.querySelector("#trackerBackground");
+            if (bg) bg.setAttribute("visible", true);
+            if (this.timerText) this.timerText.setAttribute("visible", true);
+
+            // Show all unchecked icons
+            Object.keys(this.icons).forEach((animal) => {
+              const icon = this.icons[animal];
+              icon.unchecked.setAttribute("visible", true);
+              icon.checked.setAttribute("visible", false);
+            });
+          },
+
+          hide: function () {
+            const bg = this.el.querySelector("#trackerBackground");
+            if (bg) bg.setAttribute("visible", false);
+            if (this.timerText) this.timerText.setAttribute("visible", false);
+
+            // Hide all icons
+            Object.keys(this.icons).forEach((animal) => {
+              const icon = this.icons[animal];
+              icon.unchecked.setAttribute("visible", false);
+              icon.checked.setAttribute("visible", false);
+            });
+          },
+
+          reset: function () {
+            this.animalsFound.clear();
+            Object.keys(this.icons).forEach((animal) => {
+              this.updateAnimal(animal, false);
+            });
+            this.updateTimer(300);
+          },
+
+          updateAnimal: function (animalType, found) {
+            const icon = this.icons[animalType];
+            if (!icon) return;
+
+            if (found) {
+              this.animalsFound.add(animalType);
+              icon.unchecked.setAttribute("visible", false);
+              icon.checked.setAttribute("visible", true);
+            } else {
+              icon.checked.setAttribute("visible", false);
+              icon.unchecked.setAttribute("visible", true);
+            }
+          },
+
+          updateTimer: function (seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const timeStr = `${minutes}:${secs.toString().padStart(2, "0")}`;
+
+            if (this.timerText) {
+              this.timerText.setAttribute("value", timeStr);
+
+              // Change color based on time
+              if (seconds < 60) {
+                this.timerText.setAttribute("color", "#FF0000"); // Red
+              } else if (seconds < 120) {
+                this.timerText.setAttribute("color", "#FFFF00"); // Yellow
+              } else {
+                this.timerText.setAttribute("color", "#FFFFFF"); // White
+              }
+            }
+          },
+        });
+
+        // Composite tree: combines base model and animated canopy
+        AFRAME.registerComponent("composite-tree", {
+          schema: {
+            scale: { type: "number", default: 5.0 },
+            colliderRadius: { type: "number", default: 0.5 },
+            windStrengthX: { type: "number", default: 0.02 },
+            windStrengthY: { type: "number", default: 0.01 },
+            windStrengthZ: { type: "number", default: 0.02 },
+            windFreqA: { type: "number", default: 0.2 },
+            windFreqB: { type: "number", default: 0.2 },
+            windRotStrength: { type: "number", default: 0.01 },
+            type: { type: "string", default: "normal" }, // normal, dead, or shrub
+            canopyHeight: { type: "number", default: -1.1 }, // Override height for shrubs
+          },
+
+          init: function () {
+            const isNormal = this.data.type === "normal";
+            const isDead = this.data.type === "dead";
+            const isShrub = this.data.type === "shrub";
+
+            // Create base tree entity (only for normal and dead trees)
+            if (isNormal || isDead) {
+              var base = document.createElement("a-entity");
+              base.setAttribute("gltf-model", "#samuuModel");
+              base.setAttribute("shadow", "cast: true");
+              base.setAttribute("data-collider", "true");
+              base.setAttribute(
+                "data-collider-radius",
+                this.data.colliderRadius
+              );
+              this.el.appendChild(base);
+            }
+
+            // Create invisible collider cylinder
+            var collider = document.createElement("a-cylinder");
+            collider.setAttribute("radius", this.data.colliderRadius);
+            // Adjust height based on type
+            const colliderHeight = isShrub ? 2 : 6;
+            collider.setAttribute("height", colliderHeight.toString());
+            collider.setAttribute("material", "opacity: 0");
+            collider.setAttribute("position", `0 ${colliderHeight / 2} 0`);
+            this.el.appendChild(collider);
+
+            // Create canopy entity (not for dead trees)
+            if (isNormal || isShrub) {
+              var canopy = document.createElement("a-entity");
+              canopy.setAttribute("gltf-model", "#samuuCanopyModel");
+              canopy.setAttribute("shadow", "cast: true");
+
+              // For shrubs, position canopy at ground level and scale it differently
+              if (isShrub) {
+                const height = this.data.canopyHeight || 0;
+                canopy.setAttribute("position", `0 ${height} 0`);
+                canopy.setAttribute("scale", "1.2 0.8 1.2");
+              }
+
+              canopy.setAttribute("canopy-wind", {
+                strengthX: this.data.windStrengthX,
+                strengthY: this.data.windStrengthY,
+                strengthZ: this.data.windStrengthZ,
+                freqA: this.data.windFreqA,
+                freqB: this.data.windFreqB,
+                rotStrength: this.data.windRotStrength,
+              });
+            }
+
+            // Set scale on parent (this element)
+            this.el.setAttribute("scale", {
+              x: this.data.scale,
+              y: this.data.scale,
+              z: this.data.scale,
+            });
+
+            // Add children to parent
+            if (isNormal || isShrub) {
+              this.el.appendChild(canopy);
+            }
+            this.el.appendChild(collider);
+          },
+        });
+
+        // Improved VR locomotion component
+        AFRAME.registerComponent("vr-locomotion", {
+          schema: {
+            speed: { type: "number", default: 5.0 }, // m/s velocidad de movimiento VR
+            acceleration: { type: "number", default: 6.0 }, // lerp factor per second
+            deceleration: { type: "number", default: 8.0 }, // lerp factor per second
+            deadZone: { type: "number", default: 0.18 }, // thumbstick deadzone
+            controllerHand: { type: "string", default: "left" }, // 'left'|'right'|'both'
+            useHeadDirection: { type: "boolean", default: true },
+          },
+
+          init: function () {
+            this.velocity = new THREE.Vector3();
+            this.moveVec = new THREE.Vector3();
+            this.onAxisMove = this.onAxisMove.bind(this);
+            this.bindControllerListeners();
+
+            // make collider-check available if present
+            this.colliderCheck =
+              document.querySelector("a-scene").components["collider-check"];
+          },
+
+          bindControllerListeners: function () {
+            // Listen on rig and also on possible controller entities
+            this.el.addEventListener("axismove", this.onAxisMove);
+            const left = this.el.querySelector('[hand-controls="hand: left"]');
+            const right = this.el.querySelector(
+              '[hand-controls="hand: right"]'
+            );
+            if (left) left.addEventListener("axismove", this.onAxisMove);
+            if (right) right.addEventListener("axismove", this.onAxisMove);
+          },
+
+          onAxisMove: function (evt) {
+            const axes = evt.detail && evt.detail.axis;
+            if (!axes || axes.length < 2) return;
+
+            // Determine which hand produced the event (if available)
+            const target = evt.target;
+            const handAttr =
+              target && target.getAttribute
+                ? target.getAttribute("hand-controls")
+                : null;
+            const isLeft = handAttr && handAttr.indexOf("left") !== -1;
+            const isRight = handAttr && handAttr.indexOf("right") !== -1;
+
+            if (this.data.controllerHand === "left" && !isLeft) return;
+            if (this.data.controllerHand === "right" && !isRight) return;
+
+            let ax = axes[0];
+            let ay = axes[1];
+
+            // Apply deadzone
+            if (Math.abs(ax) < this.data.deadZone) ax = 0;
+            if (Math.abs(ay) < this.data.deadZone) ay = 0;
+
+            // Store the desired local movement vector (x right, z forward)
+            this.moveVec.set(ax, 0, ay);
+          },
+
+          tick: function (time, dt) {
+            const delta = (dt || 0) / 1000;
+            if (delta <= 0) return;
+
+            // Desired local movement
+            if (this.moveVec.lengthSq() > 0.000001) {
+              const stickMag = Math.min(1, this.moveVec.length());
+              const desiredLocal = this.moveVec
+                .clone()
+                .normalize()
+                .multiplyScalar(this.data.speed * stickMag);
+
+              if (this.data.useHeadDirection) {
+                const head = this.el.querySelector("#head");
+                if (head && head.object3D) {
+                  const yaw = head.object3D.rotation.y; // radians
+                  desiredLocal.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                }
+              }
+
+              // Smooth acceleration
+              this.velocity.lerp(
+                desiredLocal,
+                Math.min(1, this.data.acceleration * delta)
+              );
+            } else {
+              // Smooth deceleration to zero
+              this.velocity.lerp(
+                new THREE.Vector3(0, 0, 0),
+                Math.min(1, this.data.deceleration * delta)
+              );
+            }
+
+            // Apply velocity scaled by dt
+            const step = this.velocity.clone().multiplyScalar(delta);
+            const pos = this.el.object3D.position;
+            pos.add(step);
+
+            // Run simple collider correction if the scene has collider-check
+            if (
+              this.colliderCheck &&
+              typeof this.colliderCheck.tick === "function"
+            ) {
+              // call collider-check tick to nudge the rig out of colliders (best-effort)
+              try {
+                this.colliderCheck.tick();
+              } catch (e) {
+                /* ignore */
+              }
+            }
+          },
+
+          remove: function () {
+            this.el.removeEventListener("axismove", this.onAxisMove);
+            const left = this.el.querySelector('[hand-controls="hand: left"]');
+            const right = this.el.querySelector(
+              '[hand-controls="hand: right"]'
+            );
+            if (left) left.removeEventListener("axismove", this.onAxisMove);
+            if (right) right.removeEventListener("axismove", this.onAxisMove);
+          },
+        });
+
+        // Boundary collision component to keep player within scene
+        AFRAME.registerComponent("boundary-collision", {
+          schema: {
+            radius: { type: "number", default: 45 }, // Match boundary ring radius
+            centerX: { type: "number", default: 0 },
+            centerZ: { type: "number", default: 0 },
+          },
+
+          init: function () {
+            this.lastPosition = new THREE.Vector3();
+            this.currentPosition = new THREE.Vector3();
+            this.el.object3D.getWorldPosition(this.lastPosition);
+          },
+
+          tick: function () {
+            // Get current world position
+            this.el.object3D.getWorldPosition(this.currentPosition);
+
+            // Calculate distance from center (only X and Z, ignore Y)
+            const distanceFromCenter = Math.sqrt(
+              Math.pow(this.currentPosition.x - this.data.centerX, 2) +
+                Math.pow(this.currentPosition.z - this.data.centerZ, 2)
+            );
+
+            // If player is outside the boundary, push them back
+            if (distanceFromCenter > this.data.radius) {
+              // Calculate the direction from center to player
+              const dirX = this.currentPosition.x - this.data.centerX;
+              const dirZ = this.currentPosition.z - this.data.centerZ;
+
+              // Normalize the direction
+              const length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+              const normalizedDirX = dirX / length;
+              const normalizedDirZ = dirZ / length;
+
+              // Set position to boundary edge
+              const newX =
+                this.data.centerX + normalizedDirX * this.data.radius;
+              const newZ =
+                this.data.centerZ + normalizedDirZ * this.data.radius;
+
+              // Update position (keep Y unchanged)
+              const currentPos = this.el.getAttribute("position");
+              this.el.setAttribute("position", {
+                x: newX,
+                y: currentPos.y,
+                z: newZ,
+              });
+            }
+
+            // Update last position
+            this.lastPosition.copy(this.currentPosition);
+          },
+        });
+
+        // Animal movement with organic motion
+        AFRAME.registerComponent("animal-behavior", {
+          schema: {
+            speed: { type: "number", default: -0.2 },
+            radius: { type: "number", default: 2 },
+            yawOffset: { type: "number", default: 0 },
+            modelRotation: { type: "number", default: -90 },
+            pathRotation: { type: "number", default: 0 },
+            // Position wiggle parameters
+            positionWiggleX: { type: "number", default: 0.3 }, // Amplitude of X wiggle
+            positionWiggleY: { type: "number", default: 0.2 }, // Amplitude of Y wiggle
+            positionWiggleZ: { type: "number", default: 0.25 }, // Amplitude of Z wiggle
+            // Rotation wiggle parameters
+            rotationWiggleX: { type: "number", default: 5 }, // Max pitch wiggle in degrees
+            rotationWiggleY: { type: "number", default: 3 }, // Max yaw wiggle in degrees
+            rotationWiggleZ: { type: "number", default: 8 }, // Max roll wiggle in degrees
+          },
+          init: function () {
+            this.startTime = Date.now();
+            this.center = this.el.object3D.position.clone();
+            this.pathRotationRad = this.data.pathRotation * (Math.PI / 180);
+
+            // Random phase offsets for organic feel
+            this.phaseOffsets = {
+              pos: {
+                x: Math.random() * Math.PI * 2,
+                y: Math.random() * Math.PI * 2,
+                z: Math.random() * Math.PI * 2,
+              },
+              rot: {
+                x: Math.random() * Math.PI * 2,
+                y: Math.random() * Math.PI * 2,
+                z: Math.random() * Math.PI * 2,
+              },
+            };
+          },
+
+          // Eased sine wave function
+          easedSine: function (t, amplitude, frequency, phaseOffset) {
+            // Combine two sine waves for more organic motion
+            return (
+              amplitude *
+              (Math.sin(t * frequency + phaseOffset) * 0.7 +
+                Math.sin(t * frequency * 1.3 + phaseOffset * 2.1) * 0.3)
+            );
+          },
+
+          tick: function (t, dt) {
+            const elapsed = (Date.now() - this.startTime) / 1000;
+            const r = this.data.radius;
+            const speed = this.data.speed;
+
+            // Base circular motion
+            const ang = elapsed * speed + this.pathRotationRad;
+            const baseX = this.center.x + Math.cos(ang) * r;
+            const baseZ = this.center.z + Math.sin(ang) * r;
+
+            // Position wiggle
+            const wiggleX = this.easedSine(
+              elapsed,
+              this.data.positionWiggleX,
+              1.5,
+              this.phaseOffsets.pos.x
+            );
+            const wiggleY = this.easedSine(
+              elapsed,
+              this.data.positionWiggleY,
+              2.1,
+              this.phaseOffsets.pos.y
+            );
+            const wiggleZ = this.easedSine(
+              elapsed,
+              this.data.positionWiggleZ,
+              1.8,
+              this.phaseOffsets.pos.z
+            );
+
+            // Apply position with wiggle
+            const nx = baseX + wiggleX;
+            const ny = this.center.y + wiggleY;
+            const nz = baseZ + wiggleZ;
+
+            // Update position
+            this.el.setAttribute("position", `${nx} ${ny} ${nz}`);
+
+            // Calculate base movement direction
+            const tangentX = Math.sin(ang) * r;
+            const tangentZ = Math.cos(ang) * r;
+            const baseYaw =
+              Math.atan2(tangentZ, tangentX) * (180 / Math.PI) +
+              this.data.yawOffset +
+              this.data.modelRotation;
+
+            // Rotation wiggle
+            const rotWiggleX = this.easedSine(
+              elapsed,
+              this.data.rotationWiggleX,
+              2.3,
+              this.phaseOffsets.rot.x
+            );
+            const rotWiggleY = this.easedSine(
+              elapsed,
+              this.data.rotationWiggleY,
+              1.7,
+              this.phaseOffsets.rot.y
+            );
+            const rotWiggleZ = this.easedSine(
+              elapsed,
+              this.data.rotationWiggleZ,
+              2.0,
+              this.phaseOffsets.rot.z
+            );
+
+            // Apply rotation with wiggle
+            this.el.setAttribute(
+              "rotation",
+              `${rotWiggleX} ${baseYaw + rotWiggleY} ${rotWiggleZ}`
+            );
+          },
+        });
+
+        // Simple collider-check: prevents cameraRig from passing through entities marked with data-collider
+        AFRAME.registerComponent("collider-check", {
+          schema: {
+            padding: { type: "number", default: 0.4 },
+          },
+          init: function () {
+            this.rig = document.querySelector("#cameraRig");
+            this.worldPos = new THREE.Vector3();
+            this.rigWorldPos = new THREE.Vector3();
+            this.colliders = Array.from(
+              document.querySelectorAll('[data-collider="true"]')
+            );
+          },
+          tick: function () {
+            if (!this.rig) return;
+
+            // Get rig's world position
+            this.rig.object3D.getWorldPosition(this.rigWorldPos);
+            let x = this.rigWorldPos.x,
+              y = this.rigWorldPos.y,
+              z = this.rigWorldPos.z;
+
+            // check tree colliders (cylindrical approximation)
+            for (const el of this.colliders) {
+              // Get collider's world position
+              el.object3D.getWorldPosition(this.worldPos);
+              const radius =
+                parseFloat(el.getAttribute("data-collider-radius")) || 1.2;
+
+              // Get parent scale to adjust radius
+              const parentScale = el.parentElement.object3D.scale;
+              const scaledRadius =
+                radius * Math.max(parentScale.x, parentScale.z);
+
+              const dx = x - this.worldPos.x;
+              const dz = z - this.worldPos.z;
+              const dist = Math.sqrt(dx * dx + dz * dz);
+              const min = scaledRadius + this.data.padding;
+
+              // Only apply collision if within cylinder height range
+              const heightRange = 6 * parentScale.y; // Cylinder height
+              const withinHeight =
+                Math.abs(y - (this.worldPos.y + heightRange / 2)) <
+                heightRange / 2;
+
+              if (withinHeight && dist < min && dist > 0.0001) {
+                // push rig out along the vector between collider center and rig
+                const nx = (dx / dist) * min + this.worldPos.x;
+                const nz = (dz / dist) * min + this.worldPos.z;
+                this.rig.object3D.position.set(nx, y, nz);
+                x = nx;
+                z = nz;
+              }
+            }
+          },
+        });
+        // enable collider-check on the scene so it runs each tick
+        document.querySelector("a-scene").setAttribute("collider-check", "");
+
+        // Random tree generator removed; trees are now placed statically in the scene.
+        // Canopy wind component: applies eased per-node position/rotation wiggle to a loaded glTF model
+        AFRAME.registerComponent("canopy-wind", {
+          schema: {
+            strengthX: { type: "number", default: 0.01 },
+            strengthY: { type: "number", default: 0.01 },
+            strengthZ: { type: "number", default: 0.01 },
+            freqA: { type: "number", default: 0.6 },
+            freqB: { type: "number", default: 1.25 },
+            rotStrength: { type: "number", default: 0.01 },
+            nodesSelector: { type: "string", default: "" },
+          },
+
+          init: function () {
+            this.start = performance.now() / 1000;
+            this.targets = [];
+            this.onModelLoaded = this.onModelLoaded.bind(this);
+
+            if (this.el.getObject3D("mesh")) {
+              this.onModelLoaded();
+            } else {
+              this.el.addEventListener("model-loaded", this.onModelLoaded);
+            }
+          },
+
+          remove: function () {
+            this.el.removeEventListener("model-loaded", this.onModelLoaded);
+          },
+
+          onModelLoaded: function () {
+            const root = this.el.getObject3D("mesh") || this.el.object3D;
+            if (!root) return;
+
+            root.traverse((node) => {
+              // pick meshes and groups; optionally filter by name
+              const isMeshOrObject = node.isMesh || node.isObject3D;
+              if (!isMeshOrObject) return;
+              const nameMatch =
+                this.data.nodesSelector === "" ||
+                (node.name &&
+                  node.name.indexOf(this.data.nodesSelector) !== -1);
+              if (!nameMatch) return;
+
+              const basePos = node.position.clone();
+              const baseRot = node.rotation.clone();
+              const phase = Math.random() * Math.PI * 2;
+              this.targets.push({ node, basePos, baseRot, phase });
+            });
+          },
+
+          easedSine: function (t, amp, freq, phase) {
+            return (
+              amp *
+              (Math.sin(t * freq * 2 * Math.PI + phase) * 0.7 +
+                Math.sin(t * freq * 2 * Math.PI * 1.37 + phase * 1.9) * 0.3)
+            );
+          },
+
+          // Helper: robust deg->rad across THREE versions
+          degToRad: function (deg) {
+            if (
+              window.THREE &&
+              THREE.MathUtils &&
+              typeof THREE.MathUtils.degToRad === "function"
+            ) {
+              return THREE.MathUtils.degToRad(deg);
+            }
+            return (deg * Math.PI) / 180;
+          },
+
+          tick: function () {
+            if (this.targets.length === 0) return;
+            const t = performance.now() / 1000 - this.start;
+            const {
+              strengthX,
+              strengthY,
+              strengthZ,
+              freqA,
+              freqB,
+              rotStrength,
+            } = this.data;
+
+            for (let i = 0; i < this.targets.length; i++) {
+              const target = this.targets[i];
+              const node = target.node;
+              const phase = target.phase + i * 0.07;
+
+              const dx =
+                this.easedSine(t, strengthX, freqA, phase) +
+                this.easedSine(t, strengthX * 0.4, freqB, phase * 1.3);
+              const dy =
+                this.easedSine(t, strengthY, freqA * 1.1, phase + 0.2) +
+                this.easedSine(t, strengthY * 0.4, freqB * 0.9, phase * 0.8);
+              const dz =
+                this.easedSine(t, strengthZ, freqA * 0.9, phase - 0.15) +
+                this.easedSine(t, strengthZ * 0.35, freqB * 1.4, phase * 1.1);
+
+              node.position.set(
+                target.basePos.x + dx,
+                target.basePos.y + dy,
+                target.basePos.z + dz
+              );
+
+              const rx = this.easedSine(
+                t,
+                this.degToRad(rotStrength * 0.6),
+                freqA * 1.3,
+                phase + i
+              );
+              const ry = this.easedSine(
+                t,
+                this.degToRad(rotStrength * 0.25),
+                freqA * 0.8,
+                phase - i * 0.7
+              );
+              const rz = this.easedSine(
+                t,
+                this.degToRad(rotStrength * 0.9),
+                freqB * 1.1,
+                phase + i * 0.5
+              );
+
+              node.rotation.set(
+                target.baseRot.x + rx,
+                target.baseRot.y + ry,
+                target.baseRot.z + rz
+              );
+            }
+          },
+        });
+
+        // Material optimizer for VR performance
+        AFRAME.registerComponent("material-optimizer", {
+          init: function () {
+            this.el.addEventListener("model-loaded", () => {
+              const obj = this.el.getObject3D("mesh");
+              if (!obj) return;
+
+              obj.traverse((node) => {
+                if (node.isMesh && node.material) {
+                  // Optimize material settings for VR
+                  if (Array.isArray(node.material)) {
+                    node.material.forEach((mat) => this.optimizeMaterial(mat));
+                  } else {
+                    this.optimizeMaterial(node.material);
+                  }
+
+                  // Enable geometry frustum culling
+                  node.frustumCulled = true;
+
+                  // Reduce shadow quality if far from camera
+                  if (node.castShadow) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                  }
+                }
+              });
+            });
+          },
+
+          optimizeMaterial: function (material) {
+            if (!material) return;
+
+            // Reduce shader precision for better performance
+            material.precision = "mediump";
+
+            // Disable features that are expensive in VR
+            if (material.map) {
+              material.map.anisotropy = 4; // Reduce from default 16
+            }
+
+            // Force material update
+            material.needsUpdate = true;
+          },
+        });
+
+        // Performance optimization: distance-based LOD and culling
+        AFRAME.registerComponent("performance-optimizer", {
+          schema: {
+            updateInterval: { type: "number", default: 200 }, // ms
+            nearDistance: { type: "number", default: 15 },
+            midDistance: { type: "number", default: 30 },
+            farDistance: { type: "number", default: 50 },
+          },
+          init: function () {
+            this.camera = null;
+            this.lastUpdate = 0;
+            this.tick = AFRAME.utils.throttleTick(
+              this.tick,
+              this.data.updateInterval,
+              this
+            );
+          },
+          tick: function (time, timeDelta) {
+            if (!this.camera) {
+              const cameraEl = document.querySelector("[camera]");
+              if (cameraEl) this.camera = cameraEl.object3D;
+              return;
+            }
+
+            const distance = this.el.object3D.position.distanceTo(
+              this.camera.position
+            );
+            const obj = this.el.object3D;
+
+            // Frustum culling - hide objects too far away
+            if (distance > this.data.farDistance) {
+              obj.visible = false;
+              return;
+            } else {
+              obj.visible = true;
+            }
+
+            // Distance-based animation optimization
+            const animMixer = this.el.components["animation-mixer"];
+            if (animMixer && animMixer.mixer) {
+              if (distance > this.data.midDistance) {
+                // Far objects: slow down or pause animations
+                animMixer.mixer.timeScale = 0.5;
+              } else if (distance > this.data.nearDistance) {
+                // Mid-range objects: normal speed
+                animMixer.mixer.timeScale = 0.8;
+              } else {
+                // Near objects: full speed
+                animMixer.mixer.timeScale = 1.0;
+              }
+            }
+          },
+        });
+
+        // Staggered start: random negative delay to desynchronize animations
+        AFRAME.registerComponent("staggered-start", {
+          schema: {
+            maxOffset: { type: "number", default: 1.5 }, // seconds (positive value, component will apply a negative offset up to this)
+          },
+          init: function () {
+            this.onModelLoaded = this.onModelLoaded.bind(this);
+            if (this.el.getObject3D("mesh")) {
+              this.onModelLoaded();
+            } else {
+              this.el.addEventListener("model-loaded", this.onModelLoaded);
+            }
+          },
+          remove: function () {
+            this.el.removeEventListener("model-loaded", this.onModelLoaded);
+          },
+          onModelLoaded: function () {
+            // Compute a negative offset (start the animation as if it had started earlier)
+            var offset = -Math.random() * Math.abs(this.data.maxOffset);
+
+            // Try to use the existing animation-mixer component if present
+            var am =
+              this.el.components && this.el.components["animation-mixer"];
+            if (am && am.mixer) {
+              // actions may be stored on the component or mixer
+              var actions =
+                am.actions ||
+                am._actions ||
+                (am.mixer && am.mixer._actions) ||
+                [];
+              for (var i = 0; i < actions.length; i++) {
+                var action = actions[i];
+                try {
+                  // ensure action is playing, then shift its time
+                  if (typeof action.play === "function") action.play();
+                  // clamp time to [0, duration]
+                  if (typeof action.getClip === "function") {
+                    var dur = action.getClip().duration || 0;
+                    action.time = Math.max(
+                      0,
+                      (action.time || 0) + offset + Math.random() * dur
+                    );
+                  } else if (action._clip && action._clip.duration) {
+                    var d2 = action._clip.duration;
+                    action.time = Math.max(
+                      0,
+                      (action.time || 0) + offset + Math.random() * d2
+                    );
+                  } else {
+                    action.time = Math.max(0, (action.time || 0) + offset);
+                  }
+                } catch (e) {
+                  // ignore failures on unfamiliar action objects
+                }
+              }
+              // apply one update so the mixer internal time reflects changes
+              try {
+                am.mixer.update(0);
+              } catch (e) {}
+              return;
+            }
+
+            // Fallback: if the model has animations attached directly, create a temporary mixer and advance
+            var root = this.el.getObject3D("mesh") || this.el.object3D;
+            if (root && root.animations && root.animations.length) {
+              try {
+                var mixer = new THREE.AnimationMixer(root);
+                for (var j = 0; j < root.animations.length; j++) {
+                  var clip = root.animations[j];
+                  var act = mixer.clipAction(clip);
+                  act.play();
+                  act.time = Math.max(
+                    0,
+                    offset + Math.random() * clip.duration
+                  );
+                }
+                mixer.update(0);
+              } catch (e) {
+                // ignore
+              }
+            }
+          },
+        });
+
+        // --- Stage 1 lighting: enable renderer shadows and configure sun shadow camera ---
+        (function () {
+          var sceneEl = document.querySelector("a-scene");
+          if (!sceneEl) return;
+
+          sceneEl.addEventListener("loaded", function () {
+            // enable shadow map on the renderer
+            try {
+              var renderer = sceneEl.renderer;
+              if (renderer) {
+                renderer.shadowMap.enabled = true;
+                if (window.THREE && THREE.PCFSoftShadowMap)
+                  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+              }
+            } catch (e) {
+              console.warn("Could not enable renderer shadowMap", e);
+            }
+
+            // Configure directional sun shadows when its light is available
+            var sunEl = document.getElementById("sun");
+            if (sunEl) {
+              var configureSun = function () {
+                var light = sunEl.getObject3D("light");
+                if (!light || !light.isDirectionalLight) return;
+
+                light.castShadow = true;
+                // shadow map resolution - lower on slow devices if needed
+                light.shadow.mapSize.width = 2048; // Reduced from 8192 for VR performance
+                light.shadow.mapSize.height = 2048; // Reduced from 8192 for VR performance
+                var cam = light.shadow.camera;
+                // Expand the shadow camera frustum to cover the visible ground area.
+                // Ground is radius 50; give some padding.
+                cam.left = -80;
+                cam.right = 80;
+                cam.top = 80;
+                cam.bottom = -80;
+                cam.near = 0.5;
+                cam.far = 400;
+                // Important: update projection matrix after changing camera params
+                if (typeof cam.updateProjectionMatrix === "function")
+                  cam.updateProjectionMatrix();
+                light.shadow.bias = -0.0015;
+              };
+              // Attempt immediate configure and a short delayed retry to catch timing cases
+              try {
+                configureSun();
+              } catch (e) {}
+              setTimeout(configureSun, 60);
+            }
+
+            // Helper to mark an element's meshes as casting/receiving shadows
+            function markShadows(el) {
+              try {
+                if (!el || !el.object3D) return;
+                el.object3D.traverse(function (node) {
+                  if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                  }
+                });
+              } catch (e) {
+                /* ignore */
+              }
+            }
+
+            // Mark already-loaded glTF models (in case model-loaded fired before we attached handlers)
+            var preloaded = document.querySelectorAll("[gltf-model]");
+            preloaded.forEach(function (el) {
+              if (el.getObject3D && el.getObject3D("mesh")) {
+                markShadows(el);
+              }
+            });
+
+            // Global handler: when any model is loaded later, set its meshes to cast/receive shadows
+            sceneEl.addEventListener("model-loaded", function (ev) {
+              markShadows(ev.target);
+            });
+          });
+        })();
+
+        // Ensure controllers appear reliably when entering VR
+        (function () {
+          const scene = document.querySelector("a-scene");
+
+          function initControllers() {
+            // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
+            ["leftHand", "rightHand"].forEach((id) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              // If hand-controls already initialized, re-set to force re-check
+              const hand = el.getAttribute("hand-controls");
+              const laser = el.getAttribute("laser-controls");
+              if (hand) {
+                el.removeAttribute("hand-controls");
+                // small delay to let removal propagate
+                setTimeout(() => el.setAttribute("hand-controls", hand), 50);
+              }
+              if (laser) {
+                el.removeAttribute("laser-controls");
+                setTimeout(() => el.setAttribute("laser-controls", laser), 60);
+              }
+            });
+          }
+
+          // When session enters VR, try to initialize controllers (some browsers require this)
+          scene.addEventListener("enter-vr", () => {
+            // delay a little to allow XR session to start
+            setTimeout(initControllers, 200);
+          });
+
+          // When a controller connects, ensure its visuals are visible
+          window.addEventListener("gamepadconnected", (ev) => {
+            // re-init just in case
+            initControllers();
+          });
+          // A-Frame-specific event for WebXR controller connection
+          scene.addEventListener("controllerconnected", (ev) => {
+            initControllers();
+          });
+        })();
+      </script>
+    </a-scene>
+  </body>
+</html>
