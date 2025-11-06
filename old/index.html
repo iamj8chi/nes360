@@ -416,7 +416,7 @@
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
         id="cameraRig"
-        position="0 0 0"
+        position="0 -1.6 0"
         movement-controls="enabled: true; speed: 0.1;"
         vr-locomotion="controllerHand: left"
       >
@@ -1996,7 +1996,7 @@
             const rig = document.querySelector("#cameraRig");
             if (!rig) return;
             const p = rig.getAttribute("position");
-            if (p.y < 0.1) rig.setAttribute("position", `${p.x} 0.1 ${p.z}`); //1.6
+            if (p.y < 1.6) rig.setAttribute("position", `${p.x} 1.6 ${p.z}`);
           },
         });
         document.querySelector("#cameraRig").setAttribute("stay-grounded", "");
