@@ -167,8 +167,10 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! CameraRiog
+      and controllers to point. Explore the forest! Hands
     </div>
+
+    <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
 
     <a-scene
       fog="type: exponential; color: #FFD178; density: 0.02"
@@ -181,6 +183,7 @@
                 precision: mediump;
                 logarithmicDepthBuffer: false"
       vr-mode-ui="enabled: true"
+      inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js"
     >
       <!-- Safari Game Manager -->
       <a-entity
@@ -207,6 +210,10 @@
         <a-asset-item id="jurumiModel" src="assets/jurumi.glb"></a-asset-item>
         <a-asset-item id="taguaModel" src="assets/tagua.glb"></a-asset-item>
         <a-asset-item id="tatuModel" src="assets/tatu.glb"></a-asset-item>
+        <a-asset-item
+          id="scenarioModel"
+          src="assets/scenario.glb"
+        ></a-asset-item>
 
         <!-- UI assets for animal tracker -->
         <img id="trackerBg" src="assets/ui/tracker-background.png" />
@@ -258,24 +265,15 @@
         position="0 0.01 0"
       ></a-entity>
 
-      <!-- Height reference cube: 1.7 meters tall -->
-      <a-box
-        id="heightReference"
-        position="0 0.85 -3"
-        width="0.3"
-        height="1.7"
-        depth="0.3"
-        color="#FF6B6B"
-        shadow="cast: true; receive: true"
-      >
-        <a-text
-          value="1.7m"
-          align="center"
-          position="0 0.9 0"
-          scale="0.5 0.5 0.5"
-          color="#FFFFFF"
-        ></a-text>
-      </a-box>
+      <!-- Player Collision Boundary Ring -->
+      <a-entity
+        id="boundaryRing"
+        visible="false"
+        geometry="primitive: cylinder; radius: 60; height: 10; openEnded: true; thetaStart: 0; thetaLength: 500"
+        material="color: #0066ff; transparent: true; opacity: 0.2; side: double"
+        position="0 5 0"
+        static-body
+      ></a-entity>
 
       <!-- Safari Game Control Orbs -->
       <a-entity id="gameOrbs" position="0 1.5 -2.5">
@@ -326,6 +324,16 @@
           ></a-text>
         </a-sphere>
       </a-entity>
+
+      <!-- Scenario Model -->
+      <a-entity
+        id="scenario"
+        gltf-model="#scenarioModel"
+        position="0 0.01304 0"
+        rotation="0 180 0"
+        scale="10 10 10"
+        shadow="receive: true; cast: false"
+      ></a-entity>
 
       <!-- New showcase models / Safari Game Animals -->
       <a-entity
@@ -417,8 +425,9 @@
       <a-entity
         id="cameraRig"
         position="0 0 0"
-        movement-controls="enabled: true; speed: 0.1;"
+        movement-controls="enabled: true; speed: 0.2;"
         vr-locomotion="controllerHand: left"
+        boundary-collision="radius: 60"
       >
         <!-- Camera -->
         <a-entity
@@ -1743,7 +1752,7 @@
         // Improved VR locomotion component
         AFRAME.registerComponent("vr-locomotion", {
           schema: {
-            speed: { type: "number", default: 2.0 }, // m/s
+            speed: { type: "number", default: 5.0 }, // m/s velocidad de movimiento VR
             acceleration: { type: "number", default: 6.0 }, // lerp factor per second
             deceleration: { type: "number", default: 8.0 }, // lerp factor per second
             deadZone: { type: "number", default: 0.18 }, // thumbstick deadzone
@@ -1860,6 +1869,61 @@
             );
             if (left) left.removeEventListener("axismove", this.onAxisMove);
             if (right) right.removeEventListener("axismove", this.onAxisMove);
+          },
+        });
+
+        // Boundary collision component to keep player within scene
+        AFRAME.registerComponent("boundary-collision", {
+          schema: {
+            radius: { type: "number", default: 45 }, // Match boundary ring radius
+            centerX: { type: "number", default: 0 },
+            centerZ: { type: "number", default: 0 },
+          },
+
+          init: function () {
+            this.lastPosition = new THREE.Vector3();
+            this.currentPosition = new THREE.Vector3();
+            this.el.object3D.getWorldPosition(this.lastPosition);
+          },
+
+          tick: function () {
+            // Get current world position
+            this.el.object3D.getWorldPosition(this.currentPosition);
+
+            // Calculate distance from center (only X and Z, ignore Y)
+            const distanceFromCenter = Math.sqrt(
+              Math.pow(this.currentPosition.x - this.data.centerX, 2) +
+                Math.pow(this.currentPosition.z - this.data.centerZ, 2)
+            );
+
+            // If player is outside the boundary, push them back
+            if (distanceFromCenter > this.data.radius) {
+              // Calculate the direction from center to player
+              const dirX = this.currentPosition.x - this.data.centerX;
+              const dirZ = this.currentPosition.z - this.data.centerZ;
+
+              // Normalize the direction
+              const length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+              const normalizedDirX = dirX / length;
+              const normalizedDirZ = dirZ / length;
+
+              // Set position to boundary edge
+              const newX =
+                this.data.centerX + normalizedDirX * this.data.radius;
+              const newZ =
+                this.data.centerZ + normalizedDirZ * this.data.radius;
+
+              // Update position (keep Y unchanged)
+              const currentPos = this.el.getAttribute("position");
+              this.el.setAttribute("position", {
+                x: newX,
+                y: currentPos.y,
+                z: newZ,
+              });
+            }
+
+            // Update last position
+            this.lastPosition.copy(this.currentPosition);
           },
         });
 
