@@ -116,3 +116,165 @@ AFRAME.registerComponent("orb-controller", {
     });
   },
 });
+
+// Billboard Cartel Component
+AFRAME.registerComponent("billboard-cartel", {
+  schema: {
+    texture: { type: "string" },
+    legs: { type: "number", default: 2 }, // 1 or 2 legs
+    width: { type: "number", default: 3 },
+    height: { type: "number", default: 2 },
+    interactive: { type: "boolean", default: false },
+    action: { type: "string", default: "" }, // 'safari', 'vuelo', or empty
+  },
+
+  init: function () {
+    this.createBillboard();
+
+    if (this.data.interactive) {
+      this.setupInteraction();
+    }
+  },
+
+  createBillboard: function () {
+    // Create the main billboard plane
+    this.billboard = document.createElement("a-plane");
+    this.billboard.setAttribute(
+      "geometry",
+      `width: ${this.data.width}; height: ${this.data.height}`
+    );
+    this.billboard.setAttribute(
+      "material",
+      `src: ${this.data.texture}; transparent: true`
+    );
+    this.billboard.setAttribute("position", "0 1 0");
+
+    if (this.data.interactive) {
+      this.billboard.classList.add("clickable");
+      this.billboard.classList.add("billboard");
+    }
+
+    // Create wooden legs
+    this.createLegs();
+
+    this.el.appendChild(this.billboard);
+  },
+
+  createLegs: function () {
+    const legHeight = 1.8;
+    const legRadius = 0.08;
+    const legColor = "#8B4513"; // Brown color
+
+    if (this.data.legs === 2) {
+      // Two legs for main cartel
+      const leftLeg = document.createElement("a-cylinder");
+      leftLeg.setAttribute(
+        "geometry",
+        `radius: ${legRadius}; height: ${legHeight}`
+      );
+      leftLeg.setAttribute("material", `color: ${legColor}`);
+      leftLeg.setAttribute("position", "-0.8 0 -0.05");
+      this.el.appendChild(leftLeg);
+
+      const rightLeg = document.createElement("a-cylinder");
+      rightLeg.setAttribute(
+        "geometry",
+        `radius: ${legRadius}; height: ${legHeight}`
+      );
+      rightLeg.setAttribute("material", `color: ${legColor}`);
+      rightLeg.setAttribute("position", "0.8 0 -0.05");
+      this.el.appendChild(rightLeg);
+    } else {
+      // Single leg for smaller cartels
+      const leg = document.createElement("a-cylinder");
+      leg.setAttribute(
+        "geometry",
+        `radius: ${legRadius}; height: ${legHeight}`
+      );
+      leg.setAttribute("material", `color: ${legColor}`);
+      leg.setAttribute("position", "0 0 -0.05");
+      this.el.appendChild(leg);
+    }
+  },
+
+  setupInteraction: function () {
+    // Add click handler
+    this.billboard.addEventListener("click", () => {
+      this.handleClick();
+    });
+
+    // Add highlight capability
+    this.billboard.setAttribute("billboard-highlighter", "");
+  },
+
+  handleClick: function () {
+    switch (this.data.action) {
+      case "safari":
+        console.log("🎮 Starting Safari Game from cartel!");
+        this.el.sceneEl.emit("safari-start-game");
+        break;
+      case "vuelo":
+        console.log("✈️ Flight game coming soon!");
+        // Show coming soon message
+        break;
+      default:
+        console.log("📋 Billboard clicked");
+    }
+  },
+});
+
+// Billboard Highlighter Component
+AFRAME.registerComponent("billboard-highlighter", {
+  init: function () {
+    this.originalMaterial = null;
+    this.highlighted = false;
+
+    // Listen for raycaster events
+    this.el.addEventListener("mouseenter", () => {
+      this.highlight();
+    });
+
+    this.el.addEventListener("mouseleave", () => {
+      this.unhighlight();
+    });
+
+    // For VR controllers
+    this.el.addEventListener("raycaster-intersected", () => {
+      this.highlight();
+    });
+
+    this.el.addEventListener("raycaster-intersected-cleared", () => {
+      this.unhighlight();
+    });
+  },
+
+  highlight: function () {
+    if (this.highlighted) return;
+
+    this.highlighted = true;
+
+    // Store original material
+    if (!this.originalMaterial) {
+      const material = this.el.getAttribute("material");
+      this.originalMaterial = { ...material };
+    }
+
+    // Apply highlight effect
+    this.el.setAttribute("material", {
+      ...this.originalMaterial,
+      emissive: "#ffff00",
+      emissiveIntensity: 0.3,
+    });
+  },
+
+  unhighlight: function () {
+    if (!this.highlighted) return;
+
+    this.highlighted = false;
+
+    // Restore original material
+    if (this.originalMaterial) {
+      this.el.setAttribute("material", this.originalMaterial);
+    }
+  },
+});
