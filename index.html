@@ -416,7 +416,7 @@
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
         id="cameraRig"
-        position="0 0 0"
+        position="0 1.6 0"
         movement-controls="enabled: true; speed: 0.1;"
         vr-locomotion="controllerHand: left"
       >
@@ -1749,7 +1749,6 @@
             deadZone: { type: "number", default: 0.18 }, // thumbstick deadzone
             controllerHand: { type: "string", default: "left" }, // 'left'|'right'|'both'
             useHeadDirection: { type: "boolean", default: true },
-            stayGrounded: { type: "boolean", default: true },
           },
 
           init: function () {
@@ -1838,11 +1837,6 @@
             const step = this.velocity.clone().multiplyScalar(delta);
             const pos = this.el.object3D.position;
             pos.add(step);
-
-            // Keep grounded if requested
-            if (this.data.stayGrounded) {
-              if (pos.y < 0.1) pos.y = 0.1; //1.6
-            }
 
             // Run simple collider correction if the scene has collider-check
             if (
@@ -1989,17 +1983,6 @@
             );
           },
         });
-
-        // Prevent cameraRig from falling below ground if physics not used
-        AFRAME.registerComponent("stay-grounded", {
-          tick: function () {
-            const rig = document.querySelector("#cameraRig");
-            if (!rig) return;
-            const p = rig.getAttribute("position");
-            if (p.y < 0.1) rig.setAttribute("position", `${p.x} 0.1 ${p.z}`); //1.6
-          },
-        });
-        document.querySelector("#cameraRig").setAttribute("stay-grounded", "");
 
         // Simple collider-check: prevents cameraRig from passing through entities marked with data-collider
         AFRAME.registerComponent("collider-check", {
