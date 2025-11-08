@@ -477,6 +477,10 @@
         <a-entity
           id="leftHand"
           hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
+          laser-controls="hand: left"
+          raycaster="objects: .clickable, .animal; far: 20"
+          line="color: #00FF00; opacity: 0.75"
+          animal-highlighter
           progress-ui
         >
           <!-- Wristwatch UI Container -->
