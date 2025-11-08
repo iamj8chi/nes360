@@ -479,6 +479,90 @@
           hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
           progress-ui
         >
+          <!-- Wristwatch UI Container -->
+          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="60 0 0">
+            <!-- Background Tracker -->
+            <a-plane
+              id="trackerBackground"
+              src="#trackerBg"
+              width="0.2"
+              height="0.24"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Animal Icon Slots (positioned on the tracker) -->
+            <!-- Flamingo - Top Left -->
+            <a-plane
+              id="flamengoIcon"
+              src="#flamengoUncheck"
+              width="0.045"
+              height="0.045"
+              position="-0.045 0.075 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Jaguarete - Top Right -->
+            <a-plane
+              id="jaguareteIcon"
+              src="#jaguareteUncheck"
+              width="0.045"
+              height="0.045"
+              position="0.045 0.075 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Nandu - Middle Left -->
+            <a-plane
+              id="nanduIcon"
+              src="#nanduUncheck"
+              width="0.045"
+              height="0.045"
+              position="-0.045 0.015 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Jurumi - Middle Right -->
+            <a-plane
+              id="jurumiIcon"
+              src="#jurumiUncheck"
+              width="0.045"
+              height="0.045"
+              position="0.045 0.015 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Tagua - Bottom Left -->
+            <a-plane
+              id="taguaIcon"
+              src="#taguaUncheck"
+              width="0.045"
+              height="0.045"
+              position="-0.045 -0.045 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Tatu - Bottom Right -->
+            <a-plane
+              id="tatuIcon"
+              src="#tatuUncheck"
+              width="0.045"
+              height="0.045"
+              position="0.045 -0.045 0.001"
+              material="shader: flat; transparent: true"
+            ></a-plane>
+
+            <!-- Timer Display Area (optional text element) -->
+            <a-text
+              id="timerDisplay"
+              value="5:00"
+              align="center"
+              position="0 -0.095 0.001"
+              scale="0.15 0.15 0.15"
+              color="#FFFFFF"
+              shader="msdf"
+              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+            ></a-text>
+          </a-entity>
         </a-entity>
 
         <!-- Right Controller - Point and click controller -->
