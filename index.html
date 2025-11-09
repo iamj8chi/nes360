@@ -168,7 +168,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Lul
+      and controllers to point. Explore the forest! Hello
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -542,6 +542,7 @@
         vr-locomotion="controllerHand: left"
         boundary-collision="radius: 60"
         screen-fade="fadeDuration: 1000"
+        progress-ui
       >
         <!-- Camera -->
         <a-entity
@@ -551,38 +552,25 @@
           position="0 1.6 0"
           wasd-controls="enabled: false"
         >
-        </a-entity>
-
-        <!-- Left Controller - Holds the tracker UI -->
-        <a-entity
-          id="leftHand"
-          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
-          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
-          line="color: #00FF00; opacity: 0.75"
-          cursor="fuse: false; rayOrigin: entity"
-          animal-highlighter
-          progress-ui
-        >
-          <!-- Wristwatch UI Container -->
-          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="-45 0 0">
+          <!-- Tracker UI Container - attached to camera at waist height -->
+          <a-entity id="trackerUI" position="0 -0.8 -1.2" rotation="15 0 0" visible="false">
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
               src="#trackerBg"
-              width="0.2"
-              height="0.24"
+              width="0.4"
+              height="0.48"
               material="shader: flat; transparent: true"
             ></a-plane>
-            <a-box position="0 -0.3 0" scale="0.1 0.2 0.05"></a-box>
 
             <!-- Animal Icon Slots (positioned on the tracker) -->
             <!-- Flamingo - Top Left -->
             <a-plane
               id="flamengoIcon"
               src="#flamengoUncheck"
-              width="0.045"
-              height="0.045"
-              position="-0.045 0.075 0.001"
+              width="0.09"
+              height="0.09"
+              position="-0.09 0.15 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
@@ -590,9 +578,9 @@
             <a-plane
               id="jaguareteIcon"
               src="#jaguareteUncheck"
-              width="0.045"
-              height="0.045"
-              position="0.045 0.075 0.001"
+              width="0.09"
+              height="0.09"
+              position="0.09 0.15 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
@@ -600,9 +588,9 @@
             <a-plane
               id="nanduIcon"
               src="#nanduUncheck"
-              width="0.045"
-              height="0.045"
-              position="-0.045 0.015 0.001"
+              width="0.09"
+              height="0.09"
+              position="-0.09 0.03 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
@@ -610,9 +598,9 @@
             <a-plane
               id="jurumiIcon"
               src="#jurumiUncheck"
-              width="0.045"
-              height="0.045"
-              position="0.045 0.015 0.001"
+              width="0.09"
+              height="0.09"
+              position="0.09 0.03 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
@@ -620,9 +608,9 @@
             <a-plane
               id="taguaIcon"
               src="#taguaUncheck"
-              width="0.045"
-              height="0.045"
-              position="-0.045 -0.045 0.001"
+              width="0.09"
+              height="0.09"
+              position="-0.09 -0.09 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
@@ -630,25 +618,35 @@
             <a-plane
               id="tatuIcon"
               src="#tatuUncheck"
-              width="0.045"
-              height="0.045"
-              position="0.045 -0.045 0.001"
+              width="0.09"
+              height="0.09"
+              position="0.09 -0.09 0.001"
               material="shader: flat; transparent: true"
             ></a-plane>
 
-            <!-- Timer Display Area (optional text element) -->
+            <!-- Timer Display Area -->
             <a-text
               id="timerDisplay"
               value="5:00"
               align="center"
-              position="0 -0.095 0.001"
-              scale="0.15 0.15 0.15"
+              position="0 -0.19 0.001"
+              scale="0.3 0.3 0.3"
               color="#FFFFFF"
               shader="msdf"
               font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
             ></a-text>
           </a-entity>
         </a-entity>
+
+        <!-- Left Controller -->
+        <a-entity
+          id="leftHand"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
+          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
+          line="color: #00FF00; opacity: 0.75"
+          cursor="fuse: false; rayOrigin: entity"
+          animal-highlighter
+        >
 
         <!-- Right Controller - Point and click controller -->
         <a-entity
@@ -1384,30 +1382,63 @@
           startGame: function () {
             console.log("Starting Safari Game!");
 
-            // Reset game state first
-            this.resetGame();
+            // Get fade component
+            const cameraRig = document.getElementById("cameraRig");
+            const fadeComponent = cameraRig ? cameraRig.components["screen-fade"] : null;
 
-            this.gameActive = true;
-            this.timeRemaining = this.data.timeLimit;
+            if (fadeComponent) {
+              // Fade out, setup game, then fade in
+              fadeComponent.fadeOut(() => {
+                // Reset game state first
+                this.resetGame();
 
-            // Hide orbs
-            const gameOrbs = document.getElementById("gameOrbs");
-            if (gameOrbs) {
-              gameOrbs.setAttribute("visible", false);
+                this.gameActive = true;
+                this.timeRemaining = this.data.timeLimit;
+
+                // Hide carteles
+                const carteles = document.getElementById("carteles");
+                if (carteles) {
+                  carteles.setAttribute("visible", false);
+                }
+
+                // Play game start sound
+                const startSound = document.getElementById("soundGameStart");
+                if (startSound && startSound.components.sound) {
+                  startSound.components.sound.stopSound();
+                  startSound.components.sound.playSound();
+                }
+
+                // Emit game started event (this will show the UI)
+                this.el.sceneEl.emit("safari-game-started");
+
+                // Fade back in
+                setTimeout(() => {
+                  fadeComponent.fadeIn(() => {
+                    // Show start message after fade in
+                    this.showMessage("FIND ALL 6 ANIMALS!", 3000);
+                  });
+                }, 300);
+              });
+            } else {
+              // Fallback without fade
+              this.resetGame();
+              this.gameActive = true;
+              this.timeRemaining = this.data.timeLimit;
+
+              const carteles = document.getElementById("carteles");
+              if (carteles) {
+                carteles.setAttribute("visible", false);
+              }
+
+              const startSound = document.getElementById("soundGameStart");
+              if (startSound && startSound.components.sound) {
+                startSound.components.sound.stopSound();
+                startSound.components.sound.playSound();
+              }
+
+              this.el.sceneEl.emit("safari-game-started");
+              this.showMessage("FIND ALL 6 ANIMALS!", 3000);
             }
-
-            // Play game start sound
-            const startSound = document.getElementById("soundGameStart");
-            if (startSound && startSound.components.sound) {
-              startSound.components.sound.stopSound();
-              startSound.components.sound.playSound();
-            }
-
-            // Emit game started event
-            this.el.sceneEl.emit("safari-game-started");
-
-            // Show start message
-            this.showMessage("FIND ALL 6 ANIMALS!", 3000);
           },
 
           checkAnimal: function (animalType) {
@@ -1487,45 +1518,66 @@
                 : null;
 
               if (fadeComponent) {
-                // Fade out, teleport player, then fade in
-                fadeComponent.fadeOutAndIn(
-                  () => {
-                    // On faded out - teleport player to starting position
-                    if (cameraRig) {
-                      cameraRig.setAttribute("position", "0 0 0");
+                // Fade out
+                fadeComponent.fadeOut(() => {
+                  // On faded out - teleport player to starting position
+                  if (cameraRig) {
+                    cameraRig.setAttribute("position", "0 0 0");
 
-                      // Reset camera rotation if needed
-                      const head = document.getElementById("head");
-                      if (head) {
-                        head.object3D.rotation.set(0, 0, 0);
-                      }
+                    // Reset camera rotation
+                    const head = document.getElementById("head");
+                    if (head) {
+                      head.object3D.rotation.set(0, 0, 0);
                     }
-
-                    // Show orbs/carteles
-                    const carteles = document.getElementById("carteles");
-                    if (carteles) {
-                      carteles.setAttribute("visible", true);
-                    }
-                  },
-                  () => {
-                    // On faded in - complete
-                    console.log("Player teleported back to start");
                   }
-                );
+
+                  // Hide UI
+                  this.el.sceneEl.emit("safari-game-ended", { won: won });
+                  
+                  // Reset all animal highlights
+                  const animals = document.querySelectorAll(".animal");
+                  animals.forEach((animalEl) => {
+                    const clickable = animalEl.components["animal-clickable"];
+                    if (clickable) {
+                      clickable.reset();
+                    }
+                  });
+
+                  // Show carteles menu
+                  const carteles = document.getElementById("carteles");
+                  if (carteles) {
+                    carteles.setAttribute("visible", true);
+                  }
+
+                  // Wait a bit then fade in
+                  setTimeout(() => {
+                    fadeComponent.fadeIn(() => {
+                      console.log("Player teleported back to start");
+                    });
+                  }, 300);
+                });
               } else {
                 // Fallback if fade component not available
                 if (cameraRig) {
                   cameraRig.setAttribute("position", "0 0 0");
                 }
+                
+                this.el.sceneEl.emit("safari-game-ended", { won: won });
+                
+                const animals = document.querySelectorAll(".animal");
+                animals.forEach((animalEl) => {
+                  const clickable = animalEl.components["animal-clickable"];
+                  if (clickable) {
+                    clickable.reset();
+                  }
+                });
+                
                 const carteles = document.getElementById("carteles");
                 if (carteles) {
                   carteles.setAttribute("visible", true);
                 }
               }
             }, 5000);
-
-            // Emit game ended event
-            this.el.sceneEl.emit("safari-game-ended", { won: won });
           },
 
           resetGame: function () {
@@ -1873,23 +1925,23 @@
 
           setupUIElements: function () {
             // Get references to all UI plane elements
-            this.wristwatch = this.el.querySelector("#wristwatch");
-            this.trackerBg = this.el.querySelector("#trackerBackground");
-            this.timerText = this.el.querySelector("#timerDisplay");
+            this.trackerUI = document.getElementById("trackerUI");
+            this.trackerBg = document.getElementById("trackerBackground");
+            this.timerText = document.getElementById("timerDisplay");
 
             // Animal icons mapping
             this.icons = {
-              flamingo: this.el.querySelector("#flamengoIcon"),
-              jaguarete: this.el.querySelector("#jaguareteIcon"),
-              nandu: this.el.querySelector("#nanduIcon"),
-              jurumi: this.el.querySelector("#jurumiIcon"),
-              tagua: this.el.querySelector("#taguaIcon"),
-              tatu: this.el.querySelector("#tatuIcon"),
+              flamingo: document.getElementById("flamengoIcon"),
+              jaguarete: document.getElementById("jaguareteIcon"),
+              nandu: document.getElementById("nanduIcon"),
+              jurumi: document.getElementById("jurumiIcon"),
+              tagua: document.getElementById("taguaIcon"),
+              tatu: document.getElementById("tatuIcon"),
             };
 
-            // Initially hide the wristwatch
-            if (this.wristwatch) {
-              this.wristwatch.setAttribute("visible", "false");
+            // Initially hide the tracker UI
+            if (this.trackerUI) {
+              this.trackerUI.setAttribute("visible", "false");
             }
 
             console.log("Progress UI elements initialized");
@@ -1920,15 +1972,15 @@
           },
 
           show: function () {
-            if (this.wristwatch) {
-              this.wristwatch.setAttribute("visible", "true");
+            if (this.trackerUI) {
+              this.trackerUI.setAttribute("visible", "true");
               this.isVisible = true;
             }
           },
 
           hide: function () {
-            if (this.wristwatch) {
-              this.wristwatch.setAttribute("visible", "false");
+            if (this.trackerUI) {
+              this.trackerUI.setAttribute("visible", "false");
               this.isVisible = false;
             }
           },
