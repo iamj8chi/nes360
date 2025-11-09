@@ -485,11 +485,7 @@
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity
-            id="wristwatch"
-            position="0 0.02 -0.08"
-            rotation="60 180 60"
-          >
+          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="0 0 0">
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -498,6 +494,7 @@
               height="0.24"
               material="shader: flat; transparent: true"
             ></a-plane>
+            <a-box position="0 0 0" scale="0.5 1 2"></a-box>
 
             <!-- Animal Icon Slots (positioned on the tracker) -->
             <!-- Flamingo - Top Left -->
