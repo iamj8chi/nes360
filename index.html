@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! UI
+      and controllers to point. Explore the forest! Wristwatch
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -459,6 +459,7 @@
         movement-controls="enabled: true; speed: 0.2;"
         vr-locomotion="controllerHand: left"
         boundary-collision="radius: 60"
+        screen-fade="fadeDuration: 1000"
       >
         <!-- Camera -->
         <a-entity
@@ -481,7 +482,7 @@
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="60 0 0">
+          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="60 180 0">
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -1098,11 +1099,48 @@
               );
             }
 
-            // Show orbs again after delay
+            // Wait for message to be visible, then fade out and teleport
             setTimeout(() => {
-              const gameOrbs = document.getElementById("gameOrbs");
-              if (gameOrbs) {
-                gameOrbs.setAttribute("visible", true);
+              const cameraRig = document.getElementById("cameraRig");
+              const fadeComponent = cameraRig
+                ? cameraRig.components["screen-fade"]
+                : null;
+
+              if (fadeComponent) {
+                // Fade out, teleport player, then fade in
+                fadeComponent.fadeOutAndIn(
+                  () => {
+                    // On faded out - teleport player to starting position
+                    if (cameraRig) {
+                      cameraRig.setAttribute("position", "0 0 0");
+
+                      // Reset camera rotation if needed
+                      const head = document.getElementById("head");
+                      if (head) {
+                        head.object3D.rotation.set(0, 0, 0);
+                      }
+                    }
+
+                    // Show orbs/carteles
+                    const carteles = document.getElementById("carteles");
+                    if (carteles) {
+                      carteles.setAttribute("visible", true);
+                    }
+                  },
+                  () => {
+                    // On faded in - complete
+                    console.log("Player teleported back to start");
+                  }
+                );
+              } else {
+                // Fallback if fade component not available
+                if (cameraRig) {
+                  cameraRig.setAttribute("position", "0 0 0");
+                }
+                const carteles = document.getElementById("carteles");
+                if (carteles) {
+                  carteles.setAttribute("visible", true);
+                }
               }
             }, 5000);
 
@@ -1394,7 +1432,11 @@
             // Yellow highlight on hover
             this.el.addEventListener("mouseenter", () => {
               if (!this.isClicked) {
-                this.el.setAttribute("material", "color", "#FFFF00");
+                if (this.el.classList.contains("orb-start")) {
+                  this.el.setAttribute("material", "color", "#FF0000"); // Red for orb-start
+                } else {
+                  this.el.setAttribute("material", "color", "#FFFF00"); // Yellow for others
+                }
               }
             });
 
@@ -2353,6 +2395,86 @@
                 // ignore
               }
             }
+          },
+        });
+
+        // Screen Fade Component - Creates fade to black effect
+        AFRAME.registerComponent("screen-fade", {
+          schema: {
+            color: { type: "color", default: "#000000" },
+            fadeDuration: { type: "number", default: 1000 }, // milliseconds
+          },
+
+          init: function () {
+            this.createFadeOverlay();
+          },
+
+          createFadeOverlay: function () {
+            // Create a plane that covers the entire view
+            this.fadeOverlay = document.createElement("a-plane");
+            this.fadeOverlay.setAttribute("id", "fadeOverlay");
+            this.fadeOverlay.setAttribute("position", "0 0 -0.5");
+            this.fadeOverlay.setAttribute("width", "2");
+            this.fadeOverlay.setAttribute("height", "2");
+            this.fadeOverlay.setAttribute("material", {
+              color: this.data.color,
+              shader: "flat",
+              transparent: true,
+              opacity: 0,
+            });
+
+            // Attach to camera so it follows the view
+            const camera = document.querySelector("[camera]");
+            if (camera) {
+              camera.appendChild(this.fadeOverlay);
+            }
+          },
+
+          fadeOut: function (callback) {
+            if (!this.fadeOverlay) return;
+
+            const duration = this.data.fadeDuration;
+            this.fadeOverlay.setAttribute("animation", {
+              property: "material.opacity",
+              from: 0,
+              to: 1,
+              dur: duration,
+              easing: "easeInQuad",
+            });
+
+            if (callback) {
+              setTimeout(callback, duration);
+            }
+          },
+
+          fadeIn: function (callback) {
+            if (!this.fadeOverlay) return;
+
+            const duration = this.data.fadeDuration;
+            this.fadeOverlay.setAttribute("animation", {
+              property: "material.opacity",
+              from: 1,
+              to: 0,
+              dur: duration,
+              easing: "easeOutQuad",
+            });
+
+            if (callback) {
+              setTimeout(callback, duration);
+            }
+          },
+
+          fadeOutAndIn: function (onFadedOut, onFadedIn) {
+            this.fadeOut(() => {
+              if (onFadedOut) onFadedOut();
+
+              // Wait a moment at full black
+              setTimeout(() => {
+                this.fadeIn(() => {
+                  if (onFadedIn) onFadedIn();
+                });
+              }, 300);
+            });
           },
         });
 
