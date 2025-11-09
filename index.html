@@ -168,7 +168,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Opa
+      and controllers to point. Explore the forest! Lul
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -564,11 +564,7 @@
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity
-            id="wristwatch"
-            position="0 0.02 -0.08"
-            rotation="45 10 180"
-          >
+          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="-45 0 0">
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -577,7 +573,7 @@
               height="0.24"
               material="shader: flat; transparent: true"
             ></a-plane>
-            <a-box position="0 0 0" scale="0.1 0.2 0.05"></a-box>
+            <a-box position="0 -0.3 0" scale="0.1 0.2 0.05"></a-box>
 
             <!-- Animal Icon Slots (positioned on the tracker) -->
             <!-- Flamingo - Top Left -->
@@ -1956,10 +1952,14 @@
               return;
             }
 
+            // Handle flamingo/flamengo naming mismatch
+            const assetName =
+              animalType === "flamingo" ? "flamengo" : animalType;
+
             if (found) {
               this.animalsFound.add(animalType);
               // Switch to checked image
-              icon.setAttribute("src", `#${animalType}Check`);
+              icon.setAttribute("src", `#${assetName}Check`);
 
               // Add a brief scale animation for feedback
               icon.setAttribute("animation__found", {
@@ -1984,7 +1984,7 @@
             } else {
               this.animalsFound.delete(animalType);
               // Switch to unchecked image
-              icon.setAttribute("src", `#${animalType}Uncheck`);
+              icon.setAttribute("src", `#${assetName}Uncheck`);
             }
           },
 
