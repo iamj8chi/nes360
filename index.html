@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Wristwatch
+      and controllers to point. Explore the forest! Shade
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -184,6 +184,7 @@
                 logarithmicDepthBuffer: false"
       vr-mode-ui="enabled: true"
       inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js"
+      shadow-control="enabled: false"
     >
       <!-- Safari Game Manager -->
       <a-entity
@@ -249,10 +250,10 @@
         id="sun"
         light="type: directional; color: #ffffff; intensity: 1.3; castShadow: true"
         position="0 50 0"
-        rotation="-45 45 0"
+        rotation="0 0 0"
       ></a-entity>
 
-      <!-- Ocean using a-ocean component -->
+      <!-- Ocean using a-ocean component 
       <a-ocean
         width="500"
         depth="500"
@@ -260,7 +261,7 @@
         opacity="1"
         position="30 -0.5 -10"
         color="#16e9aa"
-      ></a-ocean>
+      ></a-ocean> -->
 
       <!-- Ground (slightly raised) 
       <a-entity
@@ -484,7 +485,11 @@
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="60 180 0">
+          <a-entity
+            id="wristwatch"
+            position="0 0.02 -0.08"
+            rotation="60 180 60"
+          >
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -2697,6 +2702,117 @@
                 });
               }, 300);
             });
+          },
+        });
+
+        // Global Shadow Control - Toggle all shadow casting and receiving
+        AFRAME.registerComponent("shadow-control", {
+          schema: {
+            enabled: { type: "boolean", default: false }, // Set to false to disable all shadows
+          },
+
+          init: function () {
+            this.sceneEl = this.el.sceneEl || this.el;
+            this.shadowsEnabled = this.data.enabled;
+
+            // Wait for scene to be fully loaded
+            if (this.sceneEl.hasLoaded) {
+              this.applyShadowSettings();
+            } else {
+              this.sceneEl.addEventListener("loaded", () => {
+                this.applyShadowSettings();
+              });
+            }
+          },
+
+          update: function (oldData) {
+            if (oldData.enabled !== this.data.enabled) {
+              this.shadowsEnabled = this.data.enabled;
+              this.applyShadowSettings();
+            }
+          },
+
+          applyShadowSettings: function () {
+            console.log(`Setting shadows to: ${this.shadowsEnabled}`);
+
+            // Configure renderer shadow map
+            try {
+              const renderer = this.sceneEl.renderer;
+              if (renderer) {
+                renderer.shadowMap.enabled = this.shadowsEnabled;
+                if (
+                  this.shadowsEnabled &&
+                  window.THREE &&
+                  THREE.PCFSoftShadowMap
+                ) {
+                  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                }
+              }
+            } catch (e) {
+              console.warn("Could not configure renderer shadowMap", e);
+            }
+
+            // Configure sun light
+            const sunEl = document.getElementById("sun");
+            if (sunEl) {
+              const light = sunEl.getObject3D("light");
+              if (light && light.isDirectionalLight) {
+                light.castShadow = this.shadowsEnabled;
+
+                if (this.shadowsEnabled) {
+                  // Configure shadow camera if enabled
+                  light.shadow.mapSize.width = 2048;
+                  light.shadow.mapSize.height = 2048;
+                  const cam = light.shadow.camera;
+                  cam.left = -80;
+                  cam.right = 80;
+                  cam.top = 80;
+                  cam.bottom = -80;
+                  cam.near = 0.5;
+                  cam.far = 400;
+                  if (typeof cam.updateProjectionMatrix === "function") {
+                    cam.updateProjectionMatrix();
+                  }
+                  light.shadow.bias = -0.0015;
+                }
+              }
+            }
+
+            // Update all meshes in the scene
+            this.sceneEl.object3D.traverse((node) => {
+              if (node.isMesh) {
+                node.castShadow = this.shadowsEnabled;
+                node.receiveShadow = this.shadowsEnabled;
+              }
+            });
+
+            // Listen for newly loaded models
+            if (!this.modelLoadedHandler) {
+              this.modelLoadedHandler = (evt) => {
+                const el = evt.target;
+                if (el && el.object3D) {
+                  el.object3D.traverse((node) => {
+                    if (node.isMesh) {
+                      node.castShadow = this.shadowsEnabled;
+                      node.receiveShadow = this.shadowsEnabled;
+                    }
+                  });
+                }
+              };
+              this.sceneEl.addEventListener(
+                "model-loaded",
+                this.modelLoadedHandler
+              );
+            }
+          },
+
+          remove: function () {
+            if (this.modelLoadedHandler) {
+              this.sceneEl.removeEventListener(
+                "model-loaded",
+                this.modelLoadedHandler
+              );
+            }
           },
         });
 
