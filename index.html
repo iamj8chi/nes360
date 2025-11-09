@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Sounds
+      and controllers to point. Explore the forest! Laser
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -292,7 +292,7 @@
       <!-- Ambient Sound - plays everywhere in the background -->
       <a-entity
         id="ambientSound"
-        sound="src: #ambienceSound; autoplay: true; loop: true; volume: 0.3"
+        sound="src: #ambienceSound; autoplay: true; loop: true; volume: 0.3; positional: false"
         position="0 0 0"
       ></a-entity>
 
@@ -300,19 +300,19 @@
       <a-entity id="gameSoundEffects" position="0 0 0">
         <a-entity
           id="soundGameStart"
-          sound="src: #gameStartSound; autoplay: false; volume: 0.6"
+          sound="src: #gameStartSound; autoplay: false; volume: 0.6; positional: false"
         ></a-entity>
         <a-entity
           id="soundGameFound"
-          sound="src: #gameFoundSound; autoplay: false; volume: 0.5"
+          sound="src: #gameFoundSound; autoplay: false; volume: 0.5; positional: false"
         ></a-entity>
         <a-entity
           id="soundGameWin"
-          sound="src: #gameWinSound; autoplay: false; volume: 0.7"
+          sound="src: #gameWinSound; autoplay: false; volume: 0.7; positional: false"
         ></a-entity>
         <a-entity
           id="soundGameOver"
-          sound="src: #gameOverSound; autoplay: false; volume: 0.6"
+          sound="src: #gameOverSound; autoplay: false; volume: 0.6; positional: false"
         ></a-entity>
       </a-entity>
 
@@ -555,9 +555,9 @@
         <!-- Left Controller - Holds the tracker UI -->
         <a-entity
           id="leftHand"
-          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa; handColor: #ffccaa"
           laser-controls="hand: left"
-          raycaster="objects: .clickable, .animal; far: 20"
+          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707"
           line="color: #00FF00; opacity: 0.75"
           animal-highlighter
           progress-ui
@@ -652,9 +652,9 @@
         <!-- Right Controller - Point and click controller -->
         <a-entity
           id="rightHand"
-          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
+          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa; handColor: #ffccaa"
           laser-controls="hand: right"
-          raycaster="objects: .clickable, .animal; far: 20"
+          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707"
           line="color: #FF0000; opacity: 0.75"
           animal-highlighter
         >
@@ -3085,38 +3085,54 @@
         // Ensure controllers appear reliably when entering VR
         (function () {
           const scene = document.querySelector("a-scene");
+          let controllersInitialized = false;
 
           function initControllers() {
             // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
             ["leftHand", "rightHand"].forEach((id) => {
               const el = document.getElementById(id);
               if (!el) return;
-              // If hand-controls already initialized, re-set to force re-check
+
               const hand = el.getAttribute("hand-controls");
               const laser = el.getAttribute("laser-controls");
+
+              // Force hand model style and prevent controller model
               if (hand) {
                 el.removeAttribute("hand-controls");
-                // small delay to let removal propagate
-                setTimeout(() => el.setAttribute("hand-controls", hand), 50);
+                setTimeout(() => {
+                  el.setAttribute("hand-controls", {
+                    hand: hand.hand,
+                    handModelStyle: "lowPoly",
+                    color: "#ffccaa",
+                  });
+                }, 50);
               }
+
               if (laser) {
                 el.removeAttribute("laser-controls");
-                setTimeout(() => el.setAttribute("laser-controls", laser), 60);
+                setTimeout(() => {
+                  el.setAttribute("laser-controls", {
+                    hand: laser.hand,
+                  });
+                }, 100);
               }
             });
+
+            controllersInitialized = true;
           }
 
-          // When session enters VR, try to initialize controllers (some browsers require this)
+          // When session enters VR, initialize controllers
           scene.addEventListener("enter-vr", () => {
-            // delay a little to allow XR session to start
-            setTimeout(initControllers, 200);
+            setTimeout(initControllers, 300);
           });
 
-          // When a controller connects, ensure its visuals are visible
+          // When a controller connects, ensure hand models are loaded
           window.addEventListener("gamepadconnected", (ev) => {
-            // re-init just in case
-            initControllers();
+            if (!controllersInitialized) {
+              setTimeout(initControllers, 100);
+            }
           });
+
           // A-Frame-specific event for WebXR controller connection
           scene.addEventListener("controllerconnected", (ev) => {
             initControllers();
