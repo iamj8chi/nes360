@@ -551,9 +551,16 @@
           look-controls="pointerLockEnabled: false"
           position="0 1.6 0"
           wasd-controls="enabled: false"
+          raycaster="objects: .clickable, .animal; far: 20"
+          cursor="fuse: false; rayOrigin: mouse"
         >
           <!-- Tracker UI Container - attached to camera at waist height -->
-          <a-entity id="trackerUI" position="0 -0.8 -1.2" rotation="15 0 0" visible="false">
+          <a-entity
+            id="trackerUI"
+            position="0 -0.53233 -1.2"
+            rotation="-15 0 0"
+            visible="false"
+          >
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -647,6 +654,7 @@
           cursor="fuse: false; rayOrigin: entity"
           animal-highlighter
         >
+        </a-entity>
 
         <!-- Right Controller - Point and click controller -->
         <a-entity
@@ -1384,7 +1392,9 @@
 
             // Get fade component
             const cameraRig = document.getElementById("cameraRig");
-            const fadeComponent = cameraRig ? cameraRig.components["screen-fade"] : null;
+            const fadeComponent = cameraRig
+              ? cameraRig.components["screen-fade"]
+              : null;
 
             if (fadeComponent) {
               // Fade out, setup game, then fade in
@@ -1533,7 +1543,7 @@
 
                   // Hide UI
                   this.el.sceneEl.emit("safari-game-ended", { won: won });
-                  
+
                   // Reset all animal highlights
                   const animals = document.querySelectorAll(".animal");
                   animals.forEach((animalEl) => {
@@ -1561,9 +1571,9 @@
                 if (cameraRig) {
                   cameraRig.setAttribute("position", "0 0 0");
                 }
-                
+
                 this.el.sceneEl.emit("safari-game-ended", { won: won });
-                
+
                 const animals = document.querySelectorAll(".animal");
                 animals.forEach((animalEl) => {
                   const clickable = animalEl.components["animal-clickable"];
@@ -1571,7 +1581,7 @@
                     clickable.reset();
                   }
                 });
-                
+
                 const carteles = document.getElementById("carteles");
                 if (carteles) {
                   carteles.setAttribute("visible", true);
@@ -2103,6 +2113,9 @@
             const isPasto = this.data.type === "pasto";
             const isPalma = this.data.type === "palma";
 
+            // Declare entities
+            var canopy, pasto;
+
             // Create base tree entity (for normal, dead, and palma trees)
             if (isNormal || isDead || isPalma) {
               var base = document.createElement("a-entity");
@@ -2132,7 +2145,7 @@
 
             // Create canopy entity (not for dead trees)
             if (isNormal || isShrub || isPalma) {
-              var canopy = document.createElement("a-entity");
+              canopy = document.createElement("a-entity");
               // Use karanday hoja for palma, samuu canopy for others
               canopy.setAttribute(
                 "gltf-model",
@@ -2159,7 +2172,7 @@
 
             // Create pasto entity (grass)
             if (isPasto) {
-              var pasto = document.createElement("a-entity");
+              pasto = document.createElement("a-entity");
               pasto.setAttribute("gltf-model", "#pastoModel");
               pasto.setAttribute("shadow", "cast: true");
 
