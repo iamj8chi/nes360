@@ -186,6 +186,8 @@
       vr-mode-ui="enabled: true"
       inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js"
       shadow-control="enabled: false"
+      audio-unlock
+      collision-manager
     >
       <!-- Safari Game Manager -->
       <a-entity
@@ -361,7 +363,12 @@
       <!-- Safari Game Control Orbs -->
       <a-entity id="carteles" position="0 1.5 -5">
         <!-- Safari Cartel -->
-        <a-entity id="startCartel" shadow="receive: false" position="-4.5 0 0">
+        <a-entity
+          id="startCartel"
+          shadow="receive: false"
+          position="-4.5 0 0"
+          collision-cube="width: 1; depth: 0.3; height: 10; offsetY: 0"
+        >
           <a-image
             id="startCartelImg"
             class="clickable orb-start"
@@ -391,6 +398,7 @@
           shadow="receive: false"
           class="clickable orb-minigame"
           position="4.5 0 0"
+          collision-cube="width: 1; depth: 0.3; height: 10; offsetY: 0"
         >
           <a-image
             id="minigameOrb"
@@ -416,23 +424,27 @@
 
       <!-- Main Cartel -->
 
-      <a-entity id="mainCartelGrande" position="0 3 -5">
+      <a-entity
+        id="mainCartelGrande"
+        position="0 0 -5"
+        collision-cube="width: 7; depth: 0.3; height: 16 offsetY: -10"
+      >
         <a-image
           id="mainCartel"
           geometry="width: 7"
           src="#cartelMain"
-          position="0 0 0"
+          position="0 3 0"
           width="7"
           height="4"
           shadow="cast: true"
         ></a-image>
         <a-box
-          position="0 0 -0.03"
+          position="0 3 -0.03"
           scale="6.5 3.5 0.05"
           color="#a85432"
         ></a-box>
-        <a-box position="2 -2 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
-        ><a-box position="-2 -2 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
+        <a-box position="2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
+        ><a-box position="-2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
       ></a-entity>
 
       <!-- Scenario Model -->
@@ -541,6 +553,7 @@
         movement-controls="enabled: true; speed: 0.2;"
         vr-locomotion="controllerHand: left"
         boundary-collision="radius: 60"
+        collision-responder="padding: 0.3"
         screen-fade="fadeDuration: 1000"
         progress-ui
       >
@@ -675,231 +688,277 @@
           id="tree1"
           position="-42.91238 0 -16.68458"
           composite-tree="scale: 4.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree2"
           position="-16.48963 0 -15.31542"
           composite-tree="scale: 5.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree3"
           position="15.97662 0 -0.70065"
           composite-tree="scale: 4.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree4"
           position="-0.95374 0 36.85258"
           composite-tree="scale: 6.0"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree6"
           position="-3.86984 0 -12.23758"
           composite-tree="scale: 5.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree7"
           position="-51.37735 0 -2.90045"
           composite-tree="scale: 4.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree10"
           position="-38.36468 0 15.53639"
           composite-tree="scale: 5.3"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree11"
           position="-21.87661 0 21.94878"
           composite-tree="scale: 4.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree12"
           position="-54.64883 0 -25.53923"
           composite-tree="scale: 5.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree13"
           position="13.52433 0 -15.81872"
           composite-tree="scale: 4.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree14"
           position="27.55275 0 -24.21875"
           composite-tree="scale: 6.0"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree15"
           position="-24.6079 0 -2.09518"
           composite-tree="scale: 5.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree16"
           position="-53.77237 0 5.05782"
           composite-tree="scale: 5.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree17"
           position="-11.82197 0 7.48437"
           composite-tree="scale: 4.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree18"
           position="37.7593 0 -11.80328"
           composite-tree="scale: 5.7"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree20"
           position="3.46128 0 24.05451"
           composite-tree="scale: 5.3"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree31"
           position="51.22445 0 -22.77322"
           composite-tree="scale: 4.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree32"
           position="35.63912 0 34.76985"
           composite-tree="scale: 5.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree33"
           position="-35.12217 0 -18.41763"
           composite-tree="scale: 4.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree34"
           position="-52.81314 0 27.00632"
           composite-tree="scale: 6.0"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree36"
           position="-59.54412 0 -12.10716"
           composite-tree="scale: 5.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree37"
           position="52.66616 0 23.61246"
           composite-tree="scale: 4.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree310"
           position="17.0243 0 48.76661"
           composite-tree="scale: 5.3"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree311"
           position="1.4047 0 55.33328"
           composite-tree="scale: 4.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree312"
           position="-35.87003 0 44.08512"
           composite-tree="scale: 5.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree313"
           position="43.32125 0 31.67825"
           composite-tree="scale: 4.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree314"
           position="49.9023 0 -4.42342"
           composite-tree="scale: 6.0"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree315"
           position="-41.11538 0 36.71563"
           composite-tree="scale: 5.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree316"
           position="-30.99996 0 52.38299"
           composite-tree="scale: 5.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree317"
           position="-12.77604 0 44.52527"
           composite-tree="scale: 4.5"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree318"
           position="-33.39551 0 -0.58987"
           composite-tree="scale: 5.7"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree320"
           position="-20.01433 0 57.81161"
           composite-tree="scale: 5.3"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree71"
           position="9.00086 0 12.91281"
           composite-tree="scale: 4.2"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree73"
           position="28.4583 0 14.21909"
           composite-tree="scale: 4.8"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree74"
           position="35.99877 0 4.6756"
           composite-tree="scale: 6.1; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree76"
           position="11.86322 0 18.18713"
           composite-tree="scale: 5.8; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree77"
           position="17.95978 0 33.13167"
           composite-tree="scale: 4.5; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree710"
           position="-12.40626 0 25.42612"
           composite-tree="scale: 5.3; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree711"
           position="2.75361 0 40.88384"
           composite-tree="scale: 4.2; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree713"
           position="39.57787 0 14.88844"
           composite-tree="scale: 4.8; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree714"
           position="-9.30922 0 -18.87513"
           composite-tree="scale: 6.0; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree715"
           position="-42.80341 0 16.66686"
           composite-tree="scale: 5.2; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree716"
           position="-30.9209 0 34.93784"
           composite-tree="scale: 5.8; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree717"
           position="-18.68834 0 43.89421"
           composite-tree="scale: 4.5; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree718"
           position="-8.80031 0 -0.31106"
           composite-tree="scale: 5.7; type: palma"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="tree720"
           position="23.74279 0 40.22783"
           composite-tree="scale: 5.3; type: palma"
+          collision-cylinder
         ></a-entity>
 
         <!-- Random Dead Trees -->
@@ -907,61 +966,73 @@
           id="deadTree01"
           position="4.1275 0 13.64799"
           composite-tree="scale: 4.5; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree03"
           position="-25.25801 0 6.18517"
           composite-tree="scale: 4.2; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree04"
           position="19.44515 -0.66613 -15.79527"
           composite-tree="scale: 4.8; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree05"
           position="-55.28163 0 18.3226"
           composite-tree="scale: 4.6; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree60"
           position="-54.6603 0 12.36879"
           composite-tree="scale: 5.2; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree07"
           position="-21.47449 0 27.38875"
           composite-tree="scale: 4.3; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree08"
           position="35.80696 0 11.08087"
           composite-tree="scale: 4.7; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree010"
           position="-6.77787 0 4.71665"
           composite-tree="scale: 4.4; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree83"
           position="-4.40376 0 22.987"
           composite-tree="scale: 4.2; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree84"
           position="6.16977 0 32.38259"
           composite-tree="scale: 4.8; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree85"
           position="-18 0 32"
           composite-tree="scale: 4.6; type: dead"
+          collision-cylinder
         ></a-entity>
         <a-entity
           id="deadTree87"
           position="-32 0 25"
           composite-tree="scale: 4.3; type: dead"
+          collision-cylinder
         ></a-entity>
 
         <!-- Random Shrubs -->
@@ -2125,11 +2196,6 @@
                 isPalma ? "#karandayTroncoModel" : "#samuuModel"
               );
               base.setAttribute("shadow", "cast: true");
-              base.setAttribute("data-collider", "true");
-              base.setAttribute(
-                "data-collider-radius",
-                this.data.colliderRadius
-              );
               this.el.appendChild(base);
             }
 
@@ -2225,10 +2291,6 @@
             this.moveVec = new THREE.Vector3();
             this.onAxisMove = this.onAxisMove.bind(this);
             this.bindControllerListeners();
-
-            // make collider-check available if present
-            this.colliderCheck =
-              document.querySelector("a-scene").components["collider-check"];
           },
 
           bindControllerListeners: function () {
@@ -2306,19 +2368,6 @@
             const step = this.velocity.clone().multiplyScalar(delta);
             const pos = this.el.object3D.position;
             pos.add(step);
-
-            // Run simple collider correction if the scene has collider-check
-            if (
-              this.colliderCheck &&
-              typeof this.colliderCheck.tick === "function"
-            ) {
-              // call collider-check tick to nudge the rig out of colliders (best-effort)
-              try {
-                this.colliderCheck.tick();
-              } catch (e) {
-                /* ignore */
-              }
-            }
           },
 
           remove: function () {
@@ -2329,6 +2378,430 @@
             );
             if (left) left.removeEventListener("axismove", this.onAxisMove);
             if (right) right.removeEventListener("axismove", this.onAxisMove);
+          },
+        });
+
+        // ===== COLLISION SYSTEM =====
+
+        // Global collision debug state
+        window.COLLISION_DEBUG = false;
+
+        // Collision Manager - Handles collision detection with collider entities
+        AFRAME.registerComponent("collision-manager", {
+          init: function () {
+            this.colliders = [];
+            this.updateColliders();
+
+            // Re-scan for colliders periodically
+            this.updateInterval = setInterval(() => {
+              this.updateColliders();
+            }, 2000);
+
+            // Listen for debug toggle
+            window.addEventListener("keydown", (e) => {
+              if (e.key === "c" && e.ctrlKey) {
+                window.COLLISION_DEBUG = !window.COLLISION_DEBUG;
+                console.log(
+                  `Collision debug: ${window.COLLISION_DEBUG ? "ON" : "OFF"}`
+                );
+                this.updateColliders(); // Refresh to update visibility
+              }
+            });
+          },
+
+          updateColliders: function () {
+            this.colliders = [
+              ...Array.from(document.querySelectorAll("[collision-cube]")),
+              ...Array.from(document.querySelectorAll("[collision-cylinder]")),
+            ];
+
+            console.log(
+              `Collision manager found ${this.colliders.length} colliders`
+            );
+
+            // Update debug visualization
+            this.colliders.forEach((el) => {
+              const cubeComp = el.components["collision-cube"];
+              const cylComp = el.components["collision-cylinder"];
+              if (cubeComp) cubeComp.updateDebugVisibility();
+              if (cylComp) cylComp.updateDebugVisibility();
+            });
+          },
+
+          checkCollision: function (position) {
+            for (const collider of this.colliders) {
+              const cubeComp = collider.components["collision-cube"];
+              const cylComp = collider.components["collision-cylinder"];
+
+              if (cubeComp) {
+                const result = cubeComp.checkCollision(position);
+                if (result.collision) {
+                  return {
+                    collider,
+                    type: "cube",
+                    component: cubeComp,
+                    ...result,
+                  };
+                }
+              }
+              if (cylComp) {
+                const result = cylComp.checkCollision(position);
+                if (result.collision) {
+                  return {
+                    collider,
+                    type: "cylinder",
+                    component: cylComp,
+                    ...result,
+                  };
+                }
+              }
+            }
+            return null;
+          },
+
+          remove: function () {
+            if (this.updateInterval) {
+              clearInterval(this.updateInterval);
+            }
+          },
+        });
+
+        // Collision Cube Component
+        AFRAME.registerComponent("collision-cube", {
+          schema: {
+            width: { type: "number", default: 1 },
+            depth: { type: "number", default: 1 },
+            height: { type: "number", default: 2 },
+            offsetX: { type: "number", default: 0 },
+            offsetY: { type: "number", default: 0 },
+            offsetZ: { type: "number", default: 0 },
+          },
+
+          init: function () {
+            this.worldPos = new THREE.Vector3();
+            this.createDebugVisual();
+          },
+
+          createDebugVisual: function () {
+            // Create visual box for debugging
+            this.debugBox = document.createElement("a-box");
+            this.debugBox.setAttribute("width", this.data.width);
+            this.debugBox.setAttribute("depth", this.data.depth);
+            this.debugBox.setAttribute("height", this.data.height);
+            this.debugBox.setAttribute(
+              "position",
+              `${this.data.offsetX} ${
+                this.data.offsetY + this.data.height / 2
+              } ${this.data.offsetZ}`
+            );
+            this.debugBox.setAttribute(
+              "material",
+              "color: #ffffff; shader: flat; side: double; opacity: 0.8; transparent: true"
+            );
+            this.debugBox.setAttribute("visible", "true");
+            this.el.appendChild(this.debugBox);
+            console.log(`Debug box visual created, visible=true`);
+          },
+
+          updateDebugVisibility: function () {
+            if (this.debugBox) {
+              this.debugBox.setAttribute("visible", window.COLLISION_DEBUG);
+            }
+          },
+
+          checkCollision: function (position) {
+            // Get world position of collider
+            this.el.object3D.getWorldPosition(this.worldPos);
+
+            // Apply offset
+            const centerX = this.worldPos.x + this.data.offsetX;
+            const centerY =
+              this.worldPos.y + this.data.offsetY + this.data.height / 2;
+            const centerZ = this.worldPos.z + this.data.offsetZ;
+
+            // Check if position is inside the box
+            const halfWidth = this.data.width / 2;
+            const halfDepth = this.data.depth / 2;
+            const halfHeight = this.data.height / 2;
+
+            const collision =
+              position.x >= centerX - halfWidth &&
+              position.x <= centerX + halfWidth &&
+              position.y >= centerY - halfHeight &&
+              position.y <= centerY + halfHeight &&
+              position.z >= centerZ - halfDepth &&
+              position.z <= centerZ + halfDepth;
+
+            // Calculate normal (closest face)
+            let normalX = 0,
+              normalY = 0,
+              normalZ = 0;
+            if (collision) {
+              const dx = position.x - centerX;
+              const dy = position.y - centerY;
+              const dz = position.z - centerZ;
+
+              // Find which face is closest
+              const distX = Math.abs(dx) - halfWidth;
+              const distY = Math.abs(dy) - halfHeight;
+              const distZ = Math.abs(dz) - halfDepth;
+
+              if (distX > distY && distX > distZ) {
+                normalX = Math.sign(dx);
+              } else if (distY > distZ) {
+                normalY = Math.sign(dy);
+              } else {
+                normalZ = Math.sign(dz);
+              }
+            }
+
+            return {
+              collision: collision,
+              normal: new THREE.Vector3(normalX, normalY, normalZ),
+              center: new THREE.Vector3(centerX, centerY, centerZ),
+              distance: 0,
+            };
+          },
+
+          update: function () {
+            // Update debug visual if it exists
+            if (this.debugBox) {
+              this.debugBox.setAttribute("width", this.data.width);
+              this.debugBox.setAttribute("depth", this.data.depth);
+              this.debugBox.setAttribute("height", this.data.height);
+              this.debugBox.setAttribute(
+                "position",
+                `${this.data.offsetX} ${
+                  this.data.offsetY + this.data.height / 2
+                } ${this.data.offsetZ}`
+              );
+            }
+          },
+
+          remove: function () {
+            if (this.debugBox) {
+              this.el.removeChild(this.debugBox);
+            }
+          },
+        });
+
+        // Collision Cylinder Component
+        AFRAME.registerComponent("collision-cylinder", {
+          schema: {
+            radius: { type: "number", default: 2 },
+            height: { type: "number", default: 8 },
+            offsetX: { type: "number", default: 0 },
+            offsetY: { type: "number", default: 0 },
+            offsetZ: { type: "number", default: 0 },
+          },
+
+          init: function () {
+            this.worldPos = new THREE.Vector3();
+            console.log(
+              `Collision cylinder created on ${
+                this.el.id || "unnamed"
+              }: radius=${this.data.radius}, height=${this.data.height}`
+            );
+
+            // Delay debug visual creation to ensure parent is ready
+            setTimeout(() => {
+              this.createDebugVisual();
+            }, 100);
+          },
+
+          createDebugVisual: function () {
+            // Create visual cylinder for debugging - solid white with emissive
+            this.debugCylinder = document.createElement("a-cylinder");
+            this.debugCylinder.setAttribute("radius", this.data.radius);
+            this.debugCylinder.setAttribute("height", this.data.height);
+            this.debugCylinder.setAttribute(
+              "position",
+              `${this.data.offsetX} ${
+                this.data.offsetY + this.data.height / 2
+              } ${this.data.offsetZ}`
+            );
+            this.debugCylinder.setAttribute(
+              "material",
+              "color: #ffffff; emissive: #ffffff; emissiveIntensity: 0; shader: flat; side: double; opacity: 0; transparent: true"
+            );
+            this.debugCylinder.setAttribute("visible", "true");
+            this.el.appendChild(this.debugCylinder);
+            console.log(
+              `Debug cylinder visual created for ${
+                this.el.id || "unnamed"
+              }, visible=true, radius=${this.data.radius}, height=${
+                this.data.height
+              }`
+            );
+          },
+
+          updateDebugVisibility: function () {
+            if (this.debugCylinder) {
+              this.debugCylinder.setAttribute(
+                "visible",
+                window.COLLISION_DEBUG
+              );
+            }
+          },
+
+          checkCollision: function (position) {
+            // Get world position of collider
+            this.el.object3D.getWorldPosition(this.worldPos);
+
+            // Apply offset
+            const centerX = this.worldPos.x + this.data.offsetX;
+            const centerY =
+              this.worldPos.y + this.data.offsetY + this.data.height / 2;
+            const centerZ = this.worldPos.z + this.data.offsetZ;
+
+            // Check if position is inside the cylinder
+            const dx = position.x - centerX;
+            const dz = position.z - centerZ;
+            const distXZ = Math.sqrt(dx * dx + dz * dz);
+
+            const withinRadius = distXZ <= this.data.radius;
+            const withinHeight =
+              position.y >= centerY - this.data.height / 2 &&
+              position.y <= centerY + this.data.height / 2;
+
+            const collision = withinRadius && withinHeight;
+
+            // Calculate normal (pointing away from center on XZ plane)
+            let normalX = 0,
+              normalZ = 0;
+            if (distXZ > 0.0001) {
+              normalX = dx / distXZ;
+              normalZ = dz / distXZ;
+            }
+
+            // Debug logging when close
+            if (distXZ < this.data.radius + 1) {
+              console.log(
+                `Collision check for ${this.el.id}: dist=${distXZ.toFixed(
+                  2
+                )}, radius=${this.data.radius}, collision=${collision}`
+              );
+            }
+
+            return {
+              collision: collision,
+              normal: new THREE.Vector3(normalX, 0, normalZ),
+              center: new THREE.Vector3(centerX, centerY, centerZ),
+              distance: distXZ,
+            };
+          },
+
+          update: function () {
+            // Update debug visual if it exists
+            if (this.debugCylinder) {
+              this.debugCylinder.setAttribute("radius", this.data.radius);
+              this.debugCylinder.setAttribute("height", this.data.height);
+              this.debugCylinder.setAttribute(
+                "position",
+                `${this.data.offsetX} ${
+                  this.data.offsetY + this.data.height / 2
+                } ${this.data.offsetZ}`
+              );
+            }
+          },
+
+          remove: function () {
+            if (this.debugCylinder) {
+              this.el.removeChild(this.debugCylinder);
+            }
+          },
+        });
+
+        // Collision Responder - Attach to moving entities (like cameraRig)
+        AFRAME.registerComponent("collision-responder", {
+          schema: {
+            padding: { type: "number", default: 0.3 },
+          },
+
+          init: function () {
+            this.position = new THREE.Vector3();
+            this.lastValidPosition = new THREE.Vector3();
+            this.el.object3D.position.copy(this.lastValidPosition);
+
+            // Get collision manager
+            this.collisionManager = null;
+
+            // Wait for scene to be ready
+            const scene = document.querySelector("a-scene");
+            const waitForManager = () => {
+              if (scene && scene.components["collision-manager"]) {
+                this.collisionManager = scene.components["collision-manager"];
+                console.log("Collision responder connected to manager");
+              } else {
+                setTimeout(waitForManager, 100);
+              }
+            };
+            waitForManager();
+          },
+
+          tick: function () {
+            if (!this.collisionManager) return;
+
+            // Get current local position
+            this.position.copy(this.el.object3D.position);
+
+            // Check for collision at head/camera height (where the player actually is)
+            const worldPos = new THREE.Vector3();
+            const head = this.el.querySelector("#head");
+            if (head && head.object3D) {
+              head.object3D.getWorldPosition(worldPos);
+            } else {
+              // Fallback: use rig position + standard head height
+              this.el.object3D.getWorldPosition(worldPos);
+              worldPos.y += 1.6;
+            }
+
+            const collision = this.collisionManager.checkCollision(worldPos);
+
+            if (collision) {
+              // Calculate movement vector
+              const movement = new THREE.Vector3().subVectors(
+                this.position,
+                this.lastValidPosition
+              );
+
+              // Project movement onto the collision normal to get the component we need to remove
+              const normal = collision.normal.normalize();
+              const dotProduct = movement.dot(normal);
+
+              if (dotProduct < 0) {
+                // Moving into the collider - slide along the surface
+                // Remove the component of movement that's perpendicular to the surface
+                const slideMovement = movement
+                  .clone()
+                  .sub(normal.multiplyScalar(dotProduct));
+
+                // Apply the slide movement
+                const newPosition = this.lastValidPosition
+                  .clone()
+                  .add(slideMovement);
+                this.el.object3D.position.copy(newPosition);
+
+                // Check if the slide position is also colliding
+                this.el.object3D.getWorldPosition(worldPos);
+                const slideCollision =
+                  this.collisionManager.checkCollision(worldPos);
+
+                if (slideCollision) {
+                  // Still colliding after slide, push back completely
+                  this.el.object3D.position.copy(this.lastValidPosition);
+                } else {
+                  // Slide was successful, update last valid position
+                  this.lastValidPosition.copy(newPosition);
+                }
+              } else {
+                // Moving away from collider, allow movement
+                this.lastValidPosition.copy(this.position);
+              }
+            } else {
+              // No collision - update last valid position
+              this.lastValidPosition.copy(this.position);
+            }
           },
         });
 
@@ -2507,65 +2980,6 @@
             );
           },
         });
-
-        // Simple collider-check: prevents cameraRig from passing through entities marked with data-collider
-        AFRAME.registerComponent("collider-check", {
-          schema: {
-            padding: { type: "number", default: 0.4 },
-          },
-          init: function () {
-            this.rig = document.querySelector("#cameraRig");
-            this.worldPos = new THREE.Vector3();
-            this.rigWorldPos = new THREE.Vector3();
-            this.colliders = Array.from(
-              document.querySelectorAll('[data-collider="true"]')
-            );
-          },
-          tick: function () {
-            if (!this.rig) return;
-
-            // Get rig's world position
-            this.rig.object3D.getWorldPosition(this.rigWorldPos);
-            let x = this.rigWorldPos.x,
-              y = this.rigWorldPos.y,
-              z = this.rigWorldPos.z;
-
-            // check tree colliders (cylindrical approximation)
-            for (const el of this.colliders) {
-              // Get collider's world position
-              el.object3D.getWorldPosition(this.worldPos);
-              const radius =
-                parseFloat(el.getAttribute("data-collider-radius")) || 1.2;
-
-              // Get parent scale to adjust radius
-              const parentScale = el.parentElement.object3D.scale;
-              const scaledRadius =
-                radius * Math.max(parentScale.x, parentScale.z);
-
-              const dx = x - this.worldPos.x;
-              const dz = z - this.worldPos.z;
-              const dist = Math.sqrt(dx * dx + dz * dz);
-              const min = scaledRadius + this.data.padding;
-
-              // Only apply collision if within cylinder height range
-              const heightRange = 6 * parentScale.y; // Cylinder height
-              const withinHeight =
-                Math.abs(y - (this.worldPos.y + heightRange / 2)) <
-                heightRange / 2;
-
-              if (withinHeight && dist < min && dist > 0.0001) {
-                // push rig out along the vector between collider center and rig
-                const nx = (dx / dist) * min + this.worldPos.x;
-                const nz = (dz / dist) * min + this.worldPos.z;
-                this.rig.object3D.position.set(nx, y, nz);
-                x = nx;
-                z = nz;
-              }
-            }
-          },
-        });
-        // enable collider-check on the scene so it runs each tick
-        document.querySelector("a-scene").setAttribute("collider-check", "");
 
         // Random tree generator removed; trees are now placed statically in the scene.
         // Canopy wind component: applies eased per-node position/rotation wiggle to a loaded glTF model
