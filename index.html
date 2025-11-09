@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>No Estan Solos 360° VR | Zet Studios</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <script src="dist/aframe.min.js"></script>
     <script src="dist/aframe-extras.min.js"></script>
     <script>
@@ -167,7 +168,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Jochi
+      and controllers to point. Explore the forest! Opa
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -558,6 +559,7 @@
           hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
           raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
           line="color: #00FF00; opacity: 0.75"
+          cursor="fuse: false; rayOrigin: entity"
           animal-highlighter
           progress-ui
         >
@@ -658,6 +660,7 @@
           hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
           raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
           line="color: #FF0000; opacity: 0.75"
+          cursor="fuse: false; rayOrigin: entity"
           animal-highlighter
         >
         </a-entity>
