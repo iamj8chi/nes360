@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Today
+      and controllers to point. Explore the forest! Sounds
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -216,6 +216,14 @@
           src="assets/scenario.glb"
         ></a-asset-item>
         <a-asset-item id="pastoModel" src="assets/pasto.glb"></a-asset-item>
+        <a-asset-item
+          id="karandayTroncoModel"
+          src="assets/karanday-tronco.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="karandayHojaModel"
+          src="assets/karanday-hoja.glb"
+        ></a-asset-item>
 
         <!-- UI assets for animal tracker -->
         <img id="trackerBg" src="assets/ui/tracker-background.png" />
@@ -236,10 +244,77 @@
         <img id="cartelSafari" src="assets/img/cartel-safari.png" />
         <img id="cartelVuelo" src="assets/img/cartel-vuelo.png" />
         <img id="cartelMain" src="assets/img/cartel-main.png" />
+
+        <!-- Audio assets -->
+        <audio
+          id="ambienceSound"
+          src="assets/sfx/ambience.mp3"
+          preload="auto"
+        ></audio>
+        <audio id="tatuSound" src="assets/sfx/tatu.mp3" preload="auto"></audio>
+        <audio
+          id="flamengoSound"
+          src="assets/sfx/flamengo.mp3"
+          preload="auto"
+        ></audio>
+        <audio
+          id="jaguareteSound"
+          src="assets/sfx/jaguarete.mp3"
+          preload="auto"
+        ></audio>
+
+        <!-- Game sound effects -->
+        <audio
+          id="gameStartSound"
+          src="assets/sfx/game-start.mp3"
+          preload="auto"
+        ></audio>
+        <audio
+          id="gameFoundSound"
+          src="assets/sfx/game-found.mp3"
+          preload="auto"
+        ></audio>
+        <audio
+          id="gameWinSound"
+          src="assets/sfx/game-win.mp3"
+          preload="auto"
+        ></audio>
+        <audio
+          id="gameOverSound"
+          src="assets/sfx/game-over.mp3"
+          preload="auto"
+        ></audio>
       </a-assets>
 
       <!-- Sky -->
       <a-sky color="#87ceeb"></a-sky>
+
+      <!-- Ambient Sound - plays everywhere in the background -->
+      <a-entity
+        id="ambientSound"
+        sound="src: #ambienceSound; autoplay: true; loop: true; volume: 0.3"
+        position="0 0 0"
+      ></a-entity>
+
+      <!-- Game Sound Effects (triggered by events) -->
+      <a-entity id="gameSoundEffects" position="0 0 0">
+        <a-entity
+          id="soundGameStart"
+          sound="src: #gameStartSound; autoplay: false; volume: 0.6"
+        ></a-entity>
+        <a-entity
+          id="soundGameFound"
+          sound="src: #gameFoundSound; autoplay: false; volume: 0.5"
+        ></a-entity>
+        <a-entity
+          id="soundGameWin"
+          sound="src: #gameWinSound; autoplay: false; volume: 0.7"
+        ></a-entity>
+        <a-entity
+          id="soundGameOver"
+          sound="src: #gameOverSound; autoplay: false; volume: 0.6"
+        ></a-entity>
+      </a-entity>
 
       <!-- Lighting: hemisphere ambient + directional sun (shadows enabled in script) -->
       <a-entity
@@ -383,6 +458,7 @@
         performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
         material-optimizer
         animal-clickable
+        sound="src: #flamengoSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
       ></a-entity>
       <a-entity
         id="jaguarete"
@@ -397,6 +473,7 @@
         performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
         material-optimizer
         animal-clickable
+        sound="src: #jaguareteSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
       ></a-entity>
       <a-entity
         id="nandu"
@@ -453,6 +530,7 @@
         performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
         material-optimizer
         animal-clickable
+        sound="src: #tatuSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
       ></a-entity>
 
       <!-- Camera rig with WASD and VR controls -->
@@ -485,7 +563,7 @@
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="0 0 0">
+          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="0 180 0">
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -663,7 +741,7 @@
         ></a-entity>
         <a-entity
           id="tree20"
-          position="3.46128 0 21.30244"
+          position="3.46128 0 24.05451"
           composite-tree="scale: 5.3"
         ></a-entity>
         <a-entity
@@ -759,62 +837,62 @@
         <a-entity
           id="tree74"
           position="35.99877 0 4.6756"
-          composite-tree="scale: 6.0"
+          composite-tree="scale: 6.1; type: palma"
         ></a-entity>
         <a-entity
           id="tree76"
           position="11.86322 0 18.18713"
-          composite-tree="scale: 5.8"
+          composite-tree="scale: 5.8; type: palma"
         ></a-entity>
         <a-entity
           id="tree77"
           position="17.95978 0 33.13167"
-          composite-tree="scale: 4.5"
+          composite-tree="scale: 4.5; type: palma"
         ></a-entity>
         <a-entity
           id="tree710"
           position="-12.40626 0 25.42612"
-          composite-tree="scale: 5.3"
+          composite-tree="scale: 5.3; type: palma"
         ></a-entity>
         <a-entity
           id="tree711"
           position="2.75361 0 40.88384"
-          composite-tree="scale: 4.2"
+          composite-tree="scale: 4.2; type: palma"
         ></a-entity>
         <a-entity
           id="tree713"
           position="39.57787 0 14.88844"
-          composite-tree="scale: 4.8"
+          composite-tree="scale: 4.8; type: palma"
         ></a-entity>
         <a-entity
           id="tree714"
           position="-9.30922 0 -18.87513"
-          composite-tree="scale: 6.0"
+          composite-tree="scale: 6.0; type: palma"
         ></a-entity>
         <a-entity
           id="tree715"
           position="-42.80341 0 16.66686"
-          composite-tree="scale: 5.2"
+          composite-tree="scale: 5.2; type: palma"
         ></a-entity>
         <a-entity
           id="tree716"
           position="-30.9209 0 34.93784"
-          composite-tree="scale: 5.8"
+          composite-tree="scale: 5.8; type: palma"
         ></a-entity>
         <a-entity
           id="tree717"
           position="-18.68834 0 43.89421"
-          composite-tree="scale: 4.5"
+          composite-tree="scale: 4.5; type: palma"
         ></a-entity>
         <a-entity
           id="tree718"
           position="-8.80031 0 -0.31106"
-          composite-tree="scale: 5.7"
+          composite-tree="scale: 5.7; type: palma"
         ></a-entity>
         <a-entity
           id="tree720"
           position="23.74279 0 40.22783"
-          composite-tree="scale: 5.3"
+          composite-tree="scale: 5.3; type: palma"
         ></a-entity>
 
         <!-- Random Dead Trees -->
@@ -952,7 +1030,7 @@
         ></a-entity>
         <a-entity
           id="shrub96"
-          position="3.49308 0 16.68467"
+          position="2.76823 0 19.62527"
           composite-tree="scale: 2.1; type: shrub"
         ></a-entity>
         <a-entity
@@ -1103,6 +1181,81 @@
           position="40.96989 0 -23.20746"
           composite-tree="scale: 2.1; type: pasto"
         ></a-entity>
+        <a-entity
+          id="pasto26"
+          position="36.26802 0 0.57928"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto27"
+          position="41.94576 0 8.45754"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto28"
+          position="11.12374 0 21.78105"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto29"
+          position="-43.91559 0 14.01866"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto30"
+          position="-10.89199 0 -8.68925"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto31"
+          position="21.20462 0 32.90329"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto32"
+          position="-34.52993 0 35.79971"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto33"
+          position="-11.81897 0 -18.53707"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto34"
+          position="6.53022 0 14.32502"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto35"
+          position="13.55705 0 15.75651"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto36"
+          position="11.47135 0 1.85371"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto37"
+          position="-6.37297 0 0.92685"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto38"
+          position="-36.15215 0 11.58567"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto39"
+          position="-45.76954 0 -26.53117"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto40"
+          position="39.16482 0 19.34806"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
       </a-entity>
 
       <!-- Animals replaced by flamengo GLTF models (animated with animal-behavior) -->
@@ -1242,6 +1395,13 @@
               gameOrbs.setAttribute("visible", false);
             }
 
+            // Play game start sound
+            const startSound = document.getElementById("soundGameStart");
+            if (startSound && startSound.components.sound) {
+              startSound.components.sound.stopSound();
+              startSound.components.sound.playSound();
+            }
+
             // Emit game started event
             this.el.sceneEl.emit("safari-game-started");
 
@@ -1262,6 +1422,13 @@
               `Found ${animalType}! (${this.animalsFound.size}/${this.totalAnimals})`
             );
 
+            // Play animal found sound
+            const foundSound = document.getElementById("soundGameFound");
+            if (foundSound && foundSound.components.sound) {
+              foundSound.components.sound.stopSound();
+              foundSound.components.sound.playSound();
+            }
+
             // Emit animal found event
             this.el.sceneEl.emit("safari-animal-found", {
               animalType: animalType,
@@ -1280,7 +1447,14 @@
 
             this.gameActive = false;
 
+            // Play appropriate end game sound
             if (won) {
+              const winSound = document.getElementById("soundGameWin");
+              if (winSound && winSound.components.sound) {
+                winSound.components.sound.stopSound();
+                winSound.components.sound.playSound();
+              }
+
               const minutes = Math.floor(
                 (this.data.timeLimit - this.timeRemaining) / 60
               );
@@ -1292,6 +1466,12 @@
                 5000
               );
             } else {
+              const overSound = document.getElementById("soundGameOver");
+              if (overSound && overSound.components.sound) {
+                overSound.components.sound.stopSound();
+                overSound.components.sound.playSound();
+              }
+
               this.showMessage(
                 `TIME'S UP!\nFound: ${this.animalsFound.size}/${this.totalAnimals}`,
                 5000
@@ -1855,7 +2035,7 @@
             windFreqA: { type: "number", default: 0.2 },
             windFreqB: { type: "number", default: 0.2 },
             windRotStrength: { type: "number", default: 0.01 },
-            type: { type: "string", default: "normal" }, // normal, dead, shrub, or pasto
+            type: { type: "string", default: "normal" }, // normal, dead, shrub, pasto, or palma
             canopyHeight: { type: "number", default: -1.1 }, // Override height for shrubs
           },
 
@@ -1864,11 +2044,16 @@
             const isDead = this.data.type === "dead";
             const isShrub = this.data.type === "shrub";
             const isPasto = this.data.type === "pasto";
+            const isPalma = this.data.type === "palma";
 
-            // Create base tree entity (only for normal and dead trees)
-            if (isNormal || isDead) {
+            // Create base tree entity (for normal, dead, and palma trees)
+            if (isNormal || isDead || isPalma) {
               var base = document.createElement("a-entity");
-              base.setAttribute("gltf-model", "#samuuModel");
+              // Use karanday trunk for palma, samuu for others
+              base.setAttribute(
+                "gltf-model",
+                isPalma ? "#karandayTroncoModel" : "#samuuModel"
+              );
               base.setAttribute("shadow", "cast: true");
               base.setAttribute("data-collider", "true");
               base.setAttribute(
@@ -1889,9 +2074,13 @@
             this.el.appendChild(collider);
 
             // Create canopy entity (not for dead trees)
-            if (isNormal || isShrub) {
+            if (isNormal || isShrub || isPalma) {
               var canopy = document.createElement("a-entity");
-              canopy.setAttribute("gltf-model", "#samuuCanopyModel");
+              // Use karanday hoja for palma, samuu canopy for others
+              canopy.setAttribute(
+                "gltf-model",
+                isPalma ? "#karandayHojaModel" : "#samuuCanopyModel"
+              );
               canopy.setAttribute("shadow", "cast: true");
 
               // For shrubs, position canopy at ground level and scale it differently
@@ -1940,7 +2129,7 @@
             });
 
             // Add children to parent
-            if (isNormal || isShrub) {
+            if (isNormal || isShrub || isPalma) {
               this.el.appendChild(canopy);
             }
             if (isPasto) {
