@@ -173,7 +173,7 @@
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
 
     <a-scene
-      fog="type: exponential; color: #FFD178; density: 0.02"
+      fog="type: exponential; color: #f5dca6; density: 0.02"
       background="color: #FFD178"
       renderer="antialias: true; 
                 colorManagement: true; 
@@ -214,6 +214,7 @@
           id="scenarioModel"
           src="assets/scenario.glb"
         ></a-asset-item>
+        <a-asset-item id="pastoModel" src="assets/pasto.glb"></a-asset-item>
 
         <!-- UI assets for animal tracker -->
         <img id="trackerBg" src="assets/ui/tracker-background.png" />
@@ -258,6 +259,7 @@
         density="20"
         opacity="1"
         position="30 -0.5 -10"
+        color="#16e9aa"
       ></a-ocean>
 
       <!-- Ground (slightly raised) 
@@ -372,7 +374,7 @@
         class="clickable animal"
         data-animal-type="flamingo"
         gltf-model="#flamengoModel"
-        position="-5.14962 0 -31.29516"
+        position="-12.12801 0 -32.65917"
         rotation="0 195.6 0"
         scale="2 2 2"
         animation-mixer="clip: idle"
@@ -386,7 +388,7 @@
         class="clickable animal"
         data-animal-type="jaguarete"
         gltf-model="#jaguareteModel"
-        position="-8.52793 0 16.69473"
+        position="-13.62112 0 23.39443"
         rotation="0 -45 0"
         scale="2 2 2"
         animation-mixer
@@ -414,7 +416,7 @@
         class="clickable animal"
         data-animal-type="jurumi"
         gltf-model="#jurumiModel"
-        position="-20.43949 0 -2.0148"
+        position="-28.34973 0 1.64968"
         rotation="0 208.28 0"
         scale="2 2 2"
         animation-mixer
@@ -428,8 +430,8 @@
         class="clickable animal"
         data-animal-type="tagua"
         gltf-model="#taguaModel"
-        position="10.42833 0 16.71228"
-        rotation="0 160.4 0"
+        position="5.98673 0 18.53104"
+        rotation="0 45 0"
         scale="2 2 2"
         animation-mixer
         staggered-start="maxOffset: 1.6"
@@ -442,7 +444,7 @@
         class="clickable animal"
         data-animal-type="tatu"
         gltf-model="#tatuModel"
-        position="9.99464 0 3.83831"
+        position="14.60573 0 -13.67693"
         rotation="0 149.7 0"
         scale="2 2 2"
         animation-mixer
@@ -584,325 +586,520 @@
         <!-- Outer circle of larger trees -->
         <a-entity
           id="tree1"
-          position="-9.81203 0 7.42154"
+          position="-42.91238 0 -16.68458"
           composite-tree="scale: 4.2"
         ></a-entity>
         <a-entity
           id="tree2"
-          position="39.9652 0 41.44017"
+          position="-16.48963 0 -15.31542"
           composite-tree="scale: 5.5"
         ></a-entity>
         <a-entity
           id="tree3"
-          position="-7.63928 0 -25.8336"
+          position="15.97662 0 -0.70065"
           composite-tree="scale: 4.8"
         ></a-entity>
         <a-entity
           id="tree4"
-          position="-14.9462 0 -37.99655"
+          position="-0.95374 0 36.85258"
           composite-tree="scale: 6.0"
         ></a-entity>
         <a-entity
           id="tree6"
-          position="-26.25761 0 19.39807"
+          position="-3.86984 0 -12.23758"
           composite-tree="scale: 5.8"
         ></a-entity>
         <a-entity
           id="tree7"
-          position="7.29328 0 56.39977"
+          position="-51.37735 0 -2.90045"
           composite-tree="scale: 4.5"
         ></a-entity>
         <a-entity
           id="tree10"
-          position="-19.30717 0 23.14858"
+          position="-38.36468 0 15.53639"
           composite-tree="scale: 5.3"
         ></a-entity>
         <a-entity
           id="tree11"
-          position="-2.19092 0 17.72065"
+          position="-21.87661 0 21.94878"
           composite-tree="scale: 4.2"
         ></a-entity>
         <a-entity
           id="tree12"
-          position="-38.28601 0 37.59927"
+          position="-54.64883 0 -25.53923"
           composite-tree="scale: 5.5"
         ></a-entity>
         <a-entity
           id="tree13"
-          position="8.53379 0 6.58757"
+          position="13.52433 0 -15.81872"
           composite-tree="scale: 4.8"
         ></a-entity>
         <a-entity
           id="tree14"
-          position="-21.41027 0 -27.93459"
+          position="27.55275 0 -24.21875"
           composite-tree="scale: 6.0"
         ></a-entity>
         <a-entity
           id="tree15"
-          position="-43.87044 0 6.63835"
+          position="-24.6079 0 -2.09518"
           composite-tree="scale: 5.2"
         ></a-entity>
         <a-entity
           id="tree16"
-          position="24.35414 0 18.78235"
+          position="-53.77237 0 5.05782"
           composite-tree="scale: 5.8"
         ></a-entity>
         <a-entity
           id="tree17"
-          position="-52.21585 0 26.43496"
+          position="-11.82197 0 7.48437"
           composite-tree="scale: 4.5"
         ></a-entity>
         <a-entity
           id="tree18"
-          position="-11.49637 0 30.89364"
+          position="37.7593 0 -11.80328"
           composite-tree="scale: 5.7"
         ></a-entity>
         <a-entity
           id="tree20"
-          position="-5.24718 0 -1.12259"
+          position="3.46128 0 21.30244"
           composite-tree="scale: 5.3"
         ></a-entity>
-
-        <!-- Random Dead Trees -->
         <a-entity
-          id="deadTree1"
-          position="5.22567 0 15.07561"
-          composite-tree="scale: 4.5; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree3"
-          position="-17.57078 0 0.6943"
-          composite-tree="scale: 4.2; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree4"
-          position="37.56497 -0.66613 9.0234"
-          composite-tree="scale: 4.8; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree5"
-          position="-54.51291 0 19.31095"
-          composite-tree="scale: 4.6; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree6"
-          position="-54.6603 0 12.36879"
-          composite-tree="scale: 5.2; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree7"
-          position="-16.03148 0 14.90635"
-          composite-tree="scale: 4.3; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree8"
-          position="55.4278 0 12.76995"
-          composite-tree="scale: 4.7; type: dead"
-        ></a-entity>
-        <a-entity
-          id="deadTree10"
-          position="-1.22391 0 28.36167"
-          composite-tree="scale: 4.4; type: dead"
-        ></a-entity>
-
-        <!-- Random Shrubs -->
-        <a-entity
-          id="shrub1"
-          position="-9.43601 0 15.56769"
-          composite-tree="scale: 1.8; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub2"
-          position="-25.78269 0 1.90714"
-          composite-tree="scale: 2.0; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub3"
-          position="-20 0 18"
-          composite-tree="scale: 1.6; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub4"
-          position="-39.79956 0 30.00202"
-          composite-tree="scale: 2.2; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub6"
-          position="2.87706 0 -6.83414"
-          composite-tree="scale: 2.1; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub9"
-          position="-15 0 22"
-          composite-tree="scale: 1.8; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub10"
-          position="57.60538 0 -1.94542"
-          composite-tree="scale: 2.0; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub12"
-          position="7.34944 0 1.0421"
-          composite-tree="scale: 2.2; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub13"
-          position="-35 0 15"
-          composite-tree="scale: 1.7; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub16"
-          position="21.41002 0 9.5312"
-          composite-tree="scale: 2.0; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub17"
-          position="-25 0 32"
-          composite-tree="scale: 1.9; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub18"
-          position="-44.44576 0 28.51439"
-          composite-tree="scale: 2.3; type: shrub"
-        ></a-entity>
-        <a-entity
-          id="shrub20"
-          position="15 0 28"
-          composite-tree="scale: 2.1; type: shrub"
-        ></a-entity>
-      </a-entity>
-
-      <a-entity id="trees2" rotation="0 57.703152505420334 0">
-        <!-- Outer circle of larger trees -->
-        <a-entity
-          id="tree1"
-          position="10.11644 0 19.0485"
+          id="tree31"
+          position="51.22445 0 -22.77322"
           composite-tree="scale: 4.2"
         ></a-entity>
         <a-entity
-          id="tree3"
-          position="25 0 15"
+          id="tree32"
+          position="35.63912 0 34.76985"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree33"
+          position="-35.12217 0 -18.41763"
           composite-tree="scale: 4.8"
         ></a-entity>
         <a-entity
-          id="tree4"
-          position="33.43294 0 4.56404"
+          id="tree34"
+          position="-52.81314 0 27.00632"
           composite-tree="scale: 6.0"
         ></a-entity>
         <a-entity
-          id="tree6"
-          position="-42.13085 0 3.79615"
+          id="tree36"
+          position="-59.54412 0 -12.10716"
           composite-tree="scale: 5.8"
         ></a-entity>
         <a-entity
-          id="tree7"
-          position="28 0 28"
+          id="tree37"
+          position="52.66616 0 23.61246"
           composite-tree="scale: 4.5"
         ></a-entity>
         <a-entity
-          id="tree10"
-          position="-10.28666 0 30"
+          id="tree310"
+          position="17.0243 0 48.76661"
           composite-tree="scale: 5.3"
         ></a-entity>
         <a-entity
-          id="tree11"
-          position="10.11644 0 42.66877"
+          id="tree311"
+          position="1.4047 0 55.33328"
           composite-tree="scale: 4.2"
         ></a-entity>
         <a-entity
-          id="tree13"
-          position="43.14773 0 15"
+          id="tree312"
+          position="-35.87003 0 44.08512"
+          composite-tree="scale: 5.5"
+        ></a-entity>
+        <a-entity
+          id="tree313"
+          position="43.32125 0 31.67825"
           composite-tree="scale: 4.8"
         ></a-entity>
         <a-entity
-          id="tree14"
-          position="44.79642 0 5.89075"
+          id="tree314"
+          position="49.9023 0 -4.42342"
           composite-tree="scale: 6.0"
         ></a-entity>
         <a-entity
-          id="tree15"
-          position="-42.69185 0 17.00153"
+          id="tree315"
+          position="-41.11538 0 36.71563"
           composite-tree="scale: 5.2"
         ></a-entity>
         <a-entity
-          id="tree16"
+          id="tree316"
+          position="-30.99996 0 52.38299"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree317"
+          position="-12.77604 0 44.52527"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree318"
+          position="-33.39551 0 -0.58987"
+          composite-tree="scale: 5.7"
+        ></a-entity>
+        <a-entity
+          id="tree320"
+          position="-20.01433 0 57.81161"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+        <a-entity
+          id="tree71"
+          position="9.00086 0 12.91281"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree73"
+          position="28.4583 0 14.21909"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree74"
+          position="35.99877 0 4.6756"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree76"
+          position="11.86322 0 18.18713"
+          composite-tree="scale: 5.8"
+        ></a-entity>
+        <a-entity
+          id="tree77"
+          position="17.95978 0 33.13167"
+          composite-tree="scale: 4.5"
+        ></a-entity>
+        <a-entity
+          id="tree710"
+          position="-12.40626 0 25.42612"
+          composite-tree="scale: 5.3"
+        ></a-entity>
+        <a-entity
+          id="tree711"
+          position="2.75361 0 40.88384"
+          composite-tree="scale: 4.2"
+        ></a-entity>
+        <a-entity
+          id="tree713"
+          position="39.57787 0 14.88844"
+          composite-tree="scale: 4.8"
+        ></a-entity>
+        <a-entity
+          id="tree714"
+          position="-9.30922 0 -18.87513"
+          composite-tree="scale: 6.0"
+        ></a-entity>
+        <a-entity
+          id="tree715"
+          position="-42.80341 0 16.66686"
+          composite-tree="scale: 5.2"
+        ></a-entity>
+        <a-entity
+          id="tree716"
           position="-30.9209 0 34.93784"
           composite-tree="scale: 5.8"
         ></a-entity>
         <a-entity
-          id="tree17"
-          position="-15.00693 0 41.66305"
+          id="tree717"
+          position="-18.68834 0 43.89421"
           composite-tree="scale: 4.5"
         ></a-entity>
         <a-entity
-          id="tree18"
-          position="-0.99125 0 47.10109"
+          id="tree718"
+          position="-8.80031 0 -0.31106"
           composite-tree="scale: 5.7"
         ></a-entity>
         <a-entity
-          id="tree20"
+          id="tree720"
           position="23.74279 0 40.22783"
           composite-tree="scale: 5.3"
         ></a-entity>
 
         <!-- Random Dead Trees -->
         <a-entity
-          id="deadTree3"
+          id="deadTree01"
+          position="4.1275 0 13.64799"
+          composite-tree="scale: 4.5; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree03"
+          position="-25.25801 0 6.18517"
+          composite-tree="scale: 4.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree04"
+          position="19.44515 -0.66613 -15.79527"
+          composite-tree="scale: 4.8; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree05"
+          position="-55.28163 0 18.3226"
+          composite-tree="scale: 4.6; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree60"
+          position="-54.6603 0 12.36879"
+          composite-tree="scale: 5.2; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree07"
+          position="-21.47449 0 27.38875"
+          composite-tree="scale: 4.3; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree08"
+          position="35.80696 0 11.08087"
+          composite-tree="scale: 4.7; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree010"
+          position="-6.77787 0 4.71665"
+          composite-tree="scale: 4.4; type: dead"
+        ></a-entity>
+        <a-entity
+          id="deadTree83"
           position="-4.40376 0 22.987"
           composite-tree="scale: 4.2; type: dead"
         ></a-entity>
         <a-entity
-          id="deadTree4"
+          id="deadTree84"
           position="6.16977 0 32.38259"
           composite-tree="scale: 4.8; type: dead"
         ></a-entity>
         <a-entity
-          id="deadTree5"
+          id="deadTree85"
           position="-18 0 32"
           composite-tree="scale: 4.6; type: dead"
         ></a-entity>
         <a-entity
-          id="deadTree7"
+          id="deadTree87"
           position="-32 0 25"
           composite-tree="scale: 4.3; type: dead"
         ></a-entity>
 
         <!-- Random Shrubs -->
         <a-entity
-          id="shrub3"
+          id="shrub01"
+          position="-15.13552 0 18.25322"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub02"
+          position="-11.26637 0 -11.64061"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub03"
+          position="-35.61812 0 -12.12066"
+          composite-tree="scale: 1.6; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub04"
+          position="-39.13021 0 29.33267"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub06"
+          position="35.91548 0 -24.48606"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub09"
+          position="20.25233 0 -4.43925"
+          composite-tree="scale: 1.8; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub100"
+          position="53.36618 0 9.54505"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub012"
+          position="9.64546 0 -1.47259"
+          composite-tree="scale: 2.2; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub013"
+          position="-29.67292 0 3.7682"
+          composite-tree="scale: 1.7; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub016"
+          position="34.26553 0 18.39522"
+          composite-tree="scale: 2.0; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub017"
+          position="-16.21441 0 27.96727"
+          composite-tree="scale: 1.9; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub018"
+          position="-44.44576 0 28.51439"
+          composite-tree="scale: 2.3; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub020"
+          position="20.04117 0 29.69923"
+          composite-tree="scale: 2.1; type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub93"
           position="-20 0 18"
           composite-tree="scale: 1.6; type: shrub"
         ></a-entity>
         <a-entity
-          id="shrub6"
-          position="18 0 15"
+          id="shrub96"
+          position="3.49308 0 16.68467"
           composite-tree="scale: 2.1; type: shrub"
         ></a-entity>
         <a-entity
-          id="shrub9"
+          id="shrub99"
           position="-15 0 22"
           composite-tree="scale: 1.8; type: shrub"
         ></a-entity>
         <a-entity
-          id="shrub12"
-          position="28 0 25"
+          id="shrub192"
+          position="29.49749 0 19.19723"
           composite-tree="scale: 2.2; type: shrub"
         ></a-entity>
         <a-entity
-          id="shrub13"
+          id="shrub913"
           position="-35 0 15"
           composite-tree="scale: 1.7; type: shrub"
         ></a-entity>
         <a-entity
-          id="shrub17"
+          id="shrub917"
           position="-25 0 32"
           composite-tree="scale: 1.9; type: shrub"
         ></a-entity>
+
+        <!-- Pastos -->
+
         <a-entity
-          id="shrub20"
-          position="15 0 28"
-          composite-tree="scale: 2.1; type: shrub"
+          id="pasto1"
+          position="-12.97859 -0.5 -31.78649"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto2"
+          position="-11.70836 -0.5 -32.60307"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto3"
+          position="16.87186 -0.5 -13.36813"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto4"
+          position="-19.51833 -0.5 -31.96312"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto5"
+          position="14.8724 -0.5 -32.22971"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto6"
+          position="4.40855 -0.5 -32.96285"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto7"
+          position="-24.45034 -0.5 -32.69625"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto8"
+          position="-32.84807 -0.5 -33.09615"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto9"
+          position="0.60958 -0.5 -31.76317"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto10"
+          position="26.53593 -0.5 -32.16306"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto11"
+          position="5.67488 0 -9.10261"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto12"
+          position="21.13738 0 -24.69841"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto13"
+          position="-1.58983 0 -18.56673"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto14"
+          position="-3.45599 0 5.02691"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto15"
+          position="23.67003 0 -3.77072"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto16"
+          position="-23.45061 0 2.89415"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto17"
+          position="-32.58148 0 -14.03462"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto18"
+          position="-41.04586 0 -12.3684"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto19"
+          position="-11.09062 0 19.69292"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto20"
+          position="-47.33827 0 1.52926"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto21"
+          position="-56.57944 0 -7.07458"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto22"
+          position="-58.0134 0 -17.67005"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto23"
+          position="28.62903 0 8.72868"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto24"
+          position="-27.0716 0 21.98676"
+          composite-tree="scale: 2.1; type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto25"
+          position="40.96989 0 -23.20746"
+          composite-tree="scale: 2.1; type: pasto"
         ></a-entity>
       </a-entity>
 
@@ -1656,7 +1853,7 @@
             windFreqA: { type: "number", default: 0.2 },
             windFreqB: { type: "number", default: 0.2 },
             windRotStrength: { type: "number", default: 0.01 },
-            type: { type: "string", default: "normal" }, // normal, dead, or shrub
+            type: { type: "string", default: "normal" }, // normal, dead, shrub, or pasto
             canopyHeight: { type: "number", default: -1.1 }, // Override height for shrubs
           },
 
@@ -1664,6 +1861,7 @@
             const isNormal = this.data.type === "normal";
             const isDead = this.data.type === "dead";
             const isShrub = this.data.type === "shrub";
+            const isPasto = this.data.type === "pasto";
 
             // Create base tree entity (only for normal and dead trees)
             if (isNormal || isDead) {
@@ -1682,7 +1880,7 @@
             var collider = document.createElement("a-cylinder");
             collider.setAttribute("radius", this.data.colliderRadius);
             // Adjust height based on type
-            const colliderHeight = isShrub ? 2 : 6;
+            const colliderHeight = isShrub || isPasto ? 2 : 6;
             collider.setAttribute("height", colliderHeight.toString());
             collider.setAttribute("material", "opacity: 0");
             collider.setAttribute("position", `0 ${colliderHeight / 2} 0`);
@@ -1711,6 +1909,27 @@
               });
             }
 
+            // Create pasto entity (grass)
+            if (isPasto) {
+              var pasto = document.createElement("a-entity");
+              pasto.setAttribute("gltf-model", "#pastoModel");
+              pasto.setAttribute("shadow", "cast: true");
+
+              // For pasto, position at ground level with +1.1 Y offset
+              const height = (this.data.canopyHeight || 0) + 1.0;
+              pasto.setAttribute("position", `0 ${height} 0`);
+              pasto.setAttribute("scale", "3 4 3");
+
+              pasto.setAttribute("canopy-wind", {
+                strengthX: this.data.windStrengthX * 0.25,
+                strengthY: 0,
+                strengthZ: this.data.windStrengthZ * 0.25,
+                freqA: this.data.windFreqA,
+                freqB: this.data.windFreqB,
+                rotStrength: this.data.windRotStrength,
+              });
+            }
+
             // Set scale on parent (this element)
             this.el.setAttribute("scale", {
               x: this.data.scale,
@@ -1721,6 +1940,9 @@
             // Add children to parent
             if (isNormal || isShrub) {
               this.el.appendChild(canopy);
+            }
+            if (isPasto) {
+              this.el.appendChild(pasto);
             }
             this.el.appendChild(collider);
           },
