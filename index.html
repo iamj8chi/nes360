@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! highlight
+      and controllers to point. Explore the forest! UI
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -1440,10 +1440,40 @@
           init: function () {
             this.animalsFound = new Set();
             this.timeRemaining = 300;
+            this.isVisible = false;
 
-            // Create UI panel
-            this.createUI();
+            // Wait for DOM to be ready
+            setTimeout(() => {
+              this.setupUIElements();
+              this.setupEventListeners();
+            }, 100);
+          },
 
+          setupUIElements: function () {
+            // Get references to all UI plane elements
+            this.wristwatch = this.el.querySelector("#wristwatch");
+            this.trackerBg = this.el.querySelector("#trackerBackground");
+            this.timerText = this.el.querySelector("#timerDisplay");
+
+            // Animal icons mapping
+            this.icons = {
+              flamingo: this.el.querySelector("#flamengoIcon"),
+              jaguarete: this.el.querySelector("#jaguareteIcon"),
+              nandu: this.el.querySelector("#nanduIcon"),
+              jurumi: this.el.querySelector("#jurumiIcon"),
+              tagua: this.el.querySelector("#taguaIcon"),
+              tatu: this.el.querySelector("#tatuIcon"),
+            };
+
+            // Initially hide the wristwatch
+            if (this.wristwatch) {
+              this.wristwatch.setAttribute("visible", "false");
+            }
+
+            console.log("Progress UI elements initialized");
+          },
+
+          setupEventListeners: function () {
             // Listen for game events
             this.el.sceneEl.addEventListener("safari-game-started", () => {
               this.show();
@@ -1467,177 +1497,108 @@
             });
           },
 
-          createUI: function () {
-            // Background tracker image - positioned on wrist
-            const bgTracker = document.createElement("a-image");
-            bgTracker.setAttribute("id", "trackerBackground");
-            bgTracker.setAttribute("src", "#trackerBg");
-            bgTracker.setAttribute("position", "0 0.02 -0.08");
-            bgTracker.setAttribute("rotation", "60 0 0");
-            bgTracker.setAttribute("width", "0.2");
-            bgTracker.setAttribute("height", "0.24");
-            bgTracker.setAttribute("visible", "false");
-            bgTracker.setAttribute("shader", "flat");
-            this.el.appendChild(bgTracker);
-
-            // Animal icon mapping
-            const animalData = {
-              flamingo: {
-                checkId: "#flamengoCheck",
-                uncheckId: "#flamengoUncheck",
-              },
-              jaguarete: {
-                checkId: "#jaguareteCheck",
-                uncheckId: "#jaguareteUncheck",
-              },
-              nandu: { checkId: "#nanduCheck", uncheckId: "#nanduUncheck" },
-              jurumi: { checkId: "#jurumiCheck", uncheckId: "#jurumiUncheck" },
-              tagua: { checkId: "#taguaCheck", uncheckId: "#taguaUncheck" },
-              tatu: { checkId: "#tatuCheck", uncheckId: "#tatuUncheck" },
-            };
-
-            // Layout positions for icons (2 rows x 3 columns)
-            const positions = [
-              [-0.05, 0.1], // flamingo - top left
-              [0.0, 0.1], // jaguarete - top center
-              [0.05, 0.1], // nandu - top right
-              [-0.05, 0.04], // jurumi - bottom left
-              [0.0, 0.04], // tagua - bottom center
-              [0.05, 0.04], // tatu - bottom right
-            ];
-
-            const animals = [
-              "flamingo",
-              "jaguarete",
-              "nandu",
-              "jurumi",
-              "tagua",
-              "tatu",
-            ];
-            this.icons = {};
-
-            animals.forEach((animal, i) => {
-              // Create checked version (initially hidden)
-              const checkedIcon = document.createElement("a-image");
-              checkedIcon.setAttribute("id", `icon-${animal}-checked`);
-              checkedIcon.setAttribute("src", animalData[animal].checkId);
-              checkedIcon.setAttribute(
-                "position",
-                `${positions[i][0]} ${positions[i][1]} -0.079`
-              );
-              checkedIcon.setAttribute("rotation", "60 0 0");
-              checkedIcon.setAttribute("width", "0.04");
-              checkedIcon.setAttribute("height", "0.04");
-              checkedIcon.setAttribute("visible", "false");
-              checkedIcon.setAttribute("shader", "flat");
-              checkedIcon.setAttribute("transparent", "true");
-              this.el.appendChild(checkedIcon);
-
-              // Create unchecked version (initially visible)
-              const uncheckedIcon = document.createElement("a-image");
-              uncheckedIcon.setAttribute("id", `icon-${animal}-unchecked`);
-              uncheckedIcon.setAttribute("src", animalData[animal].uncheckId);
-              uncheckedIcon.setAttribute(
-                "position",
-                `${positions[i][0]} ${positions[i][1]} -0.079`
-              );
-              uncheckedIcon.setAttribute("rotation", "60 0 0");
-              uncheckedIcon.setAttribute("width", "0.04");
-              uncheckedIcon.setAttribute("height", "0.04");
-              uncheckedIcon.setAttribute("visible", "false");
-              uncheckedIcon.setAttribute("shader", "flat");
-              uncheckedIcon.setAttribute("transparent", "true");
-              this.el.appendChild(uncheckedIcon);
-
-              this.icons[animal] = {
-                checked: checkedIcon,
-                unchecked: uncheckedIcon,
-              };
-            });
-
-            // Timer display at the bottom
-            this.timerText = document.createElement("a-text");
-            this.timerText.setAttribute("id", "timerDisplay");
-            this.timerText.setAttribute("value", "5:00");
-            this.timerText.setAttribute("align", "center");
-            this.timerText.setAttribute("position", "0 -0.04 -0.07");
-            this.timerText.setAttribute("rotation", "60 0 0");
-            this.timerText.setAttribute("width", "0.2");
-            this.timerText.setAttribute("scale", "0.7 0.7 0.7");
-            this.timerText.setAttribute("color", "#FFFFFF");
-            this.timerText.setAttribute("shader", "msdf");
-            this.timerText.setAttribute("outline-width", "12%");
-            this.timerText.setAttribute("outline-color", "#000000");
-            this.timerText.setAttribute("visible", "false");
-            this.el.appendChild(this.timerText);
-
-            console.log("Image-based Progress UI created");
-          },
-
           show: function () {
-            const bg = this.el.querySelector("#trackerBackground");
-            if (bg) bg.setAttribute("visible", true);
-            if (this.timerText) this.timerText.setAttribute("visible", true);
-
-            // Show all unchecked icons
-            Object.keys(this.icons).forEach((animal) => {
-              const icon = this.icons[animal];
-              icon.unchecked.setAttribute("visible", true);
-              icon.checked.setAttribute("visible", false);
-            });
+            if (this.wristwatch) {
+              this.wristwatch.setAttribute("visible", "true");
+              this.isVisible = true;
+            }
           },
 
           hide: function () {
-            const bg = this.el.querySelector("#trackerBackground");
-            if (bg) bg.setAttribute("visible", false);
-            if (this.timerText) this.timerText.setAttribute("visible", false);
-
-            // Hide all icons
-            Object.keys(this.icons).forEach((animal) => {
-              const icon = this.icons[animal];
-              icon.unchecked.setAttribute("visible", false);
-              icon.checked.setAttribute("visible", false);
-            });
+            if (this.wristwatch) {
+              this.wristwatch.setAttribute("visible", "false");
+              this.isVisible = false;
+            }
           },
 
           reset: function () {
             this.animalsFound.clear();
+
+            // Reset all animals to unchecked state
             Object.keys(this.icons).forEach((animal) => {
               this.updateAnimal(animal, false);
             });
+
+            // Reset timer
             this.updateTimer(300);
           },
 
           updateAnimal: function (animalType, found) {
             const icon = this.icons[animalType];
-            if (!icon) return;
+            if (!icon) {
+              console.warn(`Icon not found for animal: ${animalType}`);
+              return;
+            }
 
             if (found) {
               this.animalsFound.add(animalType);
-              icon.unchecked.setAttribute("visible", false);
-              icon.checked.setAttribute("visible", true);
+              // Switch to checked image
+              icon.setAttribute("src", `#${animalType}Check`);
+
+              // Add a brief scale animation for feedback
+              icon.setAttribute("animation__found", {
+                property: "scale",
+                from: "1 1 1",
+                to: "1.2 1.2 1.2",
+                dur: 200,
+                easing: "easeOutQuad",
+                loop: false,
+              });
+
+              setTimeout(() => {
+                icon.setAttribute("animation__foundback", {
+                  property: "scale",
+                  from: "1.2 1.2 1.2",
+                  to: "1 1 1",
+                  dur: 200,
+                  easing: "easeInQuad",
+                  loop: false,
+                });
+              }, 200);
             } else {
-              icon.checked.setAttribute("visible", false);
-              icon.unchecked.setAttribute("visible", true);
+              this.animalsFound.delete(animalType);
+              // Switch to unchecked image
+              icon.setAttribute("src", `#${animalType}Uncheck`);
             }
           },
 
           updateTimer: function (seconds) {
+            this.timeRemaining = seconds;
+
+            if (!this.timerText) return;
+
+            // Format time as MM:SS
             const minutes = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             const timeStr = `${minutes}:${secs.toString().padStart(2, "0")}`;
 
-            if (this.timerText) {
-              this.timerText.setAttribute("value", timeStr);
+            this.timerText.setAttribute("value", timeStr);
 
-              // Change color based on time
-              if (seconds < 60) {
-                this.timerText.setAttribute("color", "#FF0000"); // Red
-              } else if (seconds < 120) {
-                this.timerText.setAttribute("color", "#FFFF00"); // Yellow
-              } else {
-                this.timerText.setAttribute("color", "#FFFFFF"); // White
+            // Change color based on remaining time
+            if (seconds < 60) {
+              // Red - less than 1 minute
+              this.timerText.setAttribute("color", "#FF0000");
+
+              // Pulse animation when low on time
+              if (seconds > 0 && seconds % 2 === 0) {
+                this.timerText.setAttribute("animation__pulse", {
+                  property: "scale",
+                  from: "0.15 0.15 0.15",
+                  to: "0.18 0.18 0.18",
+                  dur: 500,
+                  easing: "easeInOutSine",
+                  loop: false,
+                  dir: "alternate",
+                });
               }
+            } else if (seconds < 120) {
+              // Yellow - less than 2 minutes
+              this.timerText.setAttribute("color", "#FFFF00");
+              this.timerText.removeAttribute("animation__pulse");
+            } else {
+              // White - plenty of time
+              this.timerText.setAttribute("color", "#FFFFFF");
+              this.timerText.removeAttribute("animation__pulse");
             }
           },
         });
