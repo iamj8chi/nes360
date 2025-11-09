@@ -167,7 +167,7 @@
     </div>
     <div class="hint">
       WASD / arrow keys to move, mouse to look. In VR, use thumbsticks to move
-      and controllers to point. Explore the forest! Laser
+      and controllers to point. Explore the forest! Jochi
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -555,15 +555,18 @@
         <!-- Left Controller - Holds the tracker UI -->
         <a-entity
           id="leftHand"
-          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa; handColor: #ffccaa"
-          laser-controls="hand: left"
-          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707"
+          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
+          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
           line="color: #00FF00; opacity: 0.75"
           animal-highlighter
           progress-ui
         >
           <!-- Wristwatch UI Container -->
-          <a-entity id="wristwatch" position="0 0.02 -0.08" rotation="0 180 0">
+          <a-entity
+            id="wristwatch"
+            position="0 0.02 -0.08"
+            rotation="45 10 180"
+          >
             <!-- Background Tracker -->
             <a-plane
               id="trackerBackground"
@@ -652,9 +655,8 @@
         <!-- Right Controller - Point and click controller -->
         <a-entity
           id="rightHand"
-          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa; handColor: #ffccaa"
-          laser-controls="hand: right"
-          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707"
+          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
+          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
           line="color: #FF0000; opacity: 0.75"
           animal-highlighter
         >
@@ -3079,63 +3081,6 @@
             sceneEl.addEventListener("model-loaded", function (ev) {
               markShadows(ev.target);
             });
-          });
-        })();
-
-        // Ensure controllers appear reliably when entering VR
-        (function () {
-          const scene = document.querySelector("a-scene");
-          let controllersInitialized = false;
-
-          function initControllers() {
-            // Re-initialize hand controller entities by re-setting hand-controls and laser-controls
-            ["leftHand", "rightHand"].forEach((id) => {
-              const el = document.getElementById(id);
-              if (!el) return;
-
-              const hand = el.getAttribute("hand-controls");
-              const laser = el.getAttribute("laser-controls");
-
-              // Force hand model style and prevent controller model
-              if (hand) {
-                el.removeAttribute("hand-controls");
-                setTimeout(() => {
-                  el.setAttribute("hand-controls", {
-                    hand: hand.hand,
-                    handModelStyle: "lowPoly",
-                    color: "#ffccaa",
-                  });
-                }, 50);
-              }
-
-              if (laser) {
-                el.removeAttribute("laser-controls");
-                setTimeout(() => {
-                  el.setAttribute("laser-controls", {
-                    hand: laser.hand,
-                  });
-                }, 100);
-              }
-            });
-
-            controllersInitialized = true;
-          }
-
-          // When session enters VR, initialize controllers
-          scene.addEventListener("enter-vr", () => {
-            setTimeout(initControllers, 300);
-          });
-
-          // When a controller connects, ensure hand models are loaded
-          window.addEventListener("gamepadconnected", (ev) => {
-            if (!controllersInitialized) {
-              setTimeout(initControllers, 100);
-            }
-          });
-
-          // A-Frame-specific event for WebXR controller connection
-          scene.addEventListener("controllerconnected", (ev) => {
-            initControllers();
           });
         })();
       </script>
