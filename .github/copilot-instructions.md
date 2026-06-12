@@ -2,41 +2,66 @@
 
 ## Overview
 
-This project is a 3D environment built using HTML and JavaScript, leveraging WebGL and A-Frame for rendering. The architecture is modular, with distinct components for models, controls, and scene management. The `.bbmodel` files are edited in Blockbench and then exported to `.glb` format for use within the project.
+"No Estan Solos" is a 360° VR safari game built with **A-Frame** (WebGL) and
+bundled with **Vite**. The player finds 6 native animals within a time limit, on
+desktop or in VR. See `README.md` for run/build instructions.
+
+## Tech stack & workflow
+
+- **Build tool:** Vite. `npm run dev` (HMR dev server), `npm run build`
+  (production bundle into `dist/`), `npm run preview` (serve the build).
+- **Dependencies:** `aframe` and `aframe-extras`, installed from npm (NOT
+  vendored). There is no Webpack and no hand-managed library folder.
+- **Formatting:** Prettier (`npm run format`). Config in `.prettierrc.json`
+  (double quotes, 2-space indent, `es5` trailing commas).
+- **Deployment:** Vercel (auto-detected Vite; root base `/`).
 
 ## Architecture
 
-- **Components**: The project is structured around reusable components, primarily located in the `assets/models` directory. Each model is defined in `.glb` files, which are loaded dynamically.
-- **Data Flow**: Data is passed between components through properties and events. For example, the speed and acceleration of objects are managed through the `this.data` object in the JavaScript files.
-- **Service Boundaries**: The main service boundaries are defined by the different models and their interactions within the scene. Understanding how these models communicate is crucial for extending functionality.
+- `index.html` (project root) is the Vite entry and holds the entire A-Frame
+  scene graph: `<a-scene>`, `<a-assets>`, lights, signs, the 6 animal entities,
+  and the camera rig. It loads exactly one script: `<script type="module"
+src="/src/main.js">`.
+- `src/main.js` imports A-Frame first (this sets up the global `AFRAME` and
+  `THREE`), then the only two `aframe-extras` pieces used
+  (`controls/index.js` and `loaders/animation-mixer.js`), then every game
+  component.
+- Each file under `src/components/**` defines exactly one component via
+  `AFRAME.registerComponent(...)` and registers it at import time. Components
+  reference the **global** `AFRAME` and `THREE` — do not add per-file
+  `import` statements for them.
 
-## Developer Workflows
+## Conventions
 
-- **Building**: Use Webpack for building the project. Ensure all dependencies are installed via npm before running the build command.
-- **Testing**: Testing is primarily manual, focusing on visual inspection of the 3D environment. Automated tests are not currently implemented.
-- **Debugging**: Use browser developer tools to inspect elements and debug JavaScript. Console logs are heavily utilized for tracking state changes.
+- **One component per file**, grouped by domain: `game/`, `animals/`,
+  `collision/`, `environment/`, `performance/`, plus `movement.js`.
+- **Cross-component communication is event-based.** Components emit and listen
+  on `this.el.sceneEl` with the `safari-*` event names (`safari-start-game`,
+  `safari-animal-clicked`, `safari-animal-found`, `safari-timer-update`,
+  `safari-game-ended`, `safari-game-reset`). `safari-game-manager` owns game
+  state. When adding behavior, prefer emitting/handling these events over direct
+  cross-component calls.
+- **Registration order does not matter** — `registerComponent` only defines;
+  A-Frame instantiates components when entities attach. Discovery (e.g.
+  `collision-manager`) happens at runtime via `querySelectorAll`.
 
-## Project-Specific Conventions
+## Assets
 
-- **Model Naming**: Models in the `assets/models` directory follow a naming convention that reflects their purpose (e.g., `flamingo.glb` for a flamingo model).
-- **Event Handling**: Custom events are used for communication between components. For example, when a model is clicked, it triggers an event that other components can listen to.
+- Static assets live in `public/assets/` and are served verbatim at
+  `/assets/...`. Reference them with root-relative paths in HTML
+  (`<a-asset-item src="assets/foo.glb">`) — do NOT `import` `.glb`/`.mp3`/`.png`.
+- `.glb` models are exported from Blender/Blockbench. Keep large binary source
+  files (Blender projects, raw audio) out of the repo.
 
-## Integration Points
+## THREE version note
 
-- **External Dependencies**: The project relies on A-Frame and other libraries for rendering and controls. Ensure these are included in the HTML files.
-- **Cross-Component Communication**: Components communicate through events and shared data properties. Understanding the event system in A-Frame is essential for effective development.
-
-## Key Files/Directories
-
-- `assets/models/`: Contains all 3D models used in the project.
-- `dist/`: Contains the built files, including `aframe-extras.controls.js` which is crucial for user interactions.
-- `test.html`: A testing ground for new features and models before integration into the main project.
-
-## Examples
-
-- To modify the speed of a model, adjust the `this.data.speed` property in the relevant component script.
-- Use `document.querySelectorAll` to select multiple elements for batch operations in the scene.
+`aframe` bundles its THREE as `super-three`; `aframe-extras` depends on stock
+`three`. We avoid duplicate-THREE issues by importing only the two extras
+submodules that use the **global** THREE (animation-mixer, movement-controls)
+rather than all of `aframe-extras`. If you add an extras feature that imports
+`three` directly (e.g. the FBX/Collada loaders), expect a second THREE copy and
+add a Vite `resolve.alias` mapping `three` to A-Frame's build.
 
 ---
 
-This document should be updated as the project evolves to reflect new patterns and practices.
+Keep this file in sync with the actual setup when the architecture changes.

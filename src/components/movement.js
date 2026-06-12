@@ -1,89 +1,100 @@
-// Movement and Locomotion Components
-AFRAME.registerComponent("movement-controller", {
+AFRAME.registerComponent("vr-locomotion", {
   schema: {
-    speed: { type: "number", default: 0.2 },
-    vrSpeed: { type: "number", default: 5.0 },
-    enabled: { type: "boolean", default: true },
+    speed: { type: "number", default: 5.0 }, // m/s velocidad de movimiento VR
+    acceleration: { type: "number", default: 6.0 }, // lerp factor per second
+    deceleration: { type: "number", default: 8.0 }, // lerp factor per second
+    deadZone: { type: "number", default: 0.18 }, // thumbstick deadzone
+    controllerHand: { type: "string", default: "left" }, // 'left'|'right'|'both'
+    useHeadDirection: { type: "boolean", default: true },
   },
 
   init: function () {
-    this.config = window.NES360_CONFIG.movement;
-
-    // Apply configuration
-    this.data.speed = this.config.desktop.speed;
-    this.data.vrSpeed = this.config.vr.speed;
-    this.data.enabled = this.config.desktop.enabled;
-
-    // Setup movement controls
-    this.setupMovementControls();
+    this.velocity = new THREE.Vector3();
+    this.moveVec = new THREE.Vector3();
+    this.onAxisMove = this.onAxisMove.bind(this);
+    this.bindControllerListeners();
   },
 
-  setupMovementControls: function () {
-    // Desktop movement
-    this.el.setAttribute("movement-controls", {
-      enabled: this.data.enabled,
-      speed: this.data.speed,
-    });
-
-    // VR locomotion
-    this.el.setAttribute("vr-locomotion", {
-      speed: this.data.vrSpeed,
-      acceleration: this.config.vr.acceleration,
-      deceleration: this.config.vr.deceleration,
-      deadZone: this.config.vr.deadZone,
-      controllerHand: this.config.vr.controllerHand,
-    });
-  },
-});
-
-// Boundary Collision Component
-AFRAME.registerComponent("boundary-collision", {
-  schema: {
-    radius: { type: "number", default: 45 },
-    centerX: { type: "number", default: 0 },
-    centerZ: { type: "number", default: 0 },
+  bindControllerListeners: function () {
+    // Listen on rig and also on possible controller entities
+    this.el.addEventListener("axismove", this.onAxisMove);
+    const left = this.el.querySelector('[hand-controls="hand: left"]');
+    const right = this.el.querySelector('[hand-controls="hand: right"]');
+    if (left) left.addEventListener("axismove", this.onAxisMove);
+    if (right) right.addEventListener("axismove", this.onAxisMove);
   },
 
-  init: function () {
-    this.config = window.NES360_CONFIG.boundary;
+  onAxisMove: function (evt) {
+    const axes = evt.detail && evt.detail.axis;
+    if (!axes || axes.length < 2) return;
 
-    // Use config values
-    this.data.radius = this.config.radius;
-    this.data.centerX = this.config.centerX;
-    this.data.centerZ = this.config.centerZ;
+    // Determine which hand produced the event (if available)
+    const target = evt.target;
+    const handAttr =
+      target && target.getAttribute
+        ? target.getAttribute("hand-controls")
+        : null;
+    const isLeft = handAttr && handAttr.indexOf("left") !== -1;
+    const isRight = handAttr && handAttr.indexOf("right") !== -1;
 
-    this.lastPosition = new THREE.Vector3();
-    this.currentPosition = new THREE.Vector3();
-    this.el.object3D.getWorldPosition(this.lastPosition);
+    if (this.data.controllerHand === "left" && !isLeft) return;
+    if (this.data.controllerHand === "right" && !isRight) return;
+
+    let ax = axes[0];
+    let ay = axes[1];
+
+    // Apply deadzone
+    if (Math.abs(ax) < this.data.deadZone) ax = 0;
+    if (Math.abs(ay) < this.data.deadZone) ay = 0;
+
+    // Store the desired local movement vector (x right, z forward)
+    this.moveVec.set(ax, 0, ay);
   },
 
-  tick: function () {
-    this.el.object3D.getWorldPosition(this.currentPosition);
+  tick: function (time, dt) {
+    const delta = (dt || 0) / 1000;
+    if (delta <= 0) return;
 
-    const distanceFromCenter = Math.sqrt(
-      Math.pow(this.currentPosition.x - this.data.centerX, 2) +
-        Math.pow(this.currentPosition.z - this.data.centerZ, 2)
-    );
+    // Desired local movement
+    if (this.moveVec.lengthSq() > 0.000001) {
+      const stickMag = Math.min(1, this.moveVec.length());
+      const desiredLocal = this.moveVec
+        .clone()
+        .normalize()
+        .multiplyScalar(this.data.speed * stickMag);
 
-    if (distanceFromCenter > this.data.radius) {
-      const dirX = this.currentPosition.x - this.data.centerX;
-      const dirZ = this.currentPosition.z - this.data.centerZ;
-      const length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+      if (this.data.useHeadDirection) {
+        const head = this.el.querySelector("#head");
+        if (head && head.object3D) {
+          const yaw = head.object3D.rotation.y; // radians
+          desiredLocal.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        }
+      }
 
-      const normalizedDirX = dirX / length;
-      const normalizedDirZ = dirZ / length;
-
-      const newX = this.data.centerX + normalizedDirX * this.data.radius;
-      const newZ = this.data.centerZ + normalizedDirZ * this.data.radius;
-
-      const currentPos = this.el.getAttribute("position");
-      this.el.setAttribute("position", {
-        x: newX,
-        y: currentPos.y,
-        z: newZ,
-      });
+      // Smooth acceleration
+      this.velocity.lerp(
+        desiredLocal,
+        Math.min(1, this.data.acceleration * delta)
+      );
+    } else {
+      // Smooth deceleration to zero
+      this.velocity.lerp(
+        new THREE.Vector3(0, 0, 0),
+        Math.min(1, this.data.deceleration * delta)
+      );
     }
 
-    this.lastPosition.copy(this.currentPosition);
+    // Apply velocity scaled by dt
+    const step = this.velocity.clone().multiplyScalar(delta);
+    const pos = this.el.object3D.position;
+    pos.add(step);
+  },
+
+  remove: function () {
+    this.el.removeEventListener("axismove", this.onAxisMove);
+    const left = this.el.querySelector('[hand-controls="hand: left"]');
+    const right = this.el.querySelector('[hand-controls="hand: right"]');
+    if (left) left.removeEventListener("axismove", this.onAxisMove);
+    if (right) right.removeEventListener("axismove", this.onAxisMove);
   },
 });
