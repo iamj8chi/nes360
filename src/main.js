@@ -17,6 +17,8 @@ import "./components/game/safari-game-manager.js";
 import "./components/game/orb-controller.js";
 import "./components/game/progress-ui.js";
 import "./components/game/staggered-start.js";
+import "./components/game/game-modes.js";
+import "./components/game/animal-info-card.js";
 
 // Animals
 import "./components/animals/animal-highlighter.js";

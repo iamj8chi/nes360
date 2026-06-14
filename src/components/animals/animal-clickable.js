@@ -3,11 +3,10 @@ AFRAME.registerComponent("animal-clickable", {
     this.found = false;
     this.animalType = this.el.getAttribute("data-animal-type");
 
-    // Listen for click events from raycaster
+    // Listen for click events from raycaster. Always emit so the info card opens
+    // even for an already-found animal; the game manager dedupes finds itself.
     this.el.addEventListener("click", () => {
-      if (!this.found) {
-        this.onFound();
-      }
+      this.onFound();
     });
 
     // Listen for game reset

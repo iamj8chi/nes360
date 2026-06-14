@@ -22,12 +22,116 @@
         border-radius: 4px;
         z-index: 10;
       }
+
+      /* Desktop animal info card — fixed to the right corner, hidden by default. */
+      .info-card {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%) translateX(20px);
+        width: 280px;
+        color: #fff;
+        font-family: sans-serif;
+        background: rgba(20, 35, 20, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        padding: 16px 18px 18px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        z-index: 20;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+      }
+      .info-card--visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(-50%) translateX(0);
+      }
+      .info-card__close {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 2px;
+      }
+      .info-card__close:hover {
+        color: #fff;
+      }
+      .info-card__icon {
+        display: block;
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 8px;
+        object-fit: contain;
+      }
+      .info-card__name {
+        margin: 0 0 12px;
+        font-size: 18px;
+        text-align: center;
+      }
+      .info-card__fields {
+        margin: 0;
+      }
+      .info-card__fields > div {
+        margin-bottom: 8px;
+      }
+      .info-card__fields dt {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #ffd178;
+        margin-bottom: 1px;
+      }
+      .info-card__fields dd {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.35;
+      }
     </style>
   </head>
   <body>
     <div class="hint">
       WASD / flechas para moverte. Haz click al cartel de Safari y busca los 6
       animales.
+    </div>
+
+    <!-- Desktop animal info card (populated/toggled by the animal-info-card component) -->
+    <div id="animalInfoCard" class="info-card" aria-hidden="true">
+      <button
+        id="animalInfoCardClose"
+        class="info-card__close"
+        aria-label="Cerrar"
+        type="button"
+      >
+        ✕
+      </button>
+      <img id="animalInfoCardIcon" class="info-card__icon" src="" alt="" />
+      <h2 id="animalInfoCardName" class="info-card__name"></h2>
+      <dl class="info-card__fields">
+        <div>
+          <dt>Nombre científico</dt>
+          <dd id="animalInfoCardSci"></dd>
+        </div>
+        <div>
+          <dt>Estado de Conservación</dt>
+          <dd id="animalInfoCardCons"></dd>
+        </div>
+        <div>
+          <dt>Nutrición</dt>
+          <dd id="animalInfoCardNut"></dd>
+        </div>
+        <div>
+          <dt>Hábitat</dt>
+          <dd id="animalInfoCardHab"></dd>
+        </div>
+      </dl>
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -47,6 +151,7 @@
       shadow-control="enabled: false"
       audio-unlock
       collision-manager
+      game-modes
     >
       <!-- Safari Game Manager -->
       <a-entity
@@ -316,94 +421,167 @@
         shadow="receive: true; cast: false"
       ></a-entity>
 
-      <!-- New showcase models / Safari Game Animals -->
-      <a-entity
-        id="flamengo"
-        class="clickable animal"
-        data-animal-type="flamingo"
-        gltf-model="#flamengoModel"
-        position="-12.12801 0 -32.65917"
-        rotation="0 195.6 0"
-        scale="2 2 2"
-        animation-mixer="clip: idle"
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-        sound="src: #flamengoSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
-      ></a-entity>
-      <a-entity
-        id="jaguarete"
-        class="clickable animal"
-        data-animal-type="jaguarete"
-        gltf-model="#jaguareteModel"
-        position="-13.62112 0 23.39443"
-        rotation="0 -45 0"
-        scale="2 2 2"
-        animation-mixer
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-        sound="src: #jaguareteSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
-      ></a-entity>
-      <a-entity
-        id="nandu"
-        class="clickable animal"
-        data-animal-type="nandu"
-        gltf-model="#nanduModel"
-        position="22.16629 0 -1.51447"
-        rotation="0 163 0"
-        scale="2 2 2"
-        animation-mixer
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-      ></a-entity>
-      <a-entity
-        id="jurumi"
-        class="clickable animal"
-        data-animal-type="jurumi"
-        gltf-model="#jurumiModel"
-        position="-28.34973 0 1.64968"
-        rotation="0 208.28 0"
-        scale="2 2 2"
-        animation-mixer
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-      ></a-entity>
-      <a-entity
-        id="tagua"
-        class="clickable animal"
-        data-animal-type="tagua"
-        gltf-model="#taguaModel"
-        position="5.98673 0 18.53104"
-        rotation="0 45 0"
-        scale="2 2 2"
-        animation-mixer
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-      ></a-entity>
-      <a-entity
-        id="tatu"
-        class="clickable animal"
-        data-animal-type="tatu"
-        gltf-model="#tatuModel"
-        position="14.60573 0 -13.67693"
-        rotation="0 149.7 0"
-        scale="2 2 2"
-        animation-mixer
-        staggered-start="maxOffset: 1.6"
-        performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
-        material-optimizer
-        animal-clickable
-        sound="src: #tatuSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
-      ></a-entity>
+      <!-- Safari hunt animals — scattered across the map, hidden until Safari mode -->
+      <a-entity id="huntAnimals" visible="false">
+        <a-entity
+          id="flamengo"
+          class="clickable animal"
+          data-animal-type="flamingo"
+          gltf-model="#flamengoModel"
+          position="-12.12801 0 -32.65917"
+          rotation="0 195.6 0"
+          scale="2 2 2"
+          animation-mixer="clip: idle"
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+          sound="src: #flamengoSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
+        ></a-entity>
+        <a-entity
+          id="jaguarete"
+          class="clickable animal"
+          data-animal-type="jaguarete"
+          gltf-model="#jaguareteModel"
+          position="-13.62112 0 23.39443"
+          rotation="0 -45 0"
+          scale="2 2 2"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+          sound="src: #jaguareteSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
+        ></a-entity>
+        <a-entity
+          id="nandu"
+          class="clickable animal"
+          data-animal-type="nandu"
+          gltf-model="#nanduModel"
+          position="22.16629 0 -1.51447"
+          rotation="0 163 0"
+          scale="2 2 2"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          id="jurumi"
+          class="clickable animal"
+          data-animal-type="jurumi"
+          gltf-model="#jurumiModel"
+          position="-28.34973 0 1.64968"
+          rotation="0 208.28 0"
+          scale="2 2 2"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          id="tagua"
+          class="clickable animal"
+          data-animal-type="tagua"
+          gltf-model="#taguaModel"
+          position="5.98673 0 18.53104"
+          rotation="0 45 0"
+          scale="2 2 2"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          id="tatu"
+          class="clickable animal"
+          data-animal-type="tatu"
+          gltf-model="#tatuModel"
+          position="14.60573 0 -13.67693"
+          rotation="0 149.7 0"
+          scale="2 2 2"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          performance-optimizer="nearDistance: 15; midDistance: 30; farDistance: 50"
+          material-optimizer
+          animal-clickable
+          sound="src: #tatuSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
+        ></a-entity>
+      </a-entity>
+
+      <!-- Idle showcase animals — arc to the player's right (+X), each rotated to face
+           the player. Clicking any opens its info card. Hidden once Safari mode starts. -->
+      <a-entity id="showcaseAnimals">
+        <a-entity
+          class="clickable animal"
+          data-animal-type="flamingo"
+          gltf-model="#flamengoModel"
+          position="6 0 -3.75"
+          rotation="0 122 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer="clip: idle"
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          class="clickable animal"
+          data-animal-type="jaguarete"
+          gltf-model="#jaguareteModel"
+          position="6.8 0 -2.25"
+          rotation="0 108 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          class="clickable animal"
+          data-animal-type="nandu"
+          gltf-model="#nanduModel"
+          position="7.2 0 -0.75"
+          rotation="0 96 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          class="clickable animal"
+          data-animal-type="jurumi"
+          gltf-model="#jurumiModel"
+          position="7.2 0 0.75"
+          rotation="0 84 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          class="clickable animal"
+          data-animal-type="tagua"
+          gltf-model="#taguaModel"
+          position="6.8 0 2.25"
+          rotation="0 72 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+        <a-entity
+          class="clickable animal"
+          data-animal-type="tatu"
+          gltf-model="#tatuModel"
+          position="6 0 3.75"
+          rotation="0 58 0"
+          scale="1.5 1.5 1.5"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+          animal-clickable
+        ></a-entity>
+      </a-entity>
 
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
@@ -415,6 +593,7 @@
         collision-responder="padding: 0.3"
         screen-fade="fadeDuration: 1000"
         progress-ui
+        animal-info-card
       >
         <!-- Camera -->
         <a-entity
@@ -526,6 +705,40 @@
           cursor="fuse: false; rayOrigin: entity"
           animal-highlighter
         >
+          <!-- VR animal info card — attached to the left hand, toggled by animal-info-card -->
+          <a-entity
+            id="animalInfoCardVR"
+            position="0 0.14 -0.06"
+            rotation="-35 0 0"
+            visible="false"
+          >
+            <a-plane
+              width="0.34"
+              height="0.3"
+              material="shader: flat; color: #142314; opacity: 0.88; transparent: true"
+            ></a-plane>
+            <a-image
+              id="animalInfoCardVRIcon"
+              src="#jaguareteCheck"
+              width="0.07"
+              height="0.07"
+              position="-0.12 0.105 0.001"
+              material="shader: flat; transparent: true"
+            ></a-image>
+            <a-text
+              id="animalInfoCardVRText"
+              value=""
+              align="left"
+              anchor="left"
+              baseline="top"
+              wrap-count="34"
+              position="-0.155 0.135 0.001"
+              scale="0.11 0.11 0.11"
+              color="#FFFFFF"
+              shader="msdf"
+              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+            ></a-text>
+          </a-entity>
         </a-entity>
 
         <!-- Right Controller - Point and click controller -->
