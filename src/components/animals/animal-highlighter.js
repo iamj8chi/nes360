@@ -1,127 +1,94 @@
+// Yellow hover highlight for animals — mounted ONCE on the scene.
+//
+// It listens for the cursor events `mouseenter` / `mouseleave`, which every cursor
+// emits (the desktop mouse cursor on #head AND the VR controller cursors on the hands)
+// and which bubble up to the scene. This is more reliable than the old
+// raycaster-intersection / -cleared approach: `mouseleave` always fires when the
+// cursor stops pointing at an entity, so the highlight never gets stuck, and a single
+// instance covers both desktop and VR.
+//
+// Found animals keep their permanent green glow (set by animal-clickable) and are not
+// overwritten with yellow.
 AFRAME.registerComponent("animal-highlighter", {
   init: function () {
+    // Per-mesh snapshot of the original emissive so we can restore it on leave.
     this.originalMaterials = new Map();
-    this.highlighted = null;
-    this.currentIntersected = null;
 
-    // Listen for raycaster intersection events
-    this.el.addEventListener("raycaster-intersection", (evt) => {
-      const intersectedEls = evt.detail.els;
-      let animalFound = false;
+    this.onEnter = this.onEnter.bind(this);
+    this.onLeave = this.onLeave.bind(this);
 
-      for (let el of intersectedEls) {
-        if (el && el.classList.contains("animal")) {
-          this.currentIntersected = el;
-          this.highlightAnimal(el);
-          animalFound = true;
-          break;
-        }
-      }
-
-      // If no animal intersected but we had one highlighted, clear it
-      if (!animalFound && this.highlighted) {
-        this.unhighlightAnimal(this.highlighted);
-        this.highlighted = null;
-        this.currentIntersected = null;
-      }
-    });
-
-    this.el.addEventListener("raycaster-intersection-cleared", (evt) => {
-      if (this.highlighted) {
-        this.unhighlightAnimal(this.highlighted);
-        this.highlighted = null;
-        this.currentIntersected = null;
-      }
-    });
+    // mouseenter/mouseleave bubble from the pointed entity up to the scene.
+    this.el.addEventListener("mouseenter", this.onEnter);
+    this.el.addEventListener("mouseleave", this.onLeave);
   },
 
-  highlightAnimal: function (animalEl) {
-    if (this.highlighted === animalEl) return;
+  onEnter: function (evt) {
+    const el = evt.target;
+    if (el && el.classList && el.classList.contains("animal")) {
+      this.highlight(el);
+    }
+  },
 
-    // Check if animal is already found - don't highlight with yellow if it is
+  onLeave: function (evt) {
+    const el = evt.target;
+    if (el && el.classList && el.classList.contains("animal")) {
+      this.unhighlight(el);
+    }
+  },
+
+  highlight: function (animalEl) {
+    // Don't override the green glow of an already-found animal.
     const clickable = animalEl.components["animal-clickable"];
-    if (clickable && clickable.found) {
-      return; // Don't apply yellow highlight to found animals
-    }
+    if (clickable && clickable.found) return;
 
-    // Unhighlight previous
-    if (this.highlighted && this.highlighted !== animalEl) {
-      this.unhighlightAnimal(this.highlighted);
-    }
-
-    this.highlighted = animalEl;
     const obj = animalEl.getObject3D("mesh");
     if (!obj) return;
 
-    // Store original materials and apply highlight
     obj.traverse((node) => {
-      if (node.isMesh && node.material) {
+      if (node.isMesh && node.material && node.material.emissive) {
         if (!this.originalMaterials.has(node)) {
           this.originalMaterials.set(node, {
-            emissive: node.material.emissive
-              ? node.material.emissive.clone()
-              : null,
+            emissive: node.material.emissive.clone(),
             emissiveIntensity: node.material.emissiveIntensity || 0,
           });
         }
-
-        // Add highlight glow
-        if (node.material.emissive) {
-          node.material.emissive.setHex(0xffff00); // Yellow glow
-          node.material.emissiveIntensity = 0.5;
-          node.material.needsUpdate = true;
-        }
+        node.material.emissive.setHex(0xffff00); // Yellow glow
+        node.material.emissiveIntensity = 0.5;
+        node.material.needsUpdate = true;
       }
     });
   },
 
-  unhighlightAnimal: function (animalEl) {
-    if (!animalEl) {
-      this.highlighted = null;
-      return;
-    }
-
+  unhighlight: function (animalEl) {
     const obj = animalEl.getObject3D("mesh");
-    if (!obj) {
-      this.highlighted = null;
-      return;
-    }
+    if (!obj) return;
 
-    // Check if animal is found - if so, restore green, not original
+    // Found animals revert to green, everything else to its stored original.
     const clickable = animalEl.components["animal-clickable"];
     const isFound = clickable && clickable.found;
 
-    // Restore materials
     obj.traverse((node) => {
-      if (node.isMesh && node.material) {
+      if (node.isMesh && node.material && node.material.emissive) {
         if (isFound) {
-          // Keep green glow for found animals
-          if (node.material.emissive) {
-            node.material.emissive.setHex(0x00ff00); // Green glow
-            node.material.emissiveIntensity = 0.8;
-          }
+          node.material.emissive.setHex(0x00ff00); // Green glow
+          node.material.emissiveIntensity = 0.8;
         } else {
-          // Restore original materials for unfound animals
           const original = this.originalMaterials.get(node);
           if (original) {
-            if (original.emissive && node.material.emissive) {
-              node.material.emissive.copy(original.emissive);
-            } else if (node.material.emissive) {
-              node.material.emissive.setHex(0x000000);
-            }
+            node.material.emissive.copy(original.emissive);
             node.material.emissiveIntensity = original.emissiveIntensity;
           } else {
-            // Fallback: reset to black
-            if (node.material.emissive) {
-              node.material.emissive.setHex(0x000000);
-              node.material.emissiveIntensity = 0;
-            }
+            node.material.emissive.setHex(0x000000);
+            node.material.emissiveIntensity = 0;
           }
         }
         node.material.needsUpdate = true;
       }
     });
+  },
 
-    this.highlighted = null;
+  remove: function () {
+    this.el.removeEventListener("mouseenter", this.onEnter);
+    this.el.removeEventListener("mouseleave", this.onLeave);
   },
 });

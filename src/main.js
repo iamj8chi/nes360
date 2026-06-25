@@ -15,9 +15,10 @@ import "aframe-extras/loaders/animation-mixer.js";
 // Game logic
 import "./components/game/safari-game-manager.js";
 import "./components/game/orb-controller.js";
-import "./components/game/progress-ui.js";
+import "./components/game/safari-compass.js";
 import "./components/game/staggered-start.js";
 import "./components/game/game-modes.js";
+import "./components/game/vuelo-mode.js";
 import "./components/game/animal-info-card.js";
 
 // Animals
@@ -34,12 +35,18 @@ import "./components/collision/boundary-collision.js";
 
 // Environment
 import "./components/environment/composite-tree.js";
+import "./components/environment/forest.js";
 import "./components/environment/canopy-wind.js";
 import "./components/environment/screen-fade.js";
 import "./components/environment/shadow-control.js";
+import "./components/environment/environment-degradation.js";
 
 // Movement (VR locomotion)
 import "./components/movement.js";
+import "./components/flight-locomotion.js";
+
+// UI helpers
+import "./components/render-on-top.js";
 
 // Performance
 import "./components/performance/material-optimizer.js";

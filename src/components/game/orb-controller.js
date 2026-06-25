@@ -30,25 +30,31 @@ AFRAME.registerComponent("orb-controller", {
       }
     });
 
-    // Green highlight and trigger on click
+    // Green highlight and trigger on click. Each cartel emits its own scene event:
+    //  - orb-start    → safari-start-game (inicia el Safari)
+    //  - orb-minigame → vuelo-enter       (entra al modo Vuelo)
+    //  - orb-exit     → vuelo-exit         (sale del modo Vuelo; cartel principal)
     this.el.addEventListener("click", () => {
-      if (this.el.classList.contains("orb-start")) {
-        this.isClicked = true;
-        this.el.setAttribute("material", "color", "#00FF00");
+      let event = null;
+      if (this.el.classList.contains("orb-start")) event = "safari-start-game";
+      else if (this.el.classList.contains("orb-minigame"))
+        event = "vuelo-enter";
+      else if (this.el.classList.contains("orb-exit")) event = "vuelo-exit";
+      if (!event) return;
 
-        // Emit game start event
-        this.el.sceneEl.emit("safari-start-game");
+      this.isClicked = true;
+      this.el.setAttribute("material", "color", "#00FF00");
+      this.el.sceneEl.emit(event);
 
-        // Reset color after a moment
-        setTimeout(() => {
-          this.isClicked = false;
-          if (this.originalColor) {
-            this.el.setAttribute("material", "color", this.originalColor);
-          } else {
-            this.el.setAttribute("material", "color", "#FFFFFF");
-          }
-        }, 1000);
-      }
+      // Reset color after a moment
+      setTimeout(() => {
+        this.isClicked = false;
+        if (this.originalColor) {
+          this.el.setAttribute("material", "color", this.originalColor);
+        } else {
+          this.el.setAttribute("material", "color", "#FFFFFF");
+        }
+      }, 1000);
     });
   },
 });

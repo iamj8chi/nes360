@@ -11,6 +11,9 @@ AFRAME.registerComponent("vr-locomotion", {
   init: function () {
     this.velocity = new THREE.Vector3();
     this.moveVec = new THREE.Vector3();
+    // Flag de runtime: vuelo-mode lo pone en false para que el aleteo
+    // (flight-locomotion) no compita con el thumbstick durante el modo Vuelo.
+    this.enabled = true;
     this.onAxisMove = this.onAxisMove.bind(this);
     this.bindControllerListeners();
   },
@@ -52,6 +55,11 @@ AFRAME.registerComponent("vr-locomotion", {
   },
 
   tick: function (time, dt) {
+    if (!this.enabled) {
+      this.moveVec.set(0, 0, 0);
+      this.velocity.set(0, 0, 0);
+      return;
+    }
     const delta = (dt || 0) / 1000;
     if (delta <= 0) return;
 

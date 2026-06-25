@@ -22,6 +22,13 @@ AFRAME.registerComponent("composite-tree", {
     // Declare entities
     var canopy, pasto;
 
+    // Whether this tree has foliage that can be "killed" (turned into a dead,
+    // trunk-only tree) by the safari fire mechanic. Exposed for environment-degradation.
+    this.isAlive = isNormal || isShrub || isPalma;
+    this.dead = false;
+    this.baseEl = null;
+    this.canopyEl = null;
+
     // Create base tree entity (for normal, dead, and palma trees)
     if (isNormal || isDead || isPalma) {
       var base = document.createElement("a-entity");
@@ -32,6 +39,7 @@ AFRAME.registerComponent("composite-tree", {
       );
       base.setAttribute("shadow", "cast: true");
       this.el.appendChild(base);
+      this.baseEl = base;
     }
 
     // Create invisible collider cylinder
@@ -69,6 +77,7 @@ AFRAME.registerComponent("composite-tree", {
         freqB: this.data.windFreqB,
         rotStrength: this.data.windRotStrength,
       });
+      this.canopyEl = canopy;
     }
 
     // Create pasto entity (grass)
@@ -107,5 +116,42 @@ AFRAME.registerComponent("composite-tree", {
       this.el.appendChild(pasto);
     }
     this.el.appendChild(collider);
+  },
+
+  // Turn a living tree into a dead, trunk-only tree (safari "fire" mechanic):
+  // hide the foliage (consistent with the scene's native type:"dead" trees) and
+  // optionally scorch the trunk toward charcoal.
+  kill: function () {
+    if (!this.isAlive || this.dead) return;
+    this.dead = true;
+    if (this.canopyEl) this.canopyEl.setAttribute("visible", false);
+    this.tintTrunk(0x2a221c); // scorched brown/charcoal
+  },
+
+  revive: function () {
+    if (!this.isAlive || !this.dead) return;
+    this.dead = false;
+    if (this.canopyEl) this.canopyEl.setAttribute("visible", true);
+    this.tintTrunk(null); // restore original trunk material color
+  },
+
+  // Multiply the trunk meshes' base color toward `hex`, or restore originals when
+  // `hex` is null. Original colors are snapshotted on first tint.
+  tintTrunk: function (hex) {
+    if (!this.baseEl) return;
+    const obj = this.baseEl.getObject3D("mesh");
+    if (!obj) return;
+    obj.traverse((node) => {
+      if (!node.isMesh || !node.material || !node.material.color) return;
+      if (!node.userData.originalColor) {
+        node.userData.originalColor = node.material.color.clone();
+      }
+      if (hex === null) {
+        node.material.color.copy(node.userData.originalColor);
+      } else {
+        node.material.color.setHex(hex);
+      }
+      node.material.needsUpdate = true;
+    });
   },
 });

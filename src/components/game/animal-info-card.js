@@ -24,10 +24,14 @@ AFRAME.registerComponent("animal-info-card", {
   },
 
   setupElements: function () {
-    // VR (in-world) card
+    // VR (in-world) card — separate fields mirror the desktop layout.
     this.vrCard = document.getElementById("animalInfoCardVR");
     this.vrIcon = document.getElementById("animalInfoCardVRIcon");
-    this.vrText = document.getElementById("animalInfoCardVRText");
+    this.vrName = document.getElementById("animalInfoCardVRName");
+    this.vrSci = document.getElementById("animalInfoCardVRSci");
+    this.vrCons = document.getElementById("animalInfoCardVRCons");
+    this.vrNut = document.getElementById("animalInfoCardVRNut");
+    this.vrHab = document.getElementById("animalInfoCardVRHab");
 
     // Desktop (DOM) card
     this.domCard = document.getElementById("animalInfoCard");
@@ -85,16 +89,11 @@ AFRAME.registerComponent("animal-info-card", {
     if (this.vrIcon) {
       this.vrIcon.setAttribute("src", animalIconAssetId(animalType));
     }
-    if (this.vrText) {
-      this.vrText.setAttribute(
-        "value",
-        `${data.commonName}\n\n` +
-          `Nombre científico: ${data.scientificName}\n` +
-          `Conservación: ${data.conservation}\n` +
-          `Nutrición: ${data.nutrition}\n` +
-          `Hábitat: ${data.habitat}`
-      );
-    }
+    if (this.vrName) this.vrName.setAttribute("value", data.commonName);
+    if (this.vrSci) this.vrSci.setAttribute("value", data.scientificName);
+    if (this.vrCons) this.vrCons.setAttribute("value", data.conservation);
+    if (this.vrNut) this.vrNut.setAttribute("value", data.nutrition);
+    if (this.vrHab) this.vrHab.setAttribute("value", data.habitat);
     this.vrCard.setAttribute("visible", "true");
   },
 
