@@ -182,8 +182,8 @@
         <a-asset-item id="taguaModel" src="assets/models/tagua.glb"></a-asset-item>
         <a-asset-item id="tatuModel" src="assets/models/tatu.glb"></a-asset-item>
         <a-asset-item
-          id="scenarioModel"
-          src="assets/models/scenario.glb"
+          id="islaModel"
+          src="assets/models/isla.glb"
         ></a-asset-item>
         <a-asset-item id="pastoModel" src="assets/models/pasto.glb"></a-asset-item>
         <a-asset-item
@@ -426,10 +426,10 @@
         ><a-box position="-2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
       ></a-entity>
 
-      <!-- Scenario Model -->
+      <!-- Map / scenario model -->
       <a-entity
         id="scenario"
-        gltf-model="#scenarioModel"
+        gltf-model="#islaModel"
         position="0 0.01304 0"
         rotation="0 180 0"
         scale="10 10 10"
@@ -954,14 +954,15 @@
         ></a-entity>
       </a-entity>
 
-      <!-- Invisible plane for collisions (optional) moved slightly up to match ground -->
+      <!-- Water plane (celeste): visible, gently bobbing up and down like a tide -->
       <a-entity
         id="floor"
-        geometry="primitive: plane; width: 100; height: 100"
+        geometry="primitive: plane; width: 500; height: 500"
+        material="color: #3fb7e0; metalness: 0.2; roughness: 0.35; opacity: 0.9; transparent: true; side: double"
         rotation="-90 0 0"
         position="0 0.01 0"
-        visible="false"
         shadow="receive: true"
+        animation="property: object3D.position.y; from: -0.7; to: -0.3; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"
       ></a-entity>
     </a-scene>
   </body>
