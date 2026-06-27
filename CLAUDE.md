@@ -37,14 +37,14 @@ las convenciones de §5. No rompas el modo Safari al añadir el modo Vuelo.
 
 ## 2. Comandos
 
-| Comando                | Qué hace                                                       |
-| ---------------------- | -------------------------------------------------------------- |
-| `npm install`          | Instala dependencias (`aframe`, `aframe-extras`)               |
+| Comando                | Qué hace                                                            |
+| ---------------------- | ------------------------------------------------------------------- |
+| `npm install`          | Instala dependencias (`aframe`, `aframe-extras`)                    |
 | `npm run dev`          | Dev server Vite con HMR. **Puerto fijo 3333, HTTPS, host: 0.0.0.0** |
-| `npm run build`        | Build de producción a `dist/`                                  |
-| `npm run preview`      | Sirve el build (mismas opciones que dev: 3333/HTTPS/host)      |
-| `npm run format`       | Prettier sobre todo el repo                                    |
-| `npm run format:check` | Verifica formato sin escribir (CI-friendly)                    |
+| `npm run build`        | Build de producción a `dist/`                                       |
+| `npm run preview`      | Sirve el build (mismas opciones que dev: 3333/HTTPS/host)           |
+| `npm run format`       | Prettier sobre todo el repo                                         |
+| `npm run format:check` | Verifica formato sin escribir (CI-friendly)                         |
 
 - **HTTPS con cert auto-firmado** (`@vitejs/plugin-basic-ssl`): obligatorio para
   WebXR sobre la LAN (http solo sirve en `localhost`). El navegador del headset
@@ -80,19 +80,19 @@ agregues `import` de `three` ni de `aframe` por archivo (ver §6, nota de THREE)
 Los componentes **no se llaman directo**; emiten/escuchan eventos en
 `this.el.sceneEl`. El hub de estado es **`safari-game-manager`**. Eventos `safari-*`:
 
-| Evento                  | Emisor                | Quién reacciona                                  | Payload                              |
-| ----------------------- | --------------------- | ------------------------------------------------ | ------------------------------------ |
-| `safari-start-game`     | `orb-controller` (cartel Safari) | `safari-game-manager.startGame`       | —                                    |
-| `safari-game-started`   | `safari-game-manager` | `safari-compass` (muestra HUD), `game-modes` (→Safari), `animal-info-card` (oculta), `environment-degradation` (arranca sano) | — |
-| `safari-animal-clicked` | `animal-clickable`    | `safari-game-manager` (cuenta hallazgo si activo), `vuelo-mode` (recolección si activo), `animal-info-card` (abre ficha) | `{animalType, element}` |
-| `safari-animal-found`   | `safari-game-manager` | `safari-compass` (oculta icono), `animal-clickable` (glow verde) | `{animalType, totalFound, totalAnimals}` |
-| `safari-timer-update`   | `safari-game-manager` (tick) | `safari-compass` (timer + color), `environment-degradation` (cielo/árboles ∝ tiempo) | `{timeRemaining, timeLimit}` |
-| `safari-game-ended`     | `safari-game-manager` | `game-modes` (→Idle), `safari-compass` (oculta), `animal-info-card` (oculta), `environment-degradation` (restaura a sano) | `{won}` |
-| `safari-game-reset`     | `safari-game-manager` | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano) | —          |
-| `vuelo-enter`           | `orb-controller` (cartel Vuelo) | `vuelo-mode.enter`                     | —                                    |
-| `vuelo-exit`            | `orb-controller` (cartel principal) | `vuelo-mode.exit`                  | —                                    |
-| `vuelo-started`/`-ended`| `vuelo-mode`          | `safari-compass` (HUD sin timer)                 | —                                    |
-| `vuelo-animal-seen`     | `vuelo-mode`          | `safari-compass` (oculta icono)                  | `{animalType, totalSeen, totalAnimals}` |
+| Evento                   | Emisor                              | Quién reacciona                                                                                                               | Payload                                  |
+| ------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `safari-start-game`      | `orb-controller` (cartel Safari)    | `safari-game-manager.startGame`                                                                                               | —                                        |
+| `safari-game-started`    | `safari-game-manager`               | `safari-compass` (muestra HUD), `game-modes` (→Safari), `animal-info-card` (oculta), `environment-degradation` (arranca sano) | —                                        |
+| `safari-animal-clicked`  | `animal-clickable`                  | `safari-game-manager` (cuenta hallazgo si activo), `vuelo-mode` (recolección si activo), `animal-info-card` (abre ficha)      | `{animalType, element}`                  |
+| `safari-animal-found`    | `safari-game-manager`               | `safari-compass` (oculta icono), `animal-clickable` (glow verde)                                                              | `{animalType, totalFound, totalAnimals}` |
+| `safari-timer-update`    | `safari-game-manager` (tick)        | `safari-compass` (timer + color), `environment-degradation` (cielo/árboles ∝ tiempo)                                          | `{timeRemaining, timeLimit}`             |
+| `safari-game-ended`      | `safari-game-manager`               | `game-modes` (→Idle), `safari-compass` (oculta), `animal-info-card` (oculta), `environment-degradation` (restaura a sano)     | `{won}`                                  |
+| `safari-game-reset`      | `safari-game-manager`               | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano)                               | —                                        |
+| `vuelo-enter`            | `orb-controller` (cartel Vuelo)     | `vuelo-mode.enter`                                                                                                            | —                                        |
+| `vuelo-exit`             | `orb-controller` (cartel principal) | `vuelo-mode.exit`                                                                                                             | —                                        |
+| `vuelo-started`/`-ended` | `vuelo-mode`                        | `safari-compass` (HUD sin timer)                                                                                              | —                                        |
+| `vuelo-animal-seen`      | `vuelo-mode`                        | `safari-compass` (oculta icono)                                                                                               | `{animalType, totalSeen, totalAnimals}`  |
 
 Al añadir comportamiento, **prefiere emitir/escuchar estos eventos** antes que
 llamar componentes entre sí. Para el modo Vuelo, sigue el mismo patrón (ver §7).
@@ -123,13 +123,17 @@ apuntando hacia cada animal + timer MSDF. `safari-compass` lo maneja (reemplazó
 viejo `progress-ui`).
 
 **Degradación ambiental ("el bosque se incendia")** — `environment-degradation` (en
-`#gameManager`) escucha `safari-timer-update` y avanza `p = 1 - timeRemaining/timeLimit`
-(lineal). Conforme `p` sube: tinta el `<a-sky id="sky">` de azul → rojo (y la niebla
-hacia humo) e va matando árboles vivos de a poco vía `composite-tree.kill()`. En
-`safari-game-ended` (sea victoria o derrota) y en `safari-game-started/-reset` restaura
-todo a sano (cielo azul, árboles revividos): como `safari-game-ended` se emite durante
-el fade-a-negro mientras teletransporta al jugador frente al cartel, el reset es
-imperceptible y el jugador siempre vuelve a un bosque vivo.
+`#gameManager`) escucha `safari-timer-update` y avanza `p = t ** 3` con
+`t = 1 - timeRemaining/timeLimit` (**exponencial**: el bosque aguanta sano la primera
+mitad y el incendio se acelera al final; exponente en la constante `DEGRADATION_EXP`).
+Conforme `p` sube: tinta el `<a-sky id="sky">` de azul → rojo (y la niebla hacia humo),
+va matando árboles vivos de a poco vía `composite-tree.kill()` (que les pone llamas
+`low-poly-fire` en la base), y **sube el volumen del loop de fuego** `#soundFire`
+(`fire.mp3`, pico en `FIRE_MAX_VOLUME`). En `safari-game-ended` (sea victoria o derrota)
+y en `safari-game-started/-reset` restaura todo a sano (cielo azul, árboles revividos sin
+fuego, sonido detenido): como `safari-game-ended` se emite durante el fade-a-negro
+mientras teletransporta al jugador frente al cartel, el reset es imperceptible y el
+jugador siempre vuelve a un bosque vivo.
 
 **Ficha de animal** (`animal-info-card`): dos superficies según `sceneEl.is('vr-mode')`
 — DOM overlay (`#animalInfoCard`, desktop) o entity en la mano izquierda
@@ -165,14 +169,22 @@ fuente única de verdad; copy en español, marcada con TODO de revisión).
 - Los estáticos viven en **`public/assets/`** y Vite los sirve **verbatim** en
   `/assets/...` (sin hash ni transform). Por eso `<a-asset-item src="assets/foo.glb">`
   funciona igual en dev y prod. Referencia siempre con rutas root-relativas en HTML;
-  **no** los importes desde JS.
-- Modelos `.glb` exportados de Blender/Blockbench. Mantén binarios fuente pesados
-  (proyectos Blender, audio crudo) **fuera** del repo. Total actual de assets ~5 MB;
-  el más pesado es `ground.glb` (476 KB) y `scenario.glb` (156 KB) — presupuesto sano
-  para VR.
+  **no** los importes desde JS. Subcarpetas por tipo: `models/` (`.glb`), `sfx/`
+  (audio), `img/`, `ui/` (PNG), `fonts/` (atlas MSDF).
+- Modelos `.glb` (en **`public/assets/models/`**) exportados de Blender/Blockbench.
+  Los **fuentes** de arte (`.bbmodel` de Blockbench) viven en **`art-src/`** en la raíz
+  (versionados, pero **fuera** de `public/` para no desplegarse). Audio crudo y demás
+  binarios pesados, fuera del repo. Total actual de assets ~5 MB; el más pesado es
+  `models/ground.glb` (476 KB) y `models/scenario.glb` (156 KB) — presupuesto sano VR.
 - Quirk de nombres: el tipo de animal es **`flamingo`** pero el archivo es
   **`flamengo`**. Helpers `animalAssetName/animalIconAssetId/animalIconUrl` en
   `data/animal-info.js` encapsulan el mapeo. Si tocas esto, céntralo en un solo lugar.
+- **Fuente del texto VR (MSDF):** los `<a-text>` usan un atlas **local**
+  `public/assets/fonts/arial-es-msdf.{json,png}` (Arial) en vez del `Roboto-msdf` del
+  CDN de A-Frame, porque ese **no incluye acentos ni ñ** y desaparecían en VR. Si agregas
+  un `a-text`, ponle `font="/assets/fonts/arial-es-msdf.json"` +
+  `font-image="/assets/fonts/arial-es-msdf.png"`. Para regenerar el atlas con más glifos:
+  `npx msdf-bmfont-xml -f json -t msdf --charset-file <charset> -o ...png <Arial.ttf>`.
 
 **Nota de THREE (importante):** `aframe` trae su propia THREE (`super-three`);
 `aframe-extras` depende de `three` estándar. Para evitar dos copias de THREE,
@@ -188,6 +200,7 @@ A-Frame.
 ## 7. Inventario de componentes
 
 ### game/
+
 - **`safari-game-manager`** — hub de estado y timer del Safari. Schema `timeLimit`
   (def 300). Dueño de `gameActive`, `animalsFound` (Set), `tick` del timer.
 - **`game-modes`** — alterna `#showcaseAnimals` (Idle) ↔ `#huntAnimals` (Safari)
@@ -203,15 +216,19 @@ A-Frame.
   arranquen sincronizadas (`maxOffset`).
 
 ### animals/
+
 - **`animal-clickable`** — emite `safari-animal-clicked`; pinta glow verde al ser
   encontrado; `reset()` lo limpia.
 - **`animal-highlighter`** — montado UNA vez en `<a-scene>`. Highlight amarillo en
   hover vía `mouseenter`/`mouseleave` que burbujean al scene (cubre desktop y VR).
-  No pisa el verde de los ya encontrados.
+  No pisa el verde de los ya encontrados. El snapshot del emissive original se
+  indexa **por material** (no por malla): los glTF comparten material entre mallas,
+  y por malla el original quedaba contaminado y el amarillo se "pegaba".
 - **`animal-behavior`** — vuelo circular de los flamencos decorativos del cielo
   (`#animals`): `radius`, `pathRotation`.
 
 ### collision/
+
 - **`collision-manager`** — montado en `<a-scene>`. Re-escanea colisionadores cada
   2 s (`querySelectorAll`). `checkCollision(pos)` recorre cubos/cilindros.
   **`Ctrl+C` togglea la visualización de volúmenes** (`window.COLLISION_DEBUG`).
@@ -222,27 +239,43 @@ A-Frame.
   `radius` (60 en index.html; default del schema es 45).
 
 ### environment/
+
 - **`forest`** — genera el bosque desde **`src/data/forest.js`** (`FOREST`): cada
-  entrada crea un `composite-tree`; los tipos `normal`/`dead`/`palma` reciben
-  `collision-cylinder` (arbustos/pasto son atravesables).
+  entrada crea un `composite-tree`; los tipos `normal`/`palma` reciben
+  `collision-cylinder` (arbustos/pasto son atravesables). _Ya no se usan `dead` trees:
+  los del mapa se convirtieron en `normal` (con copa)._
 - **`composite-tree`** — arma tronco/copa/colisión/viento según el tipo. Expone
   `kill()`/`revive()` (idempotentes) para la mecánica de incendio: `kill()` oculta la
-  copa (queda solo-tronco, igual que un `type:"dead"`) y chamusca el tronco; `revive()`
-  restaura. Marca `this.isAlive` en tipos con copa (`normal`/`shrub`/`palma`).
+  copa (queda solo-tronco), chamusca el tronco y le pone llamas `low-poly-fire` en la
+  base; `revive()` restaura todo y quita el fuego. Marca `this.isAlive` en tipos con copa
+  (`normal`/`shrub`/`palma`). **Tinte del tronco:** clona el material por árbol antes de
+  chamuscar (los glTF comparten material; sin clonar, un árbol oscurecía a todos y el
+  color original quedaba contaminado → troncos negros tras la partida).
+- **`low-poly-fire`** — partículas de fuego low-poly (tetraedros que suben/encogen y
+  hacen lerp amarillo→naranja→rojo→oscuro). Geometría **compartida** entre instancias
+  (perf VR), materiales por partícula. Lo instancia `composite-tree` al quemarse un árbol.
+  Schema: `count`/`height`/`radius`/`size`/`speed`.
 - **`environment-degradation`** — en `#gameManager`. Conduce cielo + niebla + muerte de
-  árboles según el tiempo del Safari (ver §4). Throttle interno y toggles incrementales
-  (no recorre los ~97 árboles por frame). Colores objetivo como constantes en el archivo.
+  árboles + **volumen del loop de fuego** según el tiempo del Safari, con curva
+  **exponencial** (ver §4). Throttle interno y toggles incrementales (no recorre los ~97
+  árboles por frame). Constantes en el archivo: colores, `DEGRADATION_EXP`,
+  `FIRE_MAX_VOLUME`.
 - **`canopy-wind`** — oscilación de copas.
-- **`screen-fade`** — fade-out/in de pantalla (usado en transiciones de partida).
+- **`screen-fade`** — fade-out/in de pantalla (usado en transiciones de partida). El
+  overlay lleva `render-on-top` (depthTest/depthWrite off): como plano `opacity:0` a 0.5m
+  de la cámara escribía profundidad y ocluía el fuego; así no ocluye nada y aun cubre todo
+  durante el fade.
 - **`shadow-control`** — control de sombras (atributo `shadow-control="enabled: false"`
   en la escena).
 
 ### performance/
+
 - **`performance-optimizer`** — LOD por distancia: culling > `farDistance`, y
   `timeScale` del animation-mixer según near/mid/far. Throttle `updateInterval` (200 ms).
 - **`material-optimizer`** — optimiza materiales de los glTF.
 
 ### movement.js / flight-locomotion.js
+
 - **`vr-locomotion`** (`movement.js`) — locomoción por thumbstick en VR. Schema: `speed`
   (def 5.0), `acceleration`, `deceleration`, `deadZone`, `controllerHand` (def `left`),
   `useHeadDirection`. Flag de runtime `this.enabled` (def true): `vuelo-mode` lo pone en
@@ -254,8 +287,9 @@ A-Frame.
   mallas descendientes del entity y les pone `depthTest/depthWrite=false` + `renderOrder`
   alto, para que un HUD pegado a la mano nunca se ocluya/recorte por profundidad. Aplicado
   a `#animalInfoCardVR` (la ficha VR se cortaba al extender el brazo por el sort de
-  transparencias). Reaplica al cargar, tras unos delays y al abrir cada ficha (el texto
-  MSDF reconstruye su malla al cambiar de valor).
+  transparencias) y al overlay de `screen-fade` (evitar que ocluya el fuego). Reaplica al
+  cargar, tras unos delays y al abrir cada ficha (el texto MSDF reconstruye su malla al
+  cambiar de valor).
 
 ---
 
@@ -311,7 +345,7 @@ El juego es WebXR; en Quest corre en el navegador. Para un `.apk` instalable
 **PWA → Trusted Web Activity (TWA)**:
 
 1. Hacer la app instalable: agregar `manifest.webmanifest` (name, icons, `display:
-   standalone`, `start_url`) y un service worker mínimo (Vite plugin `vite-plugin-pwa`
+standalone`, `start_url`) y un service worker mínimo (Vite plugin `vite-plugin-pwa`
    o manual). Servir sobre HTTPS público (Vercel ya lo da).
 2. Generar el APK con **PWABuilder** (web) o **Bubblewrap** (CLI de Google) apuntando
    a la URL desplegada. Producen un proyecto Android/TWA y un `.apk`/`.aab` firmado.
@@ -350,4 +384,20 @@ por HTTPS, y probar el WebXR inmersivo en el Quest vía `npm run preview` sobre 
 - **HUD en la mano que se recorta/ocluye:** los UIs transparentes pegados al control se
   ordenan por distancia a la cámara y se "cortan" pasado cierto radio. Aplica
   `render-on-top` (depthTest off + renderOrder alto) en vez de pelear con offsets de z.
+- **Materiales glTF compartidos (¡recurrente!):** instancias de un mismo `.glb` (y mallas
+  dentro de un modelo) **comparten el objeto material por referencia**. Si tintas/animas
+  `material.color`/`.emissive` directo, afectas a TODAS y, peor, el "snapshot del color
+  original" se contamina. Soluciones usadas: **clonar el material por entity** antes de
+  mutarlo (`composite-tree.tintTrunk`), o indexar el snapshot **por material** capturando
+  una sola vez antes de mutar (`animal-highlighter`). Fueron los bugs de troncos negros y
+  de highlight amarillo pegado.
+- **Transparentes que ocluyen (depth write):** un mesh transparente —aunque sea
+  `opacity:0`— escribe en el depth buffer por defecto y puede ocluir partículas/HUD detrás
+  (pasó con el cilindro de colisión y el overlay de `screen-fade` tapando el fuego).
+  `visible:false` si es vestigial, o `render-on-top`/`depthWrite:false` si debe verse.
+- **Texto VR sin acentos:** el MSDF `Roboto-msdf` del CDN no trae á/é/í/ó/ú/ñ. Usa el atlas
+  local de §6 en todo `a-text` (incl. los creados desde JS con `shader:msdf`).
+
+```
+
 ```
