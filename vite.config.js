@@ -2,8 +2,9 @@ import { defineConfig } from "vite";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
 // index.html at the project root is the Vite entry point.
-// Static assets live in public/ and are served verbatim at "/" (e.g. /assets/foo.glb),
-// so A-Frame's <a-asset-item src="assets/..."> URLs work in both dev and build.
+// Static assets live in public/ and are served verbatim at "/" (e.g. models in
+// /assets/models/foo.glb), so A-Frame's <a-asset-item src="assets/..."> URLs work
+// in both dev and build.
 // Deploy target is Vercel at the domain root, so the default base "/" is correct.
 export default defineConfig({
   // basic-ssl serves the dev/preview server over HTTPS with a self-signed cert.

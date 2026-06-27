@@ -5,8 +5,8 @@
 // `composite-tree` define QUÉ es cada árbol (tronco/copa/colisión/viento según
 // `type`); aquí solo viven posición, escala y tipo.
 //
-// type: "normal" | "palma" | "dead" | "shrub" | "pasto"
-// Los tipos normal/palma/dead reciben colisión; shrub/pasto no (ver forest.js).
+// type: "normal" | "palma" | "shrub" | "pasto"
+// Los tipos normal/palma reciben colisión; shrub/pasto no (ver forest.js).
 // pos: [x, y, z] en metros. Algunos árboles llevan offset de Y a propósito.
 
 export const FOREST = [
@@ -61,18 +61,18 @@ export const FOREST = [
   { pos: [23.74279, 0, 40.22783], scale: 5.3, type: "palma" },
 
   // Árboles secos: solo tronco + colisión, sin copa
-  { pos: [4.1275, 0, 13.64799], scale: 4.5, type: "dead" },
-  { pos: [-25.25801, 0, 6.18517], scale: 4.2, type: "dead" },
-  { pos: [19.44515, -0.66613, -15.79527], scale: 4.8, type: "dead" },
-  { pos: [-55.28163, 0, 18.3226], scale: 4.6, type: "dead" },
-  { pos: [-54.6603, 0, 12.36879], scale: 5.2, type: "dead" },
-  { pos: [-21.47449, 0, 27.38875], scale: 4.3, type: "dead" },
-  { pos: [35.80696, 0, 11.08087], scale: 4.7, type: "dead" },
-  { pos: [-6.77787, 0, 4.71665], scale: 4.4, type: "dead" },
-  { pos: [-4.40376, 0, 22.987], scale: 4.2, type: "dead" },
-  { pos: [6.16977, 0, 32.38259], scale: 4.8, type: "dead" },
-  { pos: [-18, 0, 32], scale: 4.6, type: "dead" },
-  { pos: [-32, 0, 25], scale: 4.3, type: "dead" },
+  { pos: [4.1275, 0, 13.64799], scale: 4.5, type: "normal" },
+  { pos: [-25.25801, 0, 6.18517], scale: 4.2, type: "normal" },
+  { pos: [19.44515, -0.66613, -15.79527], scale: 4.8, type: "normal" },
+  { pos: [-55.28163, 0, 18.3226], scale: 4.6, type: "normal" },
+  { pos: [-54.6603, 0, 12.36879], scale: 5.2, type: "normal" },
+  { pos: [-21.47449, 0, 27.38875], scale: 4.3, type: "normal" },
+  { pos: [35.80696, 0, 11.08087], scale: 4.7, type: "normal" },
+  { pos: [-6.77787, 0, 4.71665], scale: 4.4, type: "normal" },
+  { pos: [-4.40376, 0, 22.987], scale: 4.2, type: "normal" },
+  { pos: [6.16977, 0, 32.38259], scale: 4.8, type: "normal" },
+  { pos: [-18, 0, 32], scale: 4.6, type: "normal" },
+  { pos: [-32, 0, 25], scale: 4.3, type: "normal" },
 
   // Arbustos: copa a ras de suelo, sin colisión
   { pos: [-15.13552, 0, 18.25322], scale: 1.8, type: "shrub" },

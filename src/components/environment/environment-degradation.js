@@ -1,5 +1,6 @@
 // Safari "the forest is burning" environment arc. As the round timer runs down,
-// the world degrades linearly with progress p = 1 - timeRemaining/timeLimit:
+// the world degrades with progress p, eased exponentially (slow at first, then
+// accelerating toward the deadline) from raw t = 1 - timeRemaining/timeLimit:
 //   - the sky tints from daytime blue toward fire red,
 //   - the fog tints toward smoke,
 //   - living (foliaged) trees turn into dead, trunk-only trees a few at a time.
@@ -14,6 +15,14 @@ const SKY_HEALTHY = "#87ceeb";
 const SKY_BURN = "#b3260b";
 const FOG_HEALTHY = "#f5dca6";
 const FOG_BURN = "#4a1505";
+
+// Exponent for the degradation curve: p = t ** DEGRADATION_EXP. >1 keeps the
+// forest healthy through the early game and ramps the fire up sharply near the
+// deadline. Higher = more back-loaded.
+const DEGRADATION_EXP = 3;
+
+// Peak volume of the burning-forest loop, reached at p = 1.
+const FIRE_MAX_VOLUME = 1.0;
 
 AFRAME.registerComponent("environment-degradation", {
   init: function () {
@@ -35,6 +44,7 @@ AFRAME.registerComponent("environment-degradation", {
 
     setTimeout(() => {
       this.sky = document.getElementById("sky");
+      this.fireSoundEl = document.getElementById("soundFire");
       this.collectTrees();
       this.applyP(0, true);
 
@@ -62,11 +72,14 @@ AFRAME.registerComponent("environment-degradation", {
   onStarted: function () {
     if (!this.trees.length) this.collectTrees();
     this.applyP(0, true);
+    // Start the fire loop silent; the timer ramps it up via applyP().
+    this.playFire();
   },
 
   onTimer: function (evt) {
     const { timeRemaining, timeLimit } = evt.detail;
-    const p = Math.max(0, Math.min(1, 1 - timeRemaining / timeLimit));
+    const t = Math.max(0, Math.min(1, 1 - timeRemaining / timeLimit));
+    const p = Math.pow(t, DEGRADATION_EXP);
     this.applyP(p);
   },
 
@@ -75,10 +88,12 @@ AFRAME.registerComponent("environment-degradation", {
     // teleported back in front of the sign — restore the forest and sky to
     // normal for both win and loss so they return to a healthy world.
     this.recovering = false;
+    this.stopFire();
     this.applyP(0, true);
   },
 
   onReset: function () {
+    this.stopFire();
     this.applyP(0, true);
   },
 
@@ -97,7 +112,11 @@ AFRAME.registerComponent("environment-degradation", {
 
     // Fog colour (scene-level)
     this._tmp.copy(this._fHealthy).lerp(this._fBurn, p);
-    this.el.sceneEl.setAttribute("fog", "color", "#" + this._tmp.getHexString());
+    this.el.sceneEl.setAttribute(
+      "fog",
+      "color",
+      "#" + this._tmp.getHexString()
+    );
 
     // Trees: kill the first N (stable scene order), revive the rest.
     const targetDead = Math.floor(p * this.trees.length);
@@ -108,6 +127,33 @@ AFRAME.registerComponent("environment-degradation", {
       });
       this.deadCount = targetDead;
     }
+
+    // Burning-forest loop swells with the same exponential progress.
+    this.setFireVolume(p * FIRE_MAX_VOLUME);
+  },
+
+  // --- Fire loop (a-frame sound component on #soundFire) -------------------
+
+  playFire: function () {
+    const sc = this.fireSoundEl && this.fireSoundEl.components.sound;
+    if (!sc) return;
+    this.setFireVolume(0);
+    sc.playSound();
+  },
+
+  stopFire: function () {
+    const sc = this.fireSoundEl && this.fireSoundEl.components.sound;
+    if (!sc) return;
+    this.setFireVolume(0);
+    sc.stopSound();
+  },
+
+  // Set the loop's gain directly on the pooled THREE.Audio nodes (cheaper than
+  // re-parsing the sound attribute every throttled tick).
+  setFireVolume: function (vol) {
+    const sc = this.fireSoundEl && this.fireSoundEl.components.sound;
+    if (!sc || !sc.pool) return;
+    sc.pool.children.forEach((audio) => audio.setVolume(vol));
   },
 
   remove: function () {

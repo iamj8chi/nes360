@@ -35,6 +35,7 @@ import "./components/collision/boundary-collision.js";
 
 // Environment
 import "./components/environment/composite-tree.js";
+import "./components/environment/low-poly-fire.js";
 import "./components/environment/forest.js";
 import "./components/environment/canopy-wind.js";
 import "./components/environment/screen-fade.js";

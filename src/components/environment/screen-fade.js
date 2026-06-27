@@ -22,6 +22,12 @@ AFRAME.registerComponent("screen-fade", {
       transparent: true,
       opacity: 0,
     });
+    // Sit 0.5m in front of the camera as a transparent (opacity:0) plane: by
+    // default it still writes to the depth buffer and, at that near distance,
+    // occluded the burning trees' fire particles behind it. render-on-top turns
+    // off depthTest/depthWrite and pins a high renderOrder, so it stops occluding
+    // anything while still drawing over the whole scene during an actual fade.
+    this.fadeOverlay.setAttribute("render-on-top", "");
 
     // Attach to camera so it follows the view
     const camera = document.querySelector("[camera]");

@@ -28,6 +28,7 @@ AFRAME.registerComponent("composite-tree", {
     this.dead = false;
     this.baseEl = null;
     this.canopyEl = null;
+    this.fireEl = null;
 
     // Create base tree entity (for normal, dead, and palma trees)
     if (isNormal || isDead || isPalma) {
@@ -50,6 +51,10 @@ AFRAME.registerComponent("composite-tree", {
     collider.setAttribute("height", colliderHeight.toString());
     collider.setAttribute("material", "opacity: 0");
     collider.setAttribute("position", `0 ${colliderHeight / 2} 0`);
+    // Don't render it at all: it's a vestigial placeholder (real collision is the
+    // collision-cylinder component). As an opacity:0 mesh it still wrote to the
+    // depth buffer and occluded the transparent fire particles inside it.
+    collider.setAttribute("visible", false);
     this.el.appendChild(collider);
 
     // Create canopy entity (not for dead trees)
@@ -126,6 +131,7 @@ AFRAME.registerComponent("composite-tree", {
     this.dead = true;
     if (this.canopyEl) this.canopyEl.setAttribute("visible", false);
     this.tintTrunk(0x2a221c); // scorched brown/charcoal
+    this.spawnFire();
   },
 
   revive: function () {
@@ -133,10 +139,36 @@ AFRAME.registerComponent("composite-tree", {
     this.dead = false;
     if (this.canopyEl) this.canopyEl.setAttribute("visible", true);
     this.tintTrunk(null); // restore original trunk material color
+    this.removeFire();
   },
 
-  // Multiply the trunk meshes' base color toward `hex`, or restore originals when
-  // `hex` is null. Original colors are snapshotted on first tint.
+  // Low-poly flames at the trunk base. The fire entity is a child of this
+  // (scaled-up) el, so low-poly-fire's small height/radius read in local space.
+  // Shrubs sit lower, so their fire hugs the ground.
+  spawnFire: function () {
+    if (this.fireEl) return;
+    const isShrub = this.data.type === "shrub";
+    const fire = document.createElement("a-entity");
+    fire.setAttribute("position", "0 0 0");
+    fire.setAttribute(
+      "low-poly-fire",
+      isShrub ? "height: 0.25; radius: 0.18; count: 10" : ""
+    );
+    this.el.appendChild(fire);
+    this.fireEl = fire;
+  },
+
+  removeFire: function () {
+    if (!this.fireEl) return;
+    if (this.fireEl.parentNode) this.fireEl.parentNode.removeChild(this.fireEl);
+    this.fireEl = null;
+  },
+
+  // Tint the trunk meshes' base color to `hex`, or restore originals when `hex`
+  // is null. glTF instances share material references, so on first tint we clone
+  // the material per tree — otherwise scorching one tree would darken every tree
+  // sharing that material, and the "original color" snapshot would be polluted by
+  // an already-scorched neighbour (which left the trunks black after a round).
   tintTrunk: function (hex) {
     if (!this.baseEl) return;
     const obj = this.baseEl.getObject3D("mesh");
@@ -144,6 +176,7 @@ AFRAME.registerComponent("composite-tree", {
     obj.traverse((node) => {
       if (!node.isMesh || !node.material || !node.material.color) return;
       if (!node.userData.originalColor) {
+        node.material = node.material.clone();
         node.userData.originalColor = node.material.color.clone();
       }
       if (hex === null) {

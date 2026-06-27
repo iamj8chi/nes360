@@ -164,35 +164,35 @@
 
       <a-assets>
         <!-- Model assets -->
-        <a-asset-item id="samuuModel" src="assets/samuu.glb"></a-asset-item>
+        <a-asset-item id="samuuModel" src="assets/models/samuu.glb"></a-asset-item>
         <a-asset-item
           id="samuuCanopyModel"
-          src="assets/samuu-canopy.glb"
+          src="assets/models/samuu-canopy.glb"
         ></a-asset-item>
         <a-asset-item
           id="jaguareteModel"
-          src="assets/jaguarete.glb"
+          src="assets/models/jaguarete.glb"
         ></a-asset-item>
-        <a-asset-item id="nanduModel" src="assets/nandu.glb"></a-asset-item>
+        <a-asset-item id="nanduModel" src="assets/models/nandu.glb"></a-asset-item>
         <a-asset-item
           id="flamengoModel"
-          src="assets/flamengo.glb"
+          src="assets/models/flamengo.glb"
         ></a-asset-item>
-        <a-asset-item id="jurumiModel" src="assets/jurumi.glb"></a-asset-item>
-        <a-asset-item id="taguaModel" src="assets/tagua.glb"></a-asset-item>
-        <a-asset-item id="tatuModel" src="assets/tatu.glb"></a-asset-item>
+        <a-asset-item id="jurumiModel" src="assets/models/jurumi.glb"></a-asset-item>
+        <a-asset-item id="taguaModel" src="assets/models/tagua.glb"></a-asset-item>
+        <a-asset-item id="tatuModel" src="assets/models/tatu.glb"></a-asset-item>
         <a-asset-item
           id="scenarioModel"
-          src="assets/scenario.glb"
+          src="assets/models/scenario.glb"
         ></a-asset-item>
-        <a-asset-item id="pastoModel" src="assets/pasto.glb"></a-asset-item>
+        <a-asset-item id="pastoModel" src="assets/models/pasto.glb"></a-asset-item>
         <a-asset-item
           id="karandayTroncoModel"
-          src="assets/karanday-tronco.glb"
+          src="assets/models/karanday-tronco.glb"
         ></a-asset-item>
         <a-asset-item
           id="karandayHojaModel"
-          src="assets/karanday-hoja.glb"
+          src="assets/models/karanday-hoja.glb"
         ></a-asset-item>
 
         <!-- UI assets for animal tracker -->
@@ -254,6 +254,7 @@
           src="assets/sfx/game-over.mp3"
           preload="auto"
         ></audio>
+        <audio id="fireSound" src="assets/sfx/fire.mp3" preload="auto"></audio>
       </a-assets>
 
       <!-- Sky -->
@@ -283,6 +284,12 @@
         <a-entity
           id="soundGameOver"
           sound="src: #gameOverSound; autoplay: false; volume: 0.6; positional: false"
+        ></a-entity>
+        <!-- Burning-forest loop: environment-degradation plays it during a Safari
+             round and ramps its volume up with the timer (see component). -->
+        <a-entity
+          id="soundFire"
+          sound="src: #fireSound; autoplay: false; loop: true; volume: 0; positional: false"
         ></a-entity>
       </a-entity>
 
@@ -686,7 +693,8 @@
               scale="0.3 0.3 0.3"
               color="#FFFFFF"
               shader="msdf"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
           </a-entity>
         </a-entity>
@@ -735,7 +743,8 @@
               position="0 0.135 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
 
             <!-- Nombre científico -->
@@ -750,7 +759,8 @@
               position="-0.185 0.075 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
             <a-text
               id="animalInfoCardVRSci"
@@ -764,7 +774,8 @@
               position="-0.185 0.05 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
 
             <!-- Estado de Conservación -->
@@ -779,7 +790,8 @@
               position="-0.185 0.005 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
             <a-text
               id="animalInfoCardVRCons"
@@ -793,7 +805,8 @@
               position="-0.185 -0.02 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
 
             <!-- Nutrición -->
@@ -808,7 +821,8 @@
               position="-0.185 -0.075 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
             <a-text
               id="animalInfoCardVRNut"
@@ -822,7 +836,8 @@
               position="-0.185 -0.092 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
 
             <!-- Hábitat -->
@@ -837,7 +852,8 @@
               position="-0.185 -0.175 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
             <a-text
               id="animalInfoCardVRHab"
@@ -851,7 +867,8 @@
               position="-0.185 -0.192 0.003"
               shader="msdf"
               side="double"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json"
+              font="/assets/fonts/arial-es-msdf.json"
+              font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
           </a-entity>
         </a-entity>

@@ -11,7 +11,11 @@
 // overwritten with yellow.
 AFRAME.registerComponent("animal-highlighter", {
   init: function () {
-    // Per-mesh snapshot of the original emissive so we can restore it on leave.
+    // Snapshot of the original emissive keyed by MATERIAL (not mesh): a single
+    // glTF material is shared across several meshes of an animal, so keying by
+    // mesh meant the second mesh snapshotted the already-yellowed material as its
+    // "original" and the highlight got stuck on leave. Keying by material snapshots
+    // each once, before any mutation.
     this.originalMaterials = new Map();
 
     this.onEnter = this.onEnter.bind(this);
@@ -46,15 +50,16 @@ AFRAME.registerComponent("animal-highlighter", {
 
     obj.traverse((node) => {
       if (node.isMesh && node.material && node.material.emissive) {
-        if (!this.originalMaterials.has(node)) {
-          this.originalMaterials.set(node, {
-            emissive: node.material.emissive.clone(),
-            emissiveIntensity: node.material.emissiveIntensity || 0,
+        const mat = node.material;
+        if (!this.originalMaterials.has(mat)) {
+          this.originalMaterials.set(mat, {
+            emissive: mat.emissive.clone(),
+            emissiveIntensity: mat.emissiveIntensity || 0,
           });
         }
-        node.material.emissive.setHex(0xffff00); // Yellow glow
-        node.material.emissiveIntensity = 0.5;
-        node.material.needsUpdate = true;
+        mat.emissive.setHex(0xffff00); // Yellow glow
+        mat.emissiveIntensity = 0.5;
+        mat.needsUpdate = true;
       }
     });
   },
@@ -69,20 +74,21 @@ AFRAME.registerComponent("animal-highlighter", {
 
     obj.traverse((node) => {
       if (node.isMesh && node.material && node.material.emissive) {
+        const mat = node.material;
         if (isFound) {
-          node.material.emissive.setHex(0x00ff00); // Green glow
-          node.material.emissiveIntensity = 0.8;
+          mat.emissive.setHex(0x00ff00); // Green glow
+          mat.emissiveIntensity = 0.8;
         } else {
-          const original = this.originalMaterials.get(node);
+          const original = this.originalMaterials.get(mat);
           if (original) {
-            node.material.emissive.copy(original.emissive);
-            node.material.emissiveIntensity = original.emissiveIntensity;
+            mat.emissive.copy(original.emissive);
+            mat.emissiveIntensity = original.emissiveIntensity;
           } else {
-            node.material.emissive.setHex(0x000000);
-            node.material.emissiveIntensity = 0;
+            mat.emissive.setHex(0x000000);
+            mat.emissiveIntensity = 0;
           }
         }
-        node.material.needsUpdate = true;
+        mat.needsUpdate = true;
       }
     });
   },

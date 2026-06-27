@@ -151,6 +151,9 @@ AFRAME.registerComponent("vuelo-mode", {
       messageEl.setAttribute("width", "4");
       messageEl.setAttribute("color", "#FFFFFF");
       messageEl.setAttribute("shader", "msdf");
+      // Local MSDF atlas with Spanish accents + ñ (CDN Roboto-msdf omits them).
+      messageEl.setAttribute("font", "/assets/fonts/arial-es-msdf.json");
+      messageEl.setAttribute("font-image", "/assets/fonts/arial-es-msdf.png");
       messageEl.setAttribute("negate", "false");
       messageEl.setAttribute("outline-width", "15%");
       messageEl.setAttribute("outline-color", "#000000");

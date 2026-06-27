@@ -259,6 +259,10 @@ AFRAME.registerComponent("safari-game-manager", {
       messageEl.setAttribute("width", "4");
       messageEl.setAttribute("color", "#FFFFFF");
       messageEl.setAttribute("shader", "msdf");
+      // Local MSDF atlas that includes Spanish accents + ñ (the CDN Roboto-msdf
+      // default omits them, so they vanished in VR).
+      messageEl.setAttribute("font", "/assets/fonts/arial-es-msdf.json");
+      messageEl.setAttribute("font-image", "/assets/fonts/arial-es-msdf.png");
       messageEl.setAttribute("negate", "false");
       // Add black outline for better visibility
       messageEl.setAttribute("outline-width", "15%");
