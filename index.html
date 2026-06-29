@@ -164,7 +164,10 @@
 
       <a-assets>
         <!-- Model assets -->
-        <a-asset-item id="samuuModel" src="assets/models/samuu.glb"></a-asset-item>
+        <a-asset-item
+          id="samuuModel"
+          src="assets/models/samuu.glb"
+        ></a-asset-item>
         <a-asset-item
           id="samuuCanopyModel"
           src="assets/models/samuu-canopy.glb"
@@ -173,19 +176,34 @@
           id="jaguareteModel"
           src="assets/models/jaguarete.glb"
         ></a-asset-item>
-        <a-asset-item id="nanduModel" src="assets/models/nandu.glb"></a-asset-item>
+        <a-asset-item
+          id="nanduModel"
+          src="assets/models/nandu.glb"
+        ></a-asset-item>
         <a-asset-item
           id="flamengoModel"
           src="assets/models/flamengo.glb"
         ></a-asset-item>
-        <a-asset-item id="jurumiModel" src="assets/models/jurumi.glb"></a-asset-item>
-        <a-asset-item id="taguaModel" src="assets/models/tagua.glb"></a-asset-item>
-        <a-asset-item id="tatuModel" src="assets/models/tatu.glb"></a-asset-item>
+        <a-asset-item
+          id="jurumiModel"
+          src="assets/models/jurumi.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="taguaModel"
+          src="assets/models/tagua.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="tatuModel"
+          src="assets/models/tatu.glb"
+        ></a-asset-item>
         <a-asset-item
           id="islaModel"
           src="assets/models/isla.glb"
         ></a-asset-item>
-        <a-asset-item id="pastoModel" src="assets/models/pasto.glb"></a-asset-item>
+        <a-asset-item
+          id="pastoModel"
+          src="assets/models/pasto.glb"
+        ></a-asset-item>
         <a-asset-item
           id="karandayTroncoModel"
           src="assets/models/karanday-tronco.glb"
@@ -332,6 +350,17 @@
         material="color: #0066ff; transparent: true; opacity: 0.2; side: double"
         position="0 5 0"
         static-body
+      ></a-entity>
+
+      <!-- Marcador de destino del teleport por gestos (pinch-teleport). Hijo de la escena
+           para que sus coords locales coincidan con las del mundo. Oculto por defecto. -->
+      <a-entity
+        id="teleportMarker"
+        visible="false"
+        geometry="primitive: ring; radiusInner: 0.25; radiusOuter: 0.35; segmentsTheta: 32"
+        material="shader: flat; color: #00FF88; opacity: 0.8; transparent: true; side: double"
+        rotation="-90 0 0"
+        position="0 0.02 0"
       ></a-entity>
 
       <!-- Safari Game Control Orbs -->
@@ -605,6 +634,7 @@
         movement-controls="enabled: true; speed: 0.2;"
         vr-locomotion="controllerHand: left"
         flight-locomotion
+        pinch-teleport="hand: left; maxRange: 60"
         boundary-collision="radius: 60"
         collision-responder="padding: 0.3"
         screen-fade="fadeDuration: 1000"
@@ -693,6 +723,7 @@
               scale="0.3 0.3 0.3"
               color="#FFFFFF"
               shader="msdf"
+              negate="false"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
@@ -702,10 +733,11 @@
         <!-- Left Controller -->
         <a-entity
           id="leftHand"
-          hand-controls="hand: left; handModelStyle: lowPoly; color: #ffccaa"
-          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
+          laser-controls="hand: left"
+          hand-tracking-controls="hand: left; modelStyle: mesh"
+          raycaster="objects: .clickable, .animal; far: 20; showLine: true"
           line="color: #00FF00; opacity: 0.75"
-          cursor="fuse: false; rayOrigin: entity"
+          cursor="fuse: false; rayOrigin: entity; downEvents: triggerdown, pinchstarted; upEvents: triggerup, pinchended"
         >
           <!-- VR animal info card — attached to the left hand, toggled by animal-info-card.
                Mirrors the desktop card layout (icon, title, gold-label/white-value rows).
@@ -742,6 +774,7 @@
               color="#FFFFFF"
               position="0 0.135 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -758,6 +791,7 @@
               color="#FFD178"
               position="-0.185 0.075 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -773,6 +807,7 @@
               color="#FFFFFF"
               position="-0.185 0.05 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -789,6 +824,7 @@
               color="#FFD178"
               position="-0.185 0.005 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -804,6 +840,7 @@
               color="#FFFFFF"
               position="-0.185 -0.02 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -820,6 +857,7 @@
               color="#FFD178"
               position="-0.185 -0.075 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -835,6 +873,7 @@
               color="#FFFFFF"
               position="-0.185 -0.092 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -851,6 +890,7 @@
               color="#FFD178"
               position="-0.185 -0.175 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -866,6 +906,7 @@
               color="#FFFFFF"
               position="-0.185 -0.192 0.003"
               shader="msdf"
+              negate="false"
               side="double"
               font="/assets/fonts/arial-es-msdf.json"
               font-image="/assets/fonts/arial-es-msdf.png"
@@ -876,10 +917,11 @@
         <!-- Right Controller - Point and click controller -->
         <a-entity
           id="rightHand"
-          hand-controls="hand: right; handModelStyle: lowPoly; color: #ffccaa"
-          raycaster="objects: .clickable, .animal; far: 20; direction: 0 -0.707 -0.707; showLine: true"
+          laser-controls="hand: right"
+          hand-tracking-controls="hand: right; modelStyle: mesh"
+          raycaster="objects: .clickable, .animal; far: 20; showLine: true"
           line="color: #FF0000; opacity: 0.75"
-          cursor="fuse: false; rayOrigin: entity"
+          cursor="fuse: false; rayOrigin: entity; downEvents: triggerdown, pinchstarted; upEvents: triggerup, pinchended"
         >
         </a-entity>
       </a-entity>

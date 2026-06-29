@@ -45,6 +45,7 @@ import "./components/environment/environment-degradation.js";
 // Movement (VR locomotion)
 import "./components/movement.js";
 import "./components/flight-locomotion.js";
+import "./components/pinch-teleport.js";
 
 // UI helpers
 import "./components/render-on-top.js";

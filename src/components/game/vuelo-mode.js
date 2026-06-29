@@ -63,10 +63,12 @@ AFRAME.registerComponent("vuelo-mode", {
       if (this.showcase) this.showcase.setAttribute("visible", "false");
       if (this.hunt) this.hunt.setAttribute("visible", "true");
 
-      // Activar vuelo y silenciar el thumbstick (vr-locomotion) para no competir.
+      // Activar vuelo y silenciar las locomociones de caminar (thumbstick y teleport)
+      // para no competir; el pinch queda libre para coleccionar animales.
       const flight = this.flight();
       if (flight) flight.enable();
       this.setVrLocomotion(false);
+      this.setPinchTeleport(false);
 
       this.el.emit("vuelo-started");
     };
@@ -91,6 +93,7 @@ AFRAME.registerComponent("vuelo-mode", {
       const flight = this.flight();
       if (flight) flight.disable();
       this.setVrLocomotion(true);
+      this.setPinchTeleport(true);
 
       // Volver al spawn y restaurar Idle.
       if (this.cameraRig) {
@@ -137,6 +140,13 @@ AFRAME.registerComponent("vuelo-mode", {
     if (!this.cameraRig) return;
     const loco = this.cameraRig.components["vr-locomotion"];
     if (loco) loco.enabled = on; // se respeta en su tick (ver movement.js)
+  },
+
+  // Ídem para la locomoción de caminar con manos (teleport por pinch).
+  setPinchTeleport: function (on) {
+    if (!this.cameraRig) return;
+    const tp = this.cameraRig.components["pinch-teleport"];
+    if (tp) tp.enabled = on; // se respeta en su tick (ver pinch-teleport.js)
   },
 
   // Mensaje breve anclado a la cámara (mismo patrón que safari-game-manager).
