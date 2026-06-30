@@ -147,6 +147,7 @@
                 precision: mediump;
                 logarithmicDepthBuffer: false"
       vr-mode-ui="enabled: true"
+      webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking"
       inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js"
       shadow-control="enabled: false"
       audio-unlock
@@ -733,11 +734,9 @@
         <!-- Left Controller -->
         <a-entity
           id="leftHand"
-          laser-controls="hand: left"
+          meta-touch-controls="hand: left"
           hand-tracking-controls="hand: left; modelStyle: mesh"
-          raycaster="objects: .clickable, .animal; far: 20; showLine: true"
-          line="color: #00FF00; opacity: 0.75"
-          cursor="fuse: false; rayOrigin: entity; downEvents: triggerdown, pinchstarted; upEvents: triggerup, pinchended"
+          hand-ray="hand: left; color: #00FF00; far: 20"
         >
           <!-- VR animal info card — attached to the left hand, toggled by animal-info-card.
                Mirrors the desktop card layout (icon, title, gold-label/white-value rows).
@@ -917,11 +916,9 @@
         <!-- Right Controller - Point and click controller -->
         <a-entity
           id="rightHand"
-          laser-controls="hand: right"
+          meta-touch-controls="hand: right"
           hand-tracking-controls="hand: right; modelStyle: mesh"
-          raycaster="objects: .clickable, .animal; far: 20; showLine: true"
-          line="color: #FF0000; opacity: 0.75"
-          cursor="fuse: false; rayOrigin: entity; downEvents: triggerdown, pinchstarted; upEvents: triggerup, pinchended"
+          hand-ray="hand: right; color: #FF0000; far: 20"
         >
         </a-entity>
       </a-entity>

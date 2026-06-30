@@ -8,7 +8,7 @@
 //
 // Mano dedicada para evitar choque con la SELECCIÓN (el cursor también usa pinch como
 // click): por defecto el teleport escucha solo la mano IZQUIERDA, y además se inhibe si en
-// ese frame el raycaster de esa mano está intersecando un .clickable/.animal (la UI manda).
+// ese frame hand-ray de esa mano está apuntando a un .clickable/.animal (la UI manda).
 //
 // Flag de runtime `this.enabled` (igual que vr-locomotion): vuelo-mode lo apaga durante el
 // vuelo para que el pinch quede libre para coleccionar animales y el avance sea por aleteo.
@@ -28,8 +28,6 @@ AFRAME.registerComponent("pinch-teleport", {
     this.marker = null;
     this.collisionManager = null;
 
-    this.handPos = new THREE.Vector3();
-    this.handDir = new THREE.Vector3();
     this.target = new THREE.Vector3();
     this.groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y = 0
     this.ray = new THREE.Ray();
@@ -56,10 +54,10 @@ AFRAME.registerComponent("pinch-teleport", {
 
   onPinchStart: function () {
     if (!this.enabled) return;
-    // Prioridad a la UI: si la mano apunta a algo clickable, este pinch es un click,
-    // no un teleport.
-    const rc = this.handEl && this.handEl.components.raycaster;
-    if (rc && rc.intersectedEls && rc.intersectedEls.length > 0) return;
+    // Prioridad a la UI: si la mano apunta a algo clickable, este pinch es un click
+    // (lo maneja hand-ray), no un teleport.
+    const hr = this.handEl && this.handEl.components["hand-ray"];
+    if (hr && hr.intersectedEl) return;
     this.aiming = true;
   },
 
@@ -87,14 +85,17 @@ AFRAME.registerComponent("pinch-teleport", {
 
   tick: function () {
     if (!this.aiming || !this.enabled) return;
-    if (!this.handEl || !this.handEl.object3D) return;
 
-    this.handEl.object3D.getWorldPosition(this.handPos);
-    this.handEl.object3D.getWorldDirection(this.handDir);
-    this.handDir.multiplyScalar(-1); // A-Frame mira a -Z; negar (ver CLAUDE.md §10)
-
-    this.ray.origin.copy(this.handPos);
-    this.ray.direction.copy(this.handDir).normalize();
+    // Reusar el rayo en MUNDO que ya calcula hand-ray (misma muñeca/dirección estable),
+    // así el destino del teleport coincide exactamente con el láser que ve el jugador.
+    const hr = this.handEl && this.handEl.components["hand-ray"];
+    if (!hr || !hr.active) {
+      this.hasTarget = false;
+      if (this.marker) this.marker.setAttribute("visible", "false");
+      return;
+    }
+    this.ray.origin.copy(hr.origin);
+    this.ray.direction.copy(hr.dir);
 
     // Intersección con el plano del suelo (y = 0).
     if (!this.ray.intersectPlane(this.groundPlane, this.target)) {

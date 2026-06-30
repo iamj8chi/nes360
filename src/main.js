@@ -46,6 +46,7 @@ import "./components/environment/environment-degradation.js";
 import "./components/movement.js";
 import "./components/flight-locomotion.js";
 import "./components/pinch-teleport.js";
+import "./components/hand-ray.js";
 
 // UI helpers
 import "./components/render-on-top.js";
