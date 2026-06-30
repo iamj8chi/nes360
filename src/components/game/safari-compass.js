@@ -123,10 +123,10 @@ AFRAME.registerComponent("safari-compass", {
 
   onEnded: function () {
     this.active = false;
-    // Mirror progress-ui: hide the HUD a moment after the round ends.
-    setTimeout(() => {
-      if (this.compassUI) this.compassUI.setAttribute("visible", "false");
-    }, 3000);
+    // safari-game-ended fires at full fade-to-black, so hide the HUD (compass +
+    // timer) immediately — behind the black — instead of lingering for a few
+    // seconds after the player has already faded back in.
+    if (this.compassUI) this.compassUI.setAttribute("visible", "false");
   },
 
   onReset: function () {

@@ -25,10 +25,10 @@ AFRAME.registerComponent("flight-locomotion", {
     verticalMode: { type: "string", default: "gaze-gravity" },
 
     // Empuje hacia adelante (VR)
-    maxSpeed: { type: "number", default: 12 }, // m/s tope de avance
-    drag: { type: "number", default: 1.2 }, // 1/s decaimiento de forwardSpeed al no aletear
+    maxSpeed: { type: "number", default: 18 }, // m/s tope de avance
+    drag: { type: "number", default: 0.5 }, // 1/s decaimiento de forwardSpeed al no aletear (bajo = planeo largo)
     flapVelThreshold: { type: "number", default: 0.6 }, // m/s descenso de mano para contar como aleteo
-    flapImpulse: { type: "number", default: 6 }, // m/s sumados por aleteo
+    flapImpulse: { type: "number", default: 15 }, // m/s sumados por aleteo
 
     // Eje vertical
     gravity: { type: "number", default: 1.5 }, // m/s² descenso lento (planeo)

@@ -36,7 +36,9 @@ AFRAME.registerComponent("render-on-top", {
     const order = this.data.order;
     this.el.object3D.traverse((node) => {
       if (!node.isMesh || !node.material) return;
-      const mats = Array.isArray(node.material) ? node.material : [node.material];
+      const mats = Array.isArray(node.material)
+        ? node.material
+        : [node.material];
       mats.forEach((m) => {
         m.depthTest = false;
         m.depthWrite = false;
