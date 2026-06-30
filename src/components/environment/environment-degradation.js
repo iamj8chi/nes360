@@ -24,6 +24,9 @@ const DEGRADATION_EXP = 3;
 // Peak volume of the burning-forest loop, reached at p = 1.
 const FIRE_MAX_VOLUME = 1.0;
 
+// Peak opacity of the red damage vignette at p = 1.
+const VIGNETTE_MAX = 0.8;
+
 AFRAME.registerComponent("environment-degradation", {
   init: function () {
     this.currentP = 0;
@@ -45,6 +48,7 @@ AFRAME.registerComponent("environment-degradation", {
     setTimeout(() => {
       this.sky = document.getElementById("sky");
       this.fireSoundEl = document.getElementById("soundFire");
+      this.createVignette();
       this.collectTrees();
       this.applyP(0, true);
 
@@ -130,6 +134,63 @@ AFRAME.registerComponent("environment-degradation", {
 
     // Burning-forest loop swells with the same exponential progress.
     this.setFireVolume(p * FIRE_MAX_VOLUME);
+
+    // Red damage vignette deepens as the fire gets worse.
+    this.setVignette(p * VIGNETTE_MAX);
+  },
+
+  // --- Red damage vignette (camera-attached) ------------------------------
+
+  // A flat plane pinned in front of the camera with a radial red gradient
+  // (transparent centre → opaque red edges). depthTest/Write off + a renderOrder
+  // below the fade overlay so the end-of-round fade still covers it.
+  createVignette: function () {
+    const cam = document.getElementById("head");
+    if (!cam || !cam.object3D) return;
+
+    const size = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    const grad = ctx.createRadialGradient(
+      size / 2,
+      size / 2,
+      size * 0.28,
+      size / 2,
+      size / 2,
+      size * 0.62
+    );
+    grad.addColorStop(0, "rgba(150, 0, 0, 0)");
+    grad.addColorStop(1, "rgba(120, 0, 0, 1)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    if ("SRGBColorSpace" in THREE) tex.colorSpace = THREE.SRGBColorSpace;
+
+    this.vignetteMat = new THREE.MeshBasicMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 0,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.4, 2.4),
+      this.vignetteMat
+    );
+    mesh.position.set(0, 0, -0.2);
+    mesh.renderOrder = 900; // under the screen-fade overlay (renderOrder 999)
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    this.vignetteMesh = mesh;
+    cam.object3D.add(mesh);
+  },
+
+  setVignette: function (opacity) {
+    if (!this.vignetteMat) return;
+    this.vignetteMat.opacity = opacity;
+    this.vignetteMesh.visible = opacity > 0.001;
   },
 
   // --- Fire loop (a-frame sound component on #soundFire) -------------------
