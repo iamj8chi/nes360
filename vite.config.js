@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { resolve } from "path";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
 // index.html at the project root is the Vite entry point.
@@ -12,11 +13,38 @@ import basicSsl from "@vitejs/plugin-basic-ssl";
 // localhost lets the Inspector's Save reach the watcher. Keep HTTPS for VR/LAN testing.
 const noSsl = process.env.NO_SSL === "1";
 
+// La página AR vive en ar/index.html, así que se sirve en "/ar/" (con barra). Sin la
+// barra, "/ar" no matchea ningún archivo y cae en el fallback SPA de Vite → sirve el
+// index.html raíz (el juego principal). Este middleware redirige "/ar" → "/ar/" para
+// que la URL funcione de las dos formas, en dev y en preview.
+function arTrailingSlashRedirect() {
+  const redirect = (req, res, next) => {
+    const url = (req.url || "").split("?")[0];
+    if (url === "/ar") {
+      res.writeHead(301, { Location: "/ar/" });
+      res.end();
+      return;
+    }
+    next();
+  };
+  return {
+    name: "ar-trailing-slash-redirect",
+    configureServer(server) {
+      server.middlewares.use(redirect);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(redirect);
+    },
+  };
+}
+
 export default defineConfig({
   // basic-ssl serves the dev/preview server over HTTPS with a self-signed cert.
   // Required for WebXR on a headset reached over the LAN (http only works on
   // localhost). The headset browser will warn once about the untrusted cert — accept it.
-  plugins: noSsl ? [] : [basicSsl()],
+  plugins: noSsl
+    ? [arTrailingSlashRedirect()]
+    : [basicSsl(), arTrailingSlashRedirect()],
   // Dev server: fixed port 3333, always exposed on the local network (host: true
   // binds 0.0.0.0 so headsets/phones on the same Wi-Fi can reach it). `preview`
   // mirrors the same settings for `npm run preview`.
@@ -33,5 +61,14 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    // Multipage: el juego principal (index.html) y el minijuego WebAR (ar/index.html)
+    // se construyen juntos en un solo build/deploy. La página /ar carga A-Frame+AR.js
+    // por CDN y su propio entry (src/ar/main.js); comparte public/assets con el juego.
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+        ar: resolve(__dirname, "ar/index.html"),
+      },
+    },
   },
 });

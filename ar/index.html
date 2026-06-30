@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>No Están Solos — AR</title>
+
+    <!-- A-Frame y AR.js por CDN como scripts clásicos: AR.js engancha window.AFRAME /
+         window.THREE en tiempo de evaluación, antes de que corra nuestro módulo. El
+         <script type="module"> del final se difiere, así corre después de estos dos.
+
+         IMPORTANTE: A-Frame fijado en 1.3.0 (no 1.7.1). AR.js 3.4.x se construyó contra
+         A-Frame ~1.3 / THREE r1xx; con A-Frame 1.7.1 (THREE muy posterior) la proyección
+         de cámara de AR.js se rompe y el feed sale NEGRO. Esta página carga su propia
+         A-Frame por CDN, aislada del bundle del juego principal (que sigue en 1.7.1), así
+         que bajar acá no afecta al juego. -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: #000;
+      }
+
+      /* Vignette rojo: sustituto del "cielo se pone rojo" del juego VR (en AR el fondo
+         es la cámara real). ar-fire-degradation sube su opacidad con el incendio. */
+      #vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 0.3s linear;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(179, 38, 11, 0) 35%,
+          rgba(179, 38, 11, 0.55) 100%
+        );
+      }
+
+      /* Capa de UI (HUD + overlays) por encima del canvas AR. */
+      .ui-layer {
+        position: fixed;
+        z-index: 10;
+        color: #fff;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      #scanHint {
+        inset: auto 0 0 0;
+        bottom: 24px;
+        text-align: center;
+        font-size: 18px;
+        padding: 0 24px;
+      }
+
+      #hud {
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 22px;
+        font-size: 26px;
+        font-weight: 700;
+        pointer-events: none;
+      }
+      #hud .label {
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0.85;
+        display: block;
+        letter-spacing: 0.06em;
+      }
+      #timer.low {
+        color: #ff5a3c;
+      }
+
+      /* Overlays a pantalla completa (Start / fin de partida). */
+      .overlay {
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        text-align: center;
+        padding: 32px;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+      }
+      .overlay h1 {
+        margin: 0;
+        font-size: 30px;
+      }
+      .overlay p {
+        margin: 0;
+        font-size: 17px;
+        max-width: 22em;
+        line-height: 1.4;
+        opacity: 0.92;
+      }
+      .overlay button {
+        font: inherit;
+        font-size: 20px;
+        font-weight: 700;
+        color: #14240f;
+        background: #7ed957;
+        border: none;
+        border-radius: 999px;
+        padding: 14px 40px;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      }
+      .overlay button:active {
+        transform: scale(0.97);
+      }
+      [hidden] {
+        display: none !important;
+      }
+
+      /* AR.js inserta un <video> de fondo (#arjs-video) y procesa sus frames para
+         detectar el marcador. Si ese video queda con tamaño 0 o detrás de una capa
+         opaca, se ve TODO NEGRO aunque el tracking funcione (los modelos aparecen
+         igual porque se dibujan en el canvas WebGL transparente). Lo forzamos a
+         pantalla completa y DETRÁS del canvas. */
+      #arjs-video {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        /* AR.js aplica márgenes negativos inline para centrar un video más ancho que
+           la pantalla (fuente landscape en pantalla vertical). Sin resetearlos, el
+           video queda corrido a la izquierda y deja una franja negra a la derecha. */
+        margin: 0 !important;
+        object-fit: cover;
+        /* z-index 0 (no negativo): un z-index negativo dejaba el video DETRÁS del
+           fondo #000 del body → se veía todo negro aunque la cámara funcionara. */
+        z-index: 0 !important;
+      }
+      .a-canvas {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1 !important; /* sobre el video, debajo del HUD (5/10) */
+        background: transparent !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="colorManagement: true"
+      arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false"
+      ar-passthrough
+      ar-game-manager="timeLimit: 60"
+      ar-fire-degradation
+    >
+      <a-assets>
+        <a-asset-item
+          id="flamengoModel"
+          src="/assets/models/flamengo.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="jaguareteModel"
+          src="/assets/models/jaguarete.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="nanduModel"
+          src="/assets/models/nandu.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="jurumiModel"
+          src="/assets/models/jurumi.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="taguaModel"
+          src="/assets/models/tagua.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="tatuModel"
+          src="/assets/models/tatu.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="samuuModel"
+          src="/assets/models/samuu.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="samuuCanopyModel"
+          src="/assets/models/samuu-canopy.glb"
+        ></a-asset-item>
+        <a-asset-item
+          id="pastoModel"
+          src="/assets/models/pasto.glb"
+        ></a-asset-item>
+      </a-assets>
+
+      <!-- Marcador Hiro: todo el diorama del bosque cuelga de acá. Cuando AR.js
+           detecta el marcador, se renderiza; cuando lo pierde, se oculta. -->
+      <a-marker preset="hiro" id="marker" smooth="true" smoothCount="6">
+        <!-- Contenedor del diorama. ar-forest monta los árboles decorativos y
+             ar-game-manager monta los 6 animales escondidos en arbustos. -->
+        <a-entity
+          id="diorama"
+          position="0 0 0"
+          rotation="0 0 0"
+          ar-forest
+        ></a-entity>
+      </a-marker>
+
+      <!-- Cámara AR + cursor para tap. rayOrigin:mouse mapea el touch a un raycast;
+           solo impacta a .tappable (los animales). -->
+      <a-entity
+        camera
+        cursor="rayOrigin: mouse"
+        raycaster="objects: .tappable; far: 100"
+      ></a-entity>
+    </a-scene>
+
+    <!-- Vignette de incendio -->
+    <div id="vignette"></div>
+
+    <!-- HUD durante la partida -->
+    <div id="hud" class="ui-layer" hidden>
+      <div><span class="label">ANIMALES</span><span id="found">0/6</span></div>
+      <div style="text-align: right">
+        <span class="label">TIEMPO</span><span id="timer">60</span>
+      </div>
+    </div>
+
+    <!-- Pista mientras no se detecta el marcador -->
+    <div id="scanHint" class="ui-layer">Apuntá la cámara al marcador Hiro…</div>
+
+    <!-- Overlay de inicio (aparece al detectar el marcador) -->
+    <div id="startOverlay" class="ui-layer overlay" hidden>
+      <h1>🌳 No Están Solos</h1>
+      <p>
+        Encontrá y tocá a los <b>6 animales</b> escondidos en el bosque antes de
+        que se queme. ¡Tenés 1 minuto!
+      </p>
+      <button id="startBtn">Empezar</button>
+    </div>
+
+    <!-- Overlay de fin de partida -->
+    <div id="endOverlay" class="ui-layer overlay" hidden>
+      <h1 id="endTitle"></h1>
+      <p id="endText"></p>
+      <button id="replayBtn">Jugar de nuevo</button>
+    </div>
+
+    <script type="module" src="/src/ar/main.js"></script>
+  </body>
+</html>
