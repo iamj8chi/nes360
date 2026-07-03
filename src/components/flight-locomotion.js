@@ -1,5 +1,7 @@
-// flight-locomotion — locomoción del MODO VUELO. Vive en el #cameraRig y está
-// DESACTIVADO por defecto: lo activa/desactiva `vuelo-mode` (enable()/disable()).
+// flight-locomotion — locomoción de VUELO, parte de la locomoción por defecto. Vive en el
+// #cameraRig y está SIEMPRE ACTIVO (enabled:true), conviviendo con caminar/teleport
+// (vr-locomotion, pinch-teleport) y WASD (movement-controls): usan otros inputs y no
+// compiten. Ya no hay un "modo Vuelo" separado.
 //
 // Esquemas (schema.verticalMode), pensados para experimentar:
 //  - "gaze-gravity" (ACTUAL): VR vuela en la dirección 3D de la mirada (incluye pitch:
@@ -21,7 +23,7 @@
 //  árboles los siguen resolviendo boundary-collision y collision-responder (XZ).
 AFRAME.registerComponent("flight-locomotion", {
   schema: {
-    enabled: { type: "boolean", default: false },
+    enabled: { type: "boolean", default: true },
     verticalMode: { type: "string", default: "gaze-gravity" },
 
     // Empuje hacia adelante (VR)
@@ -67,20 +69,6 @@ AFRAME.registerComponent("flight-locomotion", {
     this.onKeyUp = this.onKeyUp.bind(this);
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
-  },
-
-  enable: function () {
-    this.el.setAttribute("flight-locomotion", "enabled", true);
-    this.forwardSpeed = 0;
-    this.vVel = 0;
-    this.prevLeftY = null;
-    this.prevRightY = null;
-  },
-
-  disable: function () {
-    this.el.setAttribute("flight-locomotion", "enabled", false);
-    this.forwardSpeed = 0;
-    this.vVel = 0;
   },
 
   onKeyDown: function (e) {

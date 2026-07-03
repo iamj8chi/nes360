@@ -29,7 +29,6 @@ AFRAME.registerComponent("render-on-top", {
     // Re-apply right after a card is populated (its text meshes get rebuilt).
     this._onShow = () => setTimeout(this.apply, 50);
     this.el.sceneEl.addEventListener("safari-animal-clicked", this._onShow);
-    this.el.sceneEl.addEventListener("vuelo-animal-seen", this._onShow);
   },
 
   apply: function () {
@@ -54,6 +53,5 @@ AFRAME.registerComponent("render-on-top", {
     this.el.removeEventListener("loaded", this.apply);
     this.el.removeEventListener("object3dset", this.apply);
     this.el.sceneEl.removeEventListener("safari-animal-clicked", this._onShow);
-    this.el.sceneEl.removeEventListener("vuelo-animal-seen", this._onShow);
   },
 });

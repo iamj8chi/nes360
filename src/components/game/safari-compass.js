@@ -47,17 +47,6 @@ AFRAME.registerComponent("safari-compass", {
     this.onEnded = this.onEnded.bind(this);
     this.onReset = this.onReset.bind(this);
 
-    // Modo Vuelo: misma brújula (apunta a los animales) pero SIN timer. Reutiliza
-    // onStarted/onFound/onEnded; solo alterna la visibilidad del reloj.
-    this.onVueloStarted = () => {
-      this.onStarted();
-      this.setTimerVisible(false);
-    };
-    this.onVueloEnded = () => {
-      this.onEnded();
-      this.setTimerVisible(true);
-    };
-
     // Wait for the DOM/scene graph (same pattern as progress-ui/animal-info-card).
     setTimeout(() => {
       this.compassUI = document.getElementById("compassUI");
@@ -79,10 +68,6 @@ AFRAME.registerComponent("safari-compass", {
       scene.addEventListener("safari-timer-update", this.onTimer);
       scene.addEventListener("safari-game-ended", this.onEnded);
       scene.addEventListener("safari-game-reset", this.onReset);
-
-      scene.addEventListener("vuelo-started", this.onVueloStarted);
-      scene.addEventListener("vuelo-animal-seen", this.onFound); // detail.animalType
-      scene.addEventListener("vuelo-ended", this.onVueloEnded);
 
       console.log("Safari compass initialized");
     }, 100);
@@ -199,8 +184,5 @@ AFRAME.registerComponent("safari-compass", {
     scene.removeEventListener("safari-timer-update", this.onTimer);
     scene.removeEventListener("safari-game-ended", this.onEnded);
     scene.removeEventListener("safari-game-reset", this.onReset);
-    scene.removeEventListener("vuelo-started", this.onVueloStarted);
-    scene.removeEventListener("vuelo-animal-seen", this.onFound);
-    scene.removeEventListener("vuelo-ended", this.onVueloEnded);
   },
 });

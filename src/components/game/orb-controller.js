@@ -31,15 +31,10 @@ AFRAME.registerComponent("orb-controller", {
     });
 
     // Green highlight and trigger on click. Each cartel emits its own scene event:
-    //  - orb-start    → safari-start-game (inicia el Safari)
-    //  - orb-minigame → vuelo-enter       (entra al modo Vuelo)
-    //  - orb-exit     → vuelo-exit         (sale del modo Vuelo; cartel principal)
+    //  - orb-start → safari-start-game (inicia el Safari)
     this.el.addEventListener("click", () => {
       let event = null;
       if (this.el.classList.contains("orb-start")) event = "safari-start-game";
-      else if (this.el.classList.contains("orb-minigame"))
-        event = "vuelo-enter";
-      else if (this.el.classList.contains("orb-exit")) event = "vuelo-exit";
       if (!event) return;
 
       this.isClicked = true;

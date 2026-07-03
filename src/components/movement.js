@@ -11,8 +11,8 @@ AFRAME.registerComponent("vr-locomotion", {
   init: function () {
     this.velocity = new THREE.Vector3();
     this.moveVec = new THREE.Vector3();
-    // Flag de runtime: vuelo-mode lo pone en false para que el aleteo
-    // (flight-locomotion) no compita con el thumbstick durante el modo Vuelo.
+    // Flag de runtime (siempre true): reservado por si hace falta silenciar el
+    // thumbstick. Hoy convive con flight-locomotion (aleteo) sin competir: distinto input.
     this.enabled = true;
     this.onAxisMove = this.onAxisMove.bind(this);
     this.bindControllerListeners();

@@ -18,7 +18,6 @@ import "./components/game/orb-controller.js";
 import "./components/game/safari-compass.js";
 import "./components/game/staggered-start.js";
 import "./components/game/game-modes.js";
-import "./components/game/vuelo-mode.js";
 import "./components/game/animal-info-card.js";
 
 // Animals

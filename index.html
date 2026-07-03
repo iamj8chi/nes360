@@ -153,7 +153,6 @@
       audio-unlock
       collision-manager
       game-modes
-      vuelo-mode
       animal-highlighter
     >
       <!-- Safari Game Manager -->
@@ -231,7 +230,6 @@
 
         <!-- Cartel images -->
         <img id="cartelSafari" src="assets/img/cartel-safari.png" />
-        <img id="cartelVuelo" src="assets/img/cartel-vuelo.png" />
         <img id="cartelMain" src="assets/img/cartel-main.png" />
 
         <!-- Audio assets -->
@@ -347,7 +345,7 @@
       <a-entity
         id="boundaryRing"
         visible="false"
-        geometry="primitive: cylinder; radius: 60; height: 10; openEnded: true; thetaStart: 0; thetaLength: 500"
+        geometry="primitive: cylinder; radius: 53.1; height: 10; openEnded: true; thetaStart: 0; thetaLength: 500"
         material="color: #0066ff; transparent: true; opacity: 0.2; side: double"
         position="0 5 0"
         static-body
@@ -395,37 +393,6 @@
             color="#a85432"
           ></a-box>
         </a-entity>
-
-        <!-- Flight Cartel -->
-        <a-entity
-          id="vueloCartel"
-          shadow="receive: false"
-          class="clickable orb-minigame"
-          position="4.5 0 0"
-          collision-cube="width: 1; depth: 0.3; height: 10; offsetY: 0"
-        >
-          <a-image
-            id="minigameOrb"
-            class="clickable orb-minigame"
-            src="#cartelVuelo"
-            position="0 0 0"
-            width="1"
-            height="1.4"
-            shadow="cast: true"
-            material="shader: flat; transparent: true"
-            orb-controller
-          ></a-image>
-          <a-box
-            position="0 -1 -0.15"
-            scale="0.2 3 0.2"
-            color="#a85432"
-          ></a-box>
-          <a-box
-            position="0 0 -0.03"
-            scale="0.9 1.3 0.05"
-            color="#a85432"
-          ></a-box>
-        </a-entity>
       </a-entity>
 
       <!-- Main Cartel -->
@@ -435,9 +402,10 @@
         position="0 0 -5"
         collision-cube="width: 7; depth: 0.3; height: 16 offsetY: -10"
       >
+        <!-- Decorative welcome banner (no longer interactive: flight is now always-on,
+             so there is no Vuelo mode to exit). -->
         <a-image
           id="mainCartel"
-          class="clickable orb-exit"
           geometry="width: 7"
           src="#cartelMain"
           position="0 3 0"
@@ -445,7 +413,6 @@
           height="4"
           shadow="cast: true"
           material="shader: flat; transparent: true"
-          orb-controller
         ></a-image>
         <a-box
           position="0 3 -0.03"
@@ -564,8 +531,8 @@
           class="clickable animal"
           data-animal-type="flamingo"
           gltf-model="#flamengoModel"
-          position="6 0 -3.75"
-          rotation="0 122 0"
+          position="5.7 0 1.5"
+          rotation="0 75 0"
           scale="1.5 1.5 1.5"
           animation-mixer="clip: idle"
           staggered-start="maxOffset: 1.6"
@@ -575,8 +542,8 @@
           class="clickable animal"
           data-animal-type="jaguarete"
           gltf-model="#jaguareteModel"
-          position="6.8 0 -2.25"
-          rotation="0 108 0"
+          position="5.7 0 0"
+          rotation="0 90 0"
           scale="1.5 1.5 1.5"
           animation-mixer
           staggered-start="maxOffset: 1.6"
@@ -586,8 +553,8 @@
           class="clickable animal"
           data-animal-type="nandu"
           gltf-model="#nanduModel"
-          position="7.2 0 -0.75"
-          rotation="0 96 0"
+          position="5.7 0 -1.5"
+          rotation="0 105 0"
           scale="1.5 1.5 1.5"
           animation-mixer
           staggered-start="maxOffset: 1.6"
@@ -597,8 +564,8 @@
           class="clickable animal"
           data-animal-type="jurumi"
           gltf-model="#jurumiModel"
-          position="7.2 0 0.75"
-          rotation="0 84 0"
+          position="-5.7 0 1.5"
+          rotation="0 285 0"
           scale="1.5 1.5 1.5"
           animation-mixer
           staggered-start="maxOffset: 1.6"
@@ -608,8 +575,8 @@
           class="clickable animal"
           data-animal-type="tagua"
           gltf-model="#taguaModel"
-          position="6.8 0 2.25"
-          rotation="0 72 0"
+          position="-5.7 0 0"
+          rotation="0 270 0"
           scale="1.5 1.5 1.5"
           animation-mixer
           staggered-start="maxOffset: 1.6"
@@ -619,8 +586,8 @@
           class="clickable animal"
           data-animal-type="tatu"
           gltf-model="#tatuModel"
-          position="6 0 3.75"
-          rotation="0 58 0"
+          position="-5.7 0 -1.5"
+          rotation="0 255 0"
           scale="1.5 1.5 1.5"
           animation-mixer
           staggered-start="maxOffset: 1.6"

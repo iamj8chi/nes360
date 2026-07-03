@@ -3,16 +3,18 @@
 //  - Idle  (start, and after a game ends): showcase animals behind spawn are shown,
 //    the scattered hunt animals are hidden.
 //  - Safari (after the Start Safari sign): showcase hidden, hunt animals shown.
+// Also hides the decorative sky flamingos (#animals) during Safari, restoring them in Idle.
 // Driven by the existing safari-game-started / safari-game-ended scene events.
 AFRAME.registerComponent("game-modes", {
   init: function () {
     this.setIdle = this.setIdle.bind(this);
     this.setSafari = this.setSafari.bind(this);
 
-    // Resolve the two animal containers once the scene graph is ready.
+    // Resolve the animal containers once the scene graph is ready.
     setTimeout(() => {
       this.showcase = document.getElementById("showcaseAnimals");
       this.hunt = document.getElementById("huntAnimals");
+      this.flyers = document.getElementById("animals"); // decorative sky flamingos
       this.setIdle();
     }, 100);
 
@@ -23,11 +25,13 @@ AFRAME.registerComponent("game-modes", {
   setIdle: function () {
     if (this.showcase) this.showcase.setAttribute("visible", "true");
     if (this.hunt) this.hunt.setAttribute("visible", "false");
+    if (this.flyers) this.flyers.setAttribute("visible", "true");
   },
 
   setSafari: function () {
     if (this.showcase) this.showcase.setAttribute("visible", "false");
     if (this.hunt) this.hunt.setAttribute("visible", "true");
+    if (this.flyers) this.flyers.setAttribute("visible", "false");
   },
 
   remove: function () {

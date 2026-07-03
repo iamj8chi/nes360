@@ -10,8 +10,8 @@
 // click): por defecto el teleport escucha solo la mano IZQUIERDA, y además se inhibe si en
 // ese frame hand-ray de esa mano está apuntando a un .clickable/.animal (la UI manda).
 //
-// Flag de runtime `this.enabled` (igual que vr-locomotion): vuelo-mode lo apaga durante el
-// vuelo para que el pinch quede libre para coleccionar animales y el avance sea por aleteo.
+// Flag de runtime `this.enabled` (siempre true): reservado por si hace falta inhibir el
+// teleport. Convive con flight-locomotion (aleteo) y vr-locomotion (thumbstick): otros inputs.
 AFRAME.registerComponent("pinch-teleport", {
   schema: {
     hand: { type: "string", default: "left" }, // 'left' | 'right'
@@ -20,7 +20,7 @@ AFRAME.registerComponent("pinch-teleport", {
   },
 
   init: function () {
-    this.enabled = true; // runtime; vuelo-mode lo togglea
+    this.enabled = true; // runtime (siempre true)
     this.aiming = false; // pinch en curso
     this.hasTarget = false; // hay un punto de destino válido este frame
 
