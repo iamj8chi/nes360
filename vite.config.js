@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import basicSsl from "@vitejs/plugin-basic-ssl";
+import { VitePWA } from "vite-plugin-pwa";
 
 // index.html at the project root is the Vite entry point.
 // Static assets live in public/ and are served verbatim at "/" (e.g. models in
@@ -38,13 +39,69 @@ function arTrailingSlashRedirect() {
   };
 }
 
+// PWA: hace la web instalable y offline-capable, prerequisito para empaquetarla
+// como APK (TWA / Bubblewrap fork de Meta) y sideloadearla en Meta Quest. El SW
+// (Workbox) precachea TODO el juego —incluidos los .glb/.mp3 de public/assets—
+// para que tras el primer arranque con red corra 100% offline. `devOptions` queda
+// deshabilitado (default): el SW solo existe en el build de producción, así el dev
+// server (HMR) no se ve afectado ni sirve assets stale. Ver README/§9 de CLAUDE.md.
+const pwa = VitePWA({
+  registerType: "autoUpdate",
+  injectRegister: "auto",
+  manifest: {
+    name: "No Están Solos",
+    short_name: "No Están Solos",
+    description:
+      "Safari VR 360° por la sabana del Chaco: encontrá y salvá a los 6 animales nativos amenazados.",
+    lang: "es",
+    start_url: "/",
+    scope: "/",
+    // fullscreen: sin barras de sistema en el headset; ideal para inmersivo.
+    display: "fullscreen",
+    orientation: "landscape",
+    background_color: "#0d1f12",
+    theme_color: "#1f3a24",
+    icons: [
+      {
+        src: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+  },
+  workbox: {
+    // Precachear también los assets pesados de public/ (Workbox globa dist/): sin
+    // incluir glb/mp3/etc. el juego NO cargaría offline.
+    globPatterns: [
+      "**/*.{js,css,html,json,glb,gltf,bin,mp3,wav,ogg,png,jpg,jpeg,svg,ico,woff,woff2,ttf}",
+    ],
+    maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+    // La página WebAR (/ar) carga A-Frame/AR.js por CDN (no cachea offline) y no es
+    // objetivo del APK VR; que su precache no caiga en el shell del juego.
+    navigateFallbackDenylist: [/^\/ar\//],
+  },
+});
+
 export default defineConfig({
   // basic-ssl serves the dev/preview server over HTTPS with a self-signed cert.
   // Required for WebXR on a headset reached over the LAN (http only works on
   // localhost). The headset browser will warn once about the untrusted cert — accept it.
   plugins: noSsl
-    ? [arTrailingSlashRedirect()]
-    : [basicSsl(), arTrailingSlashRedirect()],
+    ? [arTrailingSlashRedirect(), pwa]
+    : [basicSsl(), arTrailingSlashRedirect(), pwa],
   // Dev server: fixed port 3333, always exposed on the local network (host: true
   // binds 0.0.0.0 so headsets/phones on the same Wi-Fi can reach it). `preview`
   // mirrors the same settings for `npm run preview`.
