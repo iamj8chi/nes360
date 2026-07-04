@@ -241,7 +241,7 @@ A-Frame.
 ### environment/
 
 - **`forest`** — genera el bosque desde **`src/data/forest.js`** (`FOREST`): cada
-  entrada crea un `composite-tree`; los tipos `normal`/`palma` reciben
+  entrada crea un `composite-tree`; los tipos `normal`/`palma`/`roca` reciben
   `collision-cylinder` (arbustos/pasto son atravesables). _Ya no se usan `dead` trees:
   los del mapa se convirtieron en `normal` (con copa)._
 - **`composite-tree`** — arma tronco/copa/colisión/viento según el tipo. Expone
@@ -251,6 +251,13 @@ A-Frame.
   (`normal`/`shrub`/`palma`). **Tinte del tronco:** clona el material por árbol antes de
   chamuscar (los glTF comparten material; sin clonar, un árbol oscurecía a todos y el
   color original quedaba contaminado → troncos negros tras la partida).
+  **Variación de matiz del follaje:** cada instancia guarda un `hueShift`/`lightShift`
+  aleatorio (schema `hueVariation`/`lightVariation`, sutil por defecto) y lo aplica al
+  cargar el modelo vía `tintOnLoad`→`tintFoliage` (copa/hoja/arbusto/pasto), clonando el
+  material por malla (mismo motivo que el tronco). **Tipo `roca`:** arbusto gris —
+  reutiliza el modelo de copa de arbusto (`#samuuCanopyModel`) a ras de suelo, pero se
+  desatura a gris (`tintRock`), **no** lleva `canopy-wind` y **no** es `isAlive` (no se
+  quema). Es sólido (colisión, ver `forest`).
 - **`low-poly-fire`** — partículas de fuego low-poly (tetraedros que suben/encogen y
   hacen lerp amarillo→naranja→rojo→oscuro). Geometría **compartida** entre instancias
   (perf VR), materiales por partícula. Lo instancia `composite-tree` al quemarse un árbol.

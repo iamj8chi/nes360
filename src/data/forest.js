@@ -5,8 +5,9 @@
 // `composite-tree` define QUÉ es cada árbol (tronco/copa/colisión/viento según
 // `type`); aquí solo viven posición, escala y tipo.
 //
-// type: "normal" | "palma" | "shrub" | "pasto"
-// Los tipos normal/palma reciben colisión; shrub/pasto no (ver forest.js).
+// type: "normal" | "palma" | "shrub" | "pasto" | "roca"
+// Los tipos normal/palma/roca reciben colisión; shrub/pasto no (ver forest.js).
+// "roca" = arbusto gris desaturado, sin viento y sólido (piedra).
 // pos: [x, y, z] en metros. Algunos árboles llevan offset de Y a propósito.
 
 export const FOREST = [
@@ -74,24 +75,26 @@ export const FOREST = [
   { pos: [-18, 0, 32], scale: 4.6, type: "normal" },
   { pos: [-32, 0, 25], scale: 4.3, type: "normal" },
 
-  // Arbustos: copa a ras de suelo, sin colisión
-  { pos: [-15.13552, 0, 18.25322], scale: 1.8, type: "shrub" },
+  // Arbustos: copa a ras de suelo, sin colisión.
+  // Algunas entradas son "roca": mismo modelo de arbusto pero gris, sin viento y
+  // sólidas (bloquean). Ver composite-tree.js (tipo "roca").
+  { pos: [-15.13552, 0, 18.25322], scale: 1.8, type: "roca" },
   { pos: [-11.26637, 0, -11.64061], scale: 2, type: "shrub" },
   { pos: [-35.61812, 0, -12.12066], scale: 1.6, type: "shrub" },
   { pos: [-39.13021, 0, 29.33267], scale: 2.2, type: "shrub" },
-  { pos: [35.91548, 0, -24.48606], scale: 2.1, type: "shrub" },
+  { pos: [35.91548, 0, -24.48606], scale: 2.1, type: "roca" },
   { pos: [20.25233, 0, -4.43925], scale: 1.8, type: "shrub" },
   { pos: [53.36618, 0, 9.54505], scale: 2, type: "shrub" },
   { pos: [9.64546, 0, -1.47259], scale: 2.2, type: "shrub" },
-  { pos: [-29.67292, 0, 3.7682], scale: 1.7, type: "shrub" },
+  { pos: [-29.67292, 0, 3.7682], scale: 1.7, type: "roca" },
   { pos: [34.26553, 0, 18.39522], scale: 2, type: "shrub" },
-  { pos: [-16.21441, 0, 27.96727], scale: 1.9, type: "shrub" },
+  { pos: [-16.21441, 0, 27.96727], scale: 1.9, type: "roca" },
   { pos: [-44.44576, 0, 28.51439], scale: 2.3, type: "shrub" },
   { pos: [20.04117, 0, 29.69923], scale: 2.1, type: "shrub" },
-  { pos: [-20, 0, 18], scale: 1.6, type: "shrub" },
+  { pos: [-20, 0, 18], scale: 1.6, type: "roca" },
   { pos: [2.76823, 0, 19.62527], scale: 2.1, type: "shrub" },
   { pos: [-15, 0, 22], scale: 1.8, type: "shrub" },
-  { pos: [29.49749, 0, 19.19723], scale: 2.2, type: "shrub" },
+  { pos: [29.49749, 0, 19.19723], scale: 2.2, type: "roca" },
   { pos: [-35, 0, 15], scale: 1.7, type: "shrub" },
   { pos: [-25, 0, 32], scale: 1.9, type: "shrub" },
 

@@ -8,8 +8,11 @@ AFRAME.registerComponent("composite-tree", {
     windFreqA: { type: "number", default: 0.2 },
     windFreqB: { type: "number", default: 0.2 },
     windRotStrength: { type: "number", default: 0.01 },
-    type: { type: "string", default: "normal" }, // normal, dead, shrub, pasto, or palma
+    type: { type: "string", default: "normal" }, // normal, dead, shrub, pasto, palma, or roca
     canopyHeight: { type: "number", default: -1.1 }, // Override height for shrubs
+    hueVariation: { type: "number", default: 0.05 }, // ± desplazamiento de tono del follaje (0..1)
+    lightVariation: { type: "number", default: 0.12 }, // ± desplazamiento de brillo del follaje
+    satVariation: { type: "number", default: 0.15 }, // ± desplazamiento de saturación del follaje
   },
 
   init: function () {
@@ -18,6 +21,15 @@ AFRAME.registerComponent("composite-tree", {
     const isShrub = this.data.type === "shrub";
     const isPasto = this.data.type === "pasto";
     const isPalma = this.data.type === "palma";
+    const isRoca = this.data.type === "roca";
+
+    // Per-instance color shift: todas las mallas de follaje de este árbol comparten
+    // el mismo desplazamiento de tono/brillo, así cada árbol tiene un verde distinto
+    // sin variar entre sus propias hojas. Las rocas reutilizan lightShift para un gris
+    // ligeramente distinto por piedra.
+    this.hueShift = (Math.random() - 0.5) * 2 * this.data.hueVariation;
+    this.lightShift = (Math.random() - 0.5) * 2 * this.data.lightVariation;
+    this.satShift = (Math.random() - 0.5) * 2 * this.data.satVariation;
 
     // Declare entities
     var canopy, pasto;
@@ -47,7 +59,7 @@ AFRAME.registerComponent("composite-tree", {
     var collider = document.createElement("a-cylinder");
     collider.setAttribute("radius", this.data.colliderRadius);
     // Adjust height based on type
-    const colliderHeight = isShrub || isPasto ? 2 : 6;
+    const colliderHeight = isShrub || isPasto || isRoca ? 2 : 6;
     collider.setAttribute("height", colliderHeight.toString());
     collider.setAttribute("material", "opacity: 0");
     collider.setAttribute("position", `0 ${colliderHeight / 2} 0`);
@@ -57,31 +69,41 @@ AFRAME.registerComponent("composite-tree", {
     collider.setAttribute("visible", false);
     this.el.appendChild(collider);
 
-    // Create canopy entity (not for dead trees)
-    if (isNormal || isShrub || isPalma) {
+    // Create canopy entity (not for dead trees). Rocks (roca) reuse the shrub
+    // canopy geometry but are tinted gray and get no wind.
+    if (isNormal || isShrub || isPalma || isRoca) {
       canopy = document.createElement("a-entity");
-      // Use karanday hoja for palma, samuu canopy for others
+      // Use karanday hoja for palma, samuu canopy for others (incl. shrub/roca)
       canopy.setAttribute(
         "gltf-model",
         isPalma ? "#karandayHojaModel" : "#samuuCanopyModel"
       );
       canopy.setAttribute("shadow", "cast: true");
 
-      // For shrubs, position canopy at ground level and scale it differently
-      if (isShrub) {
+      // Shrubs and rocks sit at ground level; rocks are a bit flatter/rounder
+      if (isShrub || isRoca) {
         const height = this.data.canopyHeight || 0;
         canopy.setAttribute("position", `0 ${height} 0`);
-        canopy.setAttribute("scale", "1.2 0.8 1.2");
+        canopy.setAttribute("scale", isRoca ? "1.3 0.7 1.3" : "1.2 0.8 1.2");
       }
 
-      canopy.setAttribute("canopy-wind", {
-        strengthX: this.data.windStrengthX,
-        strengthY: this.data.windStrengthY,
-        strengthZ: this.data.windStrengthZ,
-        freqA: this.data.windFreqA,
-        freqB: this.data.windFreqB,
-        rotStrength: this.data.windRotStrength,
-      });
+      // Wind for everything except rocks (a rock doesn't sway).
+      if (!isRoca) {
+        canopy.setAttribute("canopy-wind", {
+          strengthX: this.data.windStrengthX,
+          strengthY: this.data.windStrengthY,
+          strengthZ: this.data.windStrengthZ,
+          freqA: this.data.windFreqA,
+          freqB: this.data.windFreqB,
+          rotStrength: this.data.windRotStrength,
+        });
+      }
+
+      // Per-instance tint: gray for rocks, subtle green hue shift otherwise.
+      // Las palmeras se excluyen del cambio de color.
+      if (!isPalma) {
+        this.tintOnLoad(canopy, isRoca);
+      }
       this.canopyEl = canopy;
     }
 
@@ -104,6 +126,9 @@ AFRAME.registerComponent("composite-tree", {
         freqB: this.data.windFreqB,
         rotStrength: this.data.windRotStrength,
       });
+
+      // Subtle green hue variation on the grass too.
+      this.tintOnLoad(pasto, false);
     }
 
     // Set scale on parent (this element)
@@ -114,7 +139,7 @@ AFRAME.registerComponent("composite-tree", {
     });
 
     // Add children to parent
-    if (isNormal || isShrub || isPalma) {
+    if (isNormal || isShrub || isPalma || isRoca) {
       this.el.appendChild(canopy);
     }
     if (isPasto) {
@@ -184,6 +209,84 @@ AFRAME.registerComponent("composite-tree", {
       } else {
         node.material.color.setHex(hex);
       }
+      node.material.needsUpdate = true;
+    });
+  },
+
+  // Run a per-instance material tint once the foliage glTF is loaded. The model
+  // may not be ready during init(), so we mirror canopy-wind's pattern: tint now
+  // if the mesh exists, else wait for `model-loaded`.
+  tintOnLoad: function (entityEl, isRock) {
+    const apply = () =>
+      isRock ? this.tintRock(entityEl) : this.tintFoliage(entityEl);
+    if (entityEl.getObject3D("mesh")) {
+      apply();
+    } else {
+      entityEl.addEventListener("model-loaded", apply, { once: true });
+    }
+  },
+
+  // Per-instance green variation so no two trees/plants look identical. glTF
+  // instances share material references, so we clone per mesh before mutating
+  // (same reasoning as tintTrunk).
+  //
+  // Las copas son TEXTURADAS: tintar `material.color` solo multiplica la textura
+  // (oscurece y no rota bien el matiz). En su lugar rotamos el matiz de la textura
+  // dentro del shader vía `onBeforeCompile`: inyectamos una rotación de tono
+  // (Rodrigues sobre el eje 1,1,1) justo después del muestreo del mapa, más un
+  // ajuste de saturación/brillo. Cada material clonado lleva sus propios uniforms.
+  tintFoliage: function (entityEl) {
+    const obj = entityEl.getObject3D("mesh");
+    if (!obj) return;
+    const hueAngle = this.hueShift * 2 * Math.PI; // hueShift [-hueVar,hueVar] → radianes
+    const satShift = this.satShift;
+    const lightShift = this.lightShift;
+    obj.traverse((node) => {
+      if (!node.isMesh || !node.material || !node.material.color) return;
+      if (node.userData.foliageTinted) return; // idempotente
+      const mat = node.material.clone();
+      node.material = mat;
+      node.userData.foliageTinted = true;
+
+      mat.onBeforeCompile = (shader) => {
+        shader.uniforms.hueShift = { value: hueAngle };
+        shader.uniforms.satShift = { value: satShift };
+        shader.uniforms.lightShift = { value: lightShift };
+        shader.fragmentShader =
+          "uniform float hueShift;\nuniform float satShift;\nuniform float lightShift;\n" +
+          "vec3 nesHueRotate(vec3 c, float a){\n" +
+          "  vec3 k = vec3(0.57735);\n" +
+          "  float cs = cos(a);\n" +
+          "  return c*cs + cross(k,c)*sin(a) + k*dot(k,c)*(1.0-cs);\n" +
+          "}\n" +
+          shader.fragmentShader.replace(
+            "#include <map_fragment>",
+            "#include <map_fragment>\n" +
+              "{\n" +
+              "  vec3 nesC = nesHueRotate(diffuseColor.rgb, hueShift);\n" +
+              "  float nesL = dot(nesC, vec3(0.299,0.587,0.114));\n" +
+              "  nesC = mix(vec3(nesL), nesC, 1.0 + satShift);\n" +
+              "  nesC *= (1.0 + lightShift);\n" +
+              "  diffuseColor.rgb = clamp(nesC, 0.0, 1.0);\n" +
+              "}"
+          );
+      };
+      mat.needsUpdate = true;
+    });
+  },
+
+  // Desaturate the (shrub) foliage into a gray rock, with a small per-instance
+  // lightness variation so the rocks aren't all the exact same gray.
+  tintRock: function (entityEl) {
+    const obj = entityEl.getObject3D("mesh");
+    if (!obj) return;
+    obj.traverse((node) => {
+      if (!node.isMesh || !node.material || !node.material.color) return;
+      if (node.userData.foliageTinted) return;
+      node.material = node.material.clone();
+      node.userData.foliageTinted = true;
+      const l = 0.45 + this.lightShift; // gris medio con leve variación por piedra
+      node.material.color.setHSL(0, 0, Math.min(1, Math.max(0, l)));
       node.material.needsUpdate = true;
     });
   },

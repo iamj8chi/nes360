@@ -7,8 +7,9 @@ import { FOREST } from "../../data/forest.js";
 // Uso: <a-entity forest></a-entity>
 
 // Tipos que reciben un colisionador (igual que el markup original: árboles y
-// palmas bloquean al jugador; arbustos y pastos son atravesables).
-const COLLIDABLE_TYPES = new Set(["normal", "dead", "palma"]);
+// palmas bloquean al jugador; arbustos y pastos son atravesables). Las rocas
+// también bloquean: son sólidas.
+const COLLIDABLE_TYPES = new Set(["normal", "dead", "palma", "roca"]);
 
 AFRAME.registerComponent("forest", {
   init: function () {
