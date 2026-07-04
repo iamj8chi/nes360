@@ -404,6 +404,19 @@ por HTTPS, y probar el WebXR inmersivo en el Quest vía `npm run preview` sobre 
   `visible:false` si es vestigial, o `render-on-top`/`depthWrite:false` si debe verse.
 - **Texto VR sin acentos:** el MSDF `Roboto-msdf` del CDN no trae á/é/í/ó/ú/ñ. Usa el atlas
   local de §6 en todo `a-text` (incl. los creados desde JS con `shader:msdf`).
+- **Chunk compartido entre los dos entries evaluado antes de A-Frame (solo prod):** el juego
+  (`src/main.js`) **bundlea** A-Frame del npm; la página `/ar` (`src/ar/main.js`) lo toma del
+  **CDN**. Cualquier módulo importado por AMBOS entries (p.ej. `low-poly-fire.js`) Rollup lo
+  extrae a un **chunk compartido** que, por semántica ESM, se **hoistea al tope del entry y se
+  evalúa ANTES del cuerpo** — o sea antes del A-Frame inlineado del juego. Como esos componentes
+  hacen `AFRAME.registerComponent(...)` en el top-level, revientan con **`AFRAME is not defined`**:
+  la `<a-scene>` no arranca y los `<img>` de `<a-assets>` (iconos del tracker) quedan como imágenes
+  DOM sueltas. **En dev NO se ve** (Vite no bundlea y respeta el orden de `import`), solo en el
+  build de producción → pantalla en blanco en Vercel. Regla: **no compartas módulos que toquen el
+  global `AFRAME`/`THREE` entre el entry del juego y el de `/ar`.** Si necesitás reusar uno (como
+  `low-poly-fire`), impórtalo en `/ar` con un **sufijo de query** (`import ".../low-poly-fire.js?ar"`):
+  Rollup lo trata como módulo distinto (mismo source, sin copia física), no comparte chunk, y cada
+  entry inlinea su copia después de su A-Frame.
 
 ```
 
