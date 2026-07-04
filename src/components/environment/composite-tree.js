@@ -1,6 +1,8 @@
 AFRAME.registerComponent("composite-tree", {
   schema: {
-    scale: { type: "number", default: 5.0 },
+    // Nota: la escala del árbol vive en el TRANSFORM del host (scale="s s s"), no
+    // acá — así el gizmo de escala del Inspector la edita y el aframe-watcher la
+    // guarda igual que posición/rotación. Ver CLAUDE.md §11.
     colliderRadius: { type: "number", default: 0.5 },
     windStrengthX: { type: "number", default: 0.02 },
     windStrengthY: { type: "number", default: 0.01 },
@@ -9,6 +11,10 @@ AFRAME.registerComponent("composite-tree", {
     windFreqB: { type: "number", default: 0.2 },
     windRotStrength: { type: "number", default: 0.01 },
     type: { type: "string", default: "normal" }, // normal, dead, shrub, pasto, palma, or roca
+    // Si es false, el árbol NO se quema con la degradación del Safari aunque tenga
+    // copa (isAlive queda false → environment-degradation lo ignora). Se usa para el
+    // anillo decorativo de fondo, que debe quedar intacto durante el incendio.
+    flammable: { type: "boolean", default: true },
     canopyHeight: { type: "number", default: -1.1 }, // Override height for shrubs
     hueVariation: { type: "number", default: 0.05 }, // ± desplazamiento de tono del follaje (0..1)
     lightVariation: { type: "number", default: 0.12 }, // ± desplazamiento de brillo del follaje
@@ -36,7 +42,8 @@ AFRAME.registerComponent("composite-tree", {
 
     // Whether this tree has foliage that can be "killed" (turned into a dead,
     // trunk-only tree) by the safari fire mechanic. Exposed for environment-degradation.
-    this.isAlive = isNormal || isShrub || isPalma;
+    // `flammable: false` lo excluye del incendio (p.ej. el anillo decorativo de fondo).
+    this.isAlive = (isNormal || isShrub || isPalma) && this.data.flammable;
     this.dead = false;
     this.baseEl = null;
     this.canopyEl = null;
@@ -131,12 +138,8 @@ AFRAME.registerComponent("composite-tree", {
       this.tintOnLoad(pasto, false);
     }
 
-    // Set scale on parent (this element)
-    this.el.setAttribute("scale", {
-      x: this.data.scale,
-      y: this.data.scale,
-      z: this.data.scale,
-    });
+    // La escala del host la fija el atributo `scale` de la entity (transform),
+    // no este componente — así el Inspector/watcher puede editarla y persistirla.
 
     // Add children to parent
     if (isNormal || isShrub || isPalma || isRoca) {

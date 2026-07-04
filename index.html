@@ -420,8 +420,19 @@
           color="#a85432"
         ></a-box>
         <a-box position="2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
-        ><a-box position="-2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
-      ></a-entity>
+        ><a-box position="-2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box>
+        <!-- Cubo de debug: oculto detrás del cartel (-Z local). Al clickearlo togglea
+             el visor de colisiones + spawn points invisibles. Ver debug-visor-toggle. -->
+        <a-box
+          id="debugToggleCube"
+          class="clickable"
+          position="0 1 -1"
+          scale="0.4 0.4 0.4"
+          color="#FFFFFF"
+          material="shader: flat"
+          debug-visor-toggle
+        ></a-box>
+      </a-entity>
 
       <!-- Map / scenario model -->
       <a-entity
@@ -521,6 +532,89 @@
           material-optimizer
           animal-clickable
           sound="src: #tatuSound; autoplay: true; loop: true; volume: 0.8; positional: true; refDistance: 5; maxDistance: 30; rolloffFactor: 1"
+        ></a-entity>
+      </a-entity>
+
+      <!-- Spawn points del Safari: marcadores estáticos editables con el Inspector +
+           aframe-watcher (ver CLAUDE.md §11). Cada partida, animal-spawner reparte los
+           6 animales de #huntAnimals entre estos puntos al azar. Cada marcador define la
+           pose (position + rotation); el animal adopta ambas (la flecha del helper marca
+           hacia dónde mirará). Invisibles en el juego; se revelan con el cubo de debug
+           detrás del cartel grande (#debugToggleCube). Sembrados con las 6 posiciones
+           originales + extras repartidos — reacomodá/agregá a gusto (id único obligatorio
+           para que el watcher los persista). En el origen: pose local = world. -->
+      <a-entity id="spawnPoints">
+        <a-entity
+          id="spawn-0"
+          position="-15.139 0 -36.297"
+          rotation="0 195.6 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-1"
+          position="-21.901 0 32.177"
+          rotation="0 -45 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-2"
+          position="33.709 0 -10.798"
+          rotation="0 163 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-3"
+          position="-36.505 0 -0.483"
+          rotation="0 208.28 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-4"
+          position="4.607 0 17.026"
+          rotation="0 45 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-5"
+          position="26.273 0 10.913"
+          rotation="0 149.7 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-6"
+          position="24.856 0 27.151"
+          rotation="0 220 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-7"
+          position="-38.908 0 -13.96"
+          rotation="0 60 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-8"
+          position="3.638 0 43.029"
+          rotation="0 0 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-9"
+          position="24.967 0 -35.269"
+          rotation="0 300 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-10"
+          position="-1.506 0 -18.553"
+          rotation="0 120 0"
+          spawn-point
+        ></a-entity>
+        <a-entity
+          id="spawn-11"
+          position="8 0 -26"
+          rotation="0 180 0"
+          spawn-point
         ></a-entity>
       </a-entity>
 
@@ -890,8 +984,1457 @@
         </a-entity>
       </a-entity>
 
-      <!-- Bosque generado desde src/data/forest.js (componente forest) -->
-      <a-entity id="trees" forest></a-entity>
+      <!-- Bosque: entities estáticas, editables con el Inspector + aframe-watcher
+           (ver CLAUDE.md §11). Cada árbol lleva id porque el watcher solo guarda
+           entities con id. El componente composite-tree arma tronco/copa/colisión/
+           viento según su type; la escala vive en el transform (scale="s s s"). -->
+      <a-entity id="trees">
+        <a-entity
+          id="normal-0"
+          position="-17.683 0 -39.332"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-1"
+          position="-9.247 0 -40.192"
+          scale="5.5 5.5 5.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-2"
+          position="8.577 0 -46.99"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-3"
+          position="0.936 0 -36.99"
+          scale="6 6 6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-4"
+          position="17.858 0 -38.374"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-5"
+          position="21.206 0 -31.713"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-6"
+          position="-40.412 0 -18.472"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-7"
+          position="-31.323 0 -33.158"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-8"
+          position="-32.606 0 -22.39"
+          scale="5.5 5.5 5.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-9"
+          position="-26.782 0 -15.189"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-10"
+          position="31.331 0 -25.793"
+          scale="6 6 6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-11"
+          position="-22.404 0 -21.619"
+          scale="5.2 5.2 5.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-12"
+          position="-10.474 0 -15.725"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-13"
+          position="-3.005 0 -13.299"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-14"
+          position="12.883 0 -20.148"
+          scale="5.7 5.7 5.7"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-15"
+          position="34.636 0 -34.043"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-16"
+          position="43.195 0 -21.356"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-17"
+          position="31.388 0 -15.456"
+          scale="5.5 5.5 5.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-18"
+          position="23.606 0 -14.324"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-19"
+          position="-39.588 0 3.232"
+          scale="6 6 6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-20"
+          position="-11.837 0 9.148"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-21"
+          position="39.755 0 -12.443"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-22"
+          position="28.675 0 -6.498"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-23"
+          position="36.673 0 -5.914"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-24"
+          position="20.181 0 7.557"
+          scale="5.5 5.5 5.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-25"
+          position="20.964 0 23.176"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-26"
+          position="41.715 0 0.143"
+          scale="6 6 6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-27"
+          position="-0.966 0 34.354"
+          scale="5.2 5.2 5.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-28"
+          position="-3.447 0 41.677"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-29"
+          position="8.165 0 39.015"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-30"
+          position="-30.876 0 -1.692"
+          scale="5.7 5.7 5.7"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-31"
+          position="-14.346 0 3.964"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-32"
+          position="9.316 0 17.164"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-33"
+          position="31.135 0 29.177"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-0"
+          position="30.016 0 -0.993"
+          scale="6.1 6.1 6.1"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-1"
+          position="-6.243 0 -19.915"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-2"
+          position="28.981 0 23.37"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-3"
+          position="-25.474 0 18.498"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-4"
+          position="2.281 0 39.152"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-5"
+          position="8.561 0 -6.524"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-6"
+          position="-9.30922 0 -18.87513"
+          scale="6 6 6"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-7"
+          position="-42.80341 0 16.66686"
+          scale="5.2 5.2 5.2"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-8"
+          position="-30.9209 0 34.93784"
+          scale="5.8 5.8 5.8"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-9"
+          position="-18.68834 0 43.89421"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-10"
+          position="-14.427 0 -5.539"
+          scale="5.7 5.7 5.7"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="palma-11"
+          position="23.74279 0 40.22783"
+          scale="5.3 5.3 5.3"
+          composite-tree="type: palma"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-34"
+          position="3.004 0 12.434"
+          scale="4.5 4.5 4.5"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-35"
+          position="-33.918 0 8.547"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-36"
+          position="-5.904 -0.666 -35.162"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-37"
+          position="43.596 0 16.276"
+          scale="4.6 4.6 4.6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-38"
+          position="13.987 0 -9.044"
+          scale="5.2 5.2 5.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-39"
+          position="-21.47449 0 27.38875"
+          scale="4.3 4.3 4.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-40"
+          position="35.80696 0 11.08087"
+          scale="4.7 4.7 4.7"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-41"
+          position="-6.77787 0 4.71665"
+          scale="4.4 4.4 4.4"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-42"
+          position="-4.40376 0 22.987"
+          scale="4.2 4.2 4.2"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-43"
+          position="6.16977 0 32.38259"
+          scale="4.8 4.8 4.8"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-44"
+          position="-18 0 32"
+          scale="4.6 4.6 4.6"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="normal-45"
+          position="-32 0 25"
+          scale="4.3 4.3 4.3"
+          composite-tree="type: normal"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="roca-0"
+          position="-15.13552 0 18.25322"
+          scale="1.8 1.8 1.8"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-0"
+          position="-11.26637 0 -11.64061"
+          scale="2 2 2"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-1"
+          position="-35.61812 0 -12.12066"
+          scale="1.6 1.6 1.6"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-2"
+          position="-16.143 0 45.077"
+          scale="2.2 2.2 2.2"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="roca-1"
+          position="35.91548 0 -24.48606"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-3"
+          position="11.553 0 -5.805"
+          scale="1.8 1.8 1.8"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-4"
+          position="14.949 0 -2.106"
+          scale="2 2 2"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-5"
+          position="9.64546 0 -1.47259"
+          scale="2.2 2.2 2.2"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="roca-2"
+          position="-29.67292 0 3.7682"
+          scale="1.7 1.7 1.7"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-6"
+          position="34.26553 0 18.39522"
+          scale="2 2 2"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="roca-3"
+          position="-16.21441 0 27.96727"
+          scale="1.9 1.9 1.9"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-7"
+          position="-40.824 0 21.587"
+          scale="2.3 2.3 2.3"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-8"
+          position="20.04117 0 29.69923"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="roca-4"
+          position="-20 0 18"
+          scale="1.6 1.6 1.6"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-9"
+          position="10.99 0 16.132"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-10"
+          position="-15 0 22"
+          scale="1.8 1.8 1.8"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="roca-5"
+          position="29.49749 0 19.19723"
+          scale="2.2 2.2 2.2"
+          composite-tree="type: roca"
+          collision-cylinder
+        ></a-entity>
+        <a-entity
+          id="shrub-11"
+          position="-35 0 15"
+          scale="1.7 1.7 1.7"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="shrub-12"
+          position="-25 0 32"
+          scale="1.9 1.9 1.9"
+          composite-tree="type: shrub"
+        ></a-entity>
+        <a-entity
+          id="pasto-0"
+          position="-12.97859 -0.5 -31.78649"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-1"
+          position="-27.391 -0.5 -40.256"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-2"
+          position="16.87186 -0.5 -13.36813"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-3"
+          position="-20.397 -0.5 -16.532"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-4"
+          position="14.8724 -0.5 -32.22971"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-5"
+          position="4.40855 -0.5 -32.96285"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-6"
+          position="-24.45034 -0.5 -32.69625"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-7"
+          position="-32.84807 -0.5 -33.09615"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-8"
+          position="0.60958 -0.5 -31.76317"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-9"
+          position="26.53593 -0.5 -32.16306"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-10"
+          position="5.67488 0 -9.10261"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-11"
+          position="21.13738 0 -24.69841"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-12"
+          position="-1.58983 0 -18.56673"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-13"
+          position="-8.323 0 8.24"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-14"
+          position="15.931 0 -5.807"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-15"
+          position="-23.45061 0 2.89415"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-16"
+          position="-32.58148 0 -14.03462"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-17"
+          position="-41.04586 0 -12.3684"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-18"
+          position="-8.08 0 17.56"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-19"
+          position="-14.593 0 -5.998"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-20"
+          position="-46.975 0 -5.815"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-21"
+          position="-26.996 0 6.734"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-22"
+          position="26.496 0 10.861"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-23"
+          position="-27.0716 0 21.98676"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-24"
+          position="40.96989 0 -23.20746"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-25"
+          position="36.26802 0 0.57928"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-26"
+          position="41.94576 0 8.45754"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-27"
+          position="11.12374 0 21.78105"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-28"
+          position="-43.91559 0 14.01866"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-29"
+          position="6.045 0 8.248"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-30"
+          position="20.326 0 35.914"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-31"
+          position="-26.751 0 28.021"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-32"
+          position="-11.81897 0 -18.53707"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-33"
+          position="0.122 0 12.31"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-34"
+          position="13.55705 0 15.75651"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-35"
+          position="11.47135 0 1.85371"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-36"
+          position="-10.627 0 2.444"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-37"
+          position="-36.15215 0 11.58567"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-38"
+          position="-38.842 0 -28.578"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <a-entity
+          id="pasto-39"
+          position="39.16482 0 19.34806"
+          scale="2.1 2.1 2.1"
+          composite-tree="type: pasto"
+        ></a-entity>
+        <!-- Anillo decorativo de árboles a radio ~75: telón de fondo fuera del
+             área jugable (boundary 60), sobre el terreno de la isla (Y=0). Solo
+             normal, flammable:false (no se queman con la degradación del Safari).
+             Sin collision-cylinder (inalcanzable). Editable con el Inspector
+             (ids ring-N). Ver CLAUDE.md §11. -->
+        <a-entity id="tree-ring">
+          <a-entity
+            id="ring-0"
+            position="76.233 0 0.691"
+            rotation="0 82 0"
+            scale="5.263 5.263 5.263"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-1"
+            position="76.488 0 4.359"
+            rotation="0 118 0"
+            scale="5.91 5.91 5.91"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-2"
+            position="76.213 0 11.646"
+            rotation="0 238 0"
+            scale="5.917 5.917 5.917"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-3"
+            position="74.582 0 15.082"
+            rotation="0 331 0"
+            scale="6.385 6.385 6.385"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-4"
+            position="73.751 0 20.699"
+            rotation="0 96 0"
+            scale="6.456 6.456 6.456"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-5"
+            position="71.071 0 23.192"
+            rotation="0 176 0"
+            scale="5.52 5.52 5.52"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-6"
+            position="69.551 0 27.594"
+            rotation="0 157 0"
+            scale="4.992 4.992 4.992"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-7"
+            position="65.307 0 32.654"
+            rotation="0 307 0"
+            scale="5.044 5.044 5.044"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-8"
+            position="65.527 0 35.695"
+            rotation="0 276 0"
+            scale="5.524 5.524 5.524"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-9"
+            position="61.948 0 40.702"
+            rotation="0 1 0"
+            scale="5.047 5.047 5.047"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-10"
+            position="61.106 0 46.122"
+            rotation="0 303 0"
+            scale="5.257 5.257 5.257"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-11"
+            position="54.381 0 49.791"
+            rotation="0 214 0"
+            scale="5.167 5.167 5.167"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-12"
+            position="52.205 0 54.749"
+            rotation="0 238 0"
+            scale="5.363 5.363 5.363"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-13"
+            position="50.501 0 57.936"
+            rotation="0 108 0"
+            scale="5.435 5.435 5.435"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-14"
+            position="43.348 0 58.291"
+            rotation="0 299 0"
+            scale="4.944 4.944 4.944"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-15"
+            position="40.388 0 62.42"
+            rotation="0 358 0"
+            scale="5.5 5.5 5.5"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-16"
+            position="37.077 0 62.535"
+            rotation="0 337 0"
+            scale="6.25 6.25 6.25"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-17"
+            position="30.92 0 65.813"
+            rotation="0 300 0"
+            scale="6.22 6.22 6.22"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-18"
+            position="28.588 0 67.6"
+            rotation="0 280 0"
+            scale="6.382 6.382 6.382"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-19"
+            position="24.571 0 72.784"
+            rotation="0 101 0"
+            scale="6.282 6.282 6.282"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-20"
+            position="17.348 0 70.748"
+            rotation="0 129 0"
+            scale="6.349 6.349 6.349"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-21"
+            position="16.552 0 74.121"
+            rotation="0 3 0"
+            scale="5.535 5.535 5.535"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-22"
+            position="8.019 0 72.831"
+            rotation="0 207 0"
+            scale="5.134 5.134 5.134"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-23"
+            position="5.637 0 73.488"
+            rotation="0 204 0"
+            scale="5.149 5.149 5.149"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-24"
+            position="0.831 0 74.265"
+            rotation="0 5 0"
+            scale="5.023 5.023 5.023"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-25"
+            position="-6.375 0 73.929"
+            rotation="0 121 0"
+            scale="5.886 5.886 5.886"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-26"
+            position="-8.934 0 76.831"
+            rotation="0 251 0"
+            scale="5.475 5.475 5.475"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-27"
+            position="-13.909 0 71.615"
+            rotation="0 263 0"
+            scale="5.662 5.662 5.662"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-28"
+            position="-19.052 0 73.583"
+            rotation="0 106 0"
+            scale="6.361 6.361 6.361"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-29"
+            position="-24.639 0 71.008"
+            rotation="0 155 0"
+            scale="4.698 4.698 4.698"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-30"
+            position="-27.55 0 68.828"
+            rotation="0 154 0"
+            scale="5.174 5.174 5.174"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-31"
+            position="-34.035 0 67.308"
+            rotation="0 59 0"
+            scale="5.644 5.644 5.644"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-32"
+            position="-35.926 0 63.019"
+            rotation="0 227 0"
+            scale="6.254 6.254 6.254"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-33"
+            position="-42.803 0 63.779"
+            rotation="0 318 0"
+            scale="5.968 5.968 5.968"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-34"
+            position="-48.198 0 60.132"
+            rotation="0 292 0"
+            scale="5.444 5.444 5.444"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-35"
+            position="-48.921 0 54.79"
+            rotation="0 12 0"
+            scale="5.987 5.987 5.987"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-36"
+            position="-51.112 0 52.211"
+            rotation="0 207 0"
+            scale="5.952 5.952 5.952"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-37"
+            position="-56.326 0 49.636"
+            rotation="0 199 0"
+            scale="6.147 6.147 6.147"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-38"
+            position="-60.85 0 45.955"
+            rotation="0 258 0"
+            scale="4.563 4.563 4.563"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-39"
+            position="-61.409 0 39.673"
+            rotation="0 142 0"
+            scale="5.444 5.444 5.444"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-40"
+            position="-64.148 0 35.186"
+            rotation="0 214 0"
+            scale="6.029 6.029 6.029"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-41"
+            position="-67.115 0 32.299"
+            rotation="0 179 0"
+            scale="4.904 4.904 4.904"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-42"
+            position="-67.93 0 28.063"
+            rotation="0 68 0"
+            scale="6.02 6.02 6.02"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-43"
+            position="-72.483 0 26.326"
+            rotation="0 308 0"
+            scale="4.565 4.565 4.565"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-44"
+            position="-74.692 0 20.376"
+            rotation="0 190 0"
+            scale="5.94 5.94 5.94"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-45"
+            position="-73.847 0 14.811"
+            rotation="0 80 0"
+            scale="4.877 4.877 4.877"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-46"
+            position="-76.52 0 11.189"
+            rotation="0 6 0"
+            scale="5.058 5.058 5.058"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-47"
+            position="-75.5 0 5.751"
+            rotation="0 74 0"
+            scale="5.303 5.303 5.303"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-48"
+            position="-74.767 0 -0.061"
+            rotation="0 178 0"
+            scale="4.712 4.712 4.712"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-49"
+            position="-74.983 0 -6.7"
+            rotation="0 228 0"
+            scale="5.888 5.888 5.888"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-50"
+            position="-74.813 0 -9.663"
+            rotation="0 172 0"
+            scale="5.03 5.03 5.03"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-51"
+            position="-74.327 0 -13.706"
+            rotation="0 254 0"
+            scale="6.155 6.155 6.155"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-52"
+            position="-73.454 0 -19.449"
+            rotation="0 139 0"
+            scale="5.315 5.315 5.315"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-53"
+            position="-71.837 0 -23.038"
+            rotation="0 165 0"
+            scale="5.754 5.754 5.754"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-54"
+            position="-68.153 0 -29.465"
+            rotation="0 236 0"
+            scale="4.815 4.815 4.815"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-55"
+            position="-67.074 0 -34.627"
+            rotation="0 238 0"
+            scale="5.036 5.036 5.036"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-56"
+            position="-66.453 0 -37.912"
+            rotation="0 155 0"
+            scale="5.145 5.145 5.145"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-57"
+            position="-64.042 0 -41.765"
+            rotation="0 318 0"
+            scale="5.771 5.771 5.771"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-58"
+            position="-58.703 0 -43.268"
+            rotation="0 60 0"
+            scale="4.733 4.733 4.733"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-59"
+            position="-55.952 0 -47.75"
+            rotation="0 89 0"
+            scale="4.527 4.527 4.527"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-60"
+            position="-51.773 0 -53.512"
+            rotation="0 49 0"
+            scale="5.886 5.886 5.886"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-61"
+            position="-50.551 0 -55.18"
+            rotation="0 242 0"
+            scale="6.363 6.363 6.363"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-62"
+            position="-47.604 0 -60.834"
+            rotation="0 16 0"
+            scale="4.928 4.928 4.928"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-63"
+            position="-40.843 0 -63.926"
+            rotation="0 251 0"
+            scale="5.537 5.537 5.537"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-64"
+            position="-38.996 0 -66.044"
+            rotation="0 132 0"
+            scale="4.981 4.981 4.981"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-65"
+            position="-33.928 0 -66.627"
+            rotation="0 205 0"
+            scale="6.195 6.195 6.195"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-66"
+            position="-28.457 0 -69.08"
+            rotation="0 73 0"
+            scale="5.526 5.526 5.526"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-67"
+            position="-25.134 0 -70.475"
+            rotation="0 36 0"
+            scale="5.27 5.27 5.27"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-68"
+            position="-19.489 0 -72.486"
+            rotation="0 2 0"
+            scale="5.292 5.292 5.292"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-69"
+            position="-13.066 0 -72.407"
+            rotation="0 67 0"
+            scale="5.668 5.668 5.668"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-70"
+            position="-10.968 0 -76.02"
+            rotation="0 5 0"
+            scale="5.872 5.872 5.872"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-71"
+            position="-3.265 0 -76.598"
+            rotation="0 81 0"
+            scale="4.731 4.731 4.731"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-72"
+            position="1.744 0 -74.864"
+            rotation="0 14 0"
+            scale="6.319 6.319 6.319"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-73"
+            position="4.095 0 -73.165"
+            rotation="0 82 0"
+            scale="4.941 4.941 4.941"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-74"
+            position="8.029 0 -72.815"
+            rotation="0 344 0"
+            scale="5.011 5.011 5.011"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-75"
+            position="13.542 0 -74.144"
+            rotation="0 147 0"
+            scale="5.632 5.632 5.632"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-76"
+            position="17.53 0 -70.848"
+            rotation="0 116 0"
+            scale="5.374 5.374 5.374"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-77"
+            position="26.204 0 -72.793"
+            rotation="0 143 0"
+            scale="6.382 6.382 6.382"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-78"
+            position="29.604 0 -71.504"
+            rotation="0 296 0"
+            scale="4.897 4.897 4.897"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-79"
+            position="31.583 0 -66.516"
+            rotation="0 48 0"
+            scale="5.381 5.381 5.381"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-80"
+            position="38.286 0 -64.229"
+            rotation="0 161 0"
+            scale="5.26 5.26 5.26"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-81"
+            position="39.447 0 -61.534"
+            rotation="0 130 0"
+            scale="5.437 5.437 5.437"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-82"
+            position="45.776 0 -59.718"
+            rotation="0 125 0"
+            scale="6.283 6.283 6.283"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-83"
+            position="50.572 0 -55.075"
+            rotation="0 312 0"
+            scale="5.156 5.156 5.156"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-84"
+            position="53.616 0 -52.07"
+            rotation="0 183 0"
+            scale="6.344 6.344 6.344"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-85"
+            position="54.911 0 -49.857"
+            rotation="0 210 0"
+            scale="5.832 5.832 5.832"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-86"
+            position="60.681 0 -46.515"
+            rotation="0 106 0"
+            scale="5.953 5.953 5.953"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-87"
+            position="63.848 0 -40.5"
+            rotation="0 274 0"
+            scale="4.723 4.723 4.723"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-88"
+            position="66.167 0 -36.661"
+            rotation="0 133 0"
+            scale="6.125 6.125 6.125"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-89"
+            position="66.836 0 -34.445"
+            rotation="0 149 0"
+            scale="5.604 5.604 5.604"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-90"
+            position="68.779 0 -27.542"
+            rotation="0 147 0"
+            scale="4.606 4.606 4.606"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-91"
+            position="71.432 0 -23.715"
+            rotation="0 346 0"
+            scale="5.283 5.283 5.283"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-92"
+            position="73.622 0 -19.245"
+            rotation="0 84 0"
+            scale="4.79 4.79 4.79"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-93"
+            position="73.179 0 -13.46"
+            rotation="0 7 0"
+            scale="4.667 4.667 4.667"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-94"
+            position="76.347 0 -8.902"
+            rotation="0 355 0"
+            scale="6.445 6.445 6.445"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ring-95"
+            position="73.26 0 -4.05"
+            rotation="0 170 0"
+            scale="5.029 5.029 5.029"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+        </a-entity>
+      </a-entity>
 
       <!-- Animals replaced by flamengo GLTF models (animated with animal-behavior) -->
       <a-entity id="animals">

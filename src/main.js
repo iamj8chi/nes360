@@ -19,6 +19,8 @@ import "./components/game/safari-compass.js";
 import "./components/game/staggered-start.js";
 import "./components/game/game-modes.js";
 import "./components/game/animal-info-card.js";
+import "./components/game/animal-spawner.js";
+import "./components/game/debug-visor-toggle.js";
 
 // Animals
 import "./components/animals/animal-highlighter.js";
@@ -34,8 +36,8 @@ import "./components/collision/boundary-collision.js";
 
 // Environment
 import "./components/environment/composite-tree.js";
+import "./components/environment/spawn-point.js";
 import "./components/environment/low-poly-fire.js";
-import "./components/environment/forest.js";
 import "./components/environment/canopy-wind.js";
 import "./components/environment/screen-fade.js";
 import "./components/environment/shadow-control.js";

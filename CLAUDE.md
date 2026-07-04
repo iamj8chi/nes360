@@ -80,19 +80,19 @@ agregues `import` de `three` ni de `aframe` por archivo (ver §6, nota de THREE)
 Los componentes **no se llaman directo**; emiten/escuchan eventos en
 `this.el.sceneEl`. El hub de estado es **`safari-game-manager`**. Eventos `safari-*`:
 
-| Evento                   | Emisor                              | Quién reacciona                                                                                                               | Payload                                  |
-| ------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `safari-start-game`      | `orb-controller` (cartel Safari)    | `safari-game-manager.startGame`                                                                                               | —                                        |
-| `safari-game-started`    | `safari-game-manager`               | `safari-compass` (muestra HUD), `game-modes` (→Safari), `animal-info-card` (oculta), `environment-degradation` (arranca sano) | —                                        |
-| `safari-animal-clicked`  | `animal-clickable`                  | `safari-game-manager` (cuenta hallazgo si activo), `vuelo-mode` (recolección si activo), `animal-info-card` (abre ficha)      | `{animalType, element}`                  |
-| `safari-animal-found`    | `safari-game-manager`               | `safari-compass` (oculta icono), `animal-clickable` (glow verde)                                                              | `{animalType, totalFound, totalAnimals}` |
-| `safari-timer-update`    | `safari-game-manager` (tick)        | `safari-compass` (timer + color), `environment-degradation` (cielo/árboles ∝ tiempo)                                          | `{timeRemaining, timeLimit}`             |
-| `safari-game-ended`      | `safari-game-manager`               | `game-modes` (→Idle), `safari-compass` (oculta), `animal-info-card` (oculta), `environment-degradation` (restaura a sano)     | `{won}`                                  |
-| `safari-game-reset`      | `safari-game-manager`               | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano)                               | —                                        |
-| `vuelo-enter`            | `orb-controller` (cartel Vuelo)     | `vuelo-mode.enter`                                                                                                            | —                                        |
-| `vuelo-exit`             | `orb-controller` (cartel principal) | `vuelo-mode.exit`                                                                                                             | —                                        |
-| `vuelo-started`/`-ended` | `vuelo-mode`                        | `safari-compass` (HUD sin timer)                                                                                              | —                                        |
-| `vuelo-animal-seen`      | `vuelo-mode`                        | `safari-compass` (oculta icono)                                                                                               | `{animalType, totalSeen, totalAnimals}`  |
+| Evento                   | Emisor                              | Quién reacciona                                                                                                                                         | Payload                                  |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `safari-start-game`      | `orb-controller` (cartel Safari)    | `safari-game-manager.startGame`                                                                                                                         | —                                        |
+| `safari-game-started`    | `safari-game-manager`               | `safari-compass` (muestra HUD), `game-modes` (→Safari), `animal-info-card` (oculta), `environment-degradation` (arranca sano)                           | —                                        |
+| `safari-animal-clicked`  | `animal-clickable`                  | `safari-game-manager` (cuenta hallazgo si activo), `vuelo-mode` (recolección si activo), `animal-info-card` (abre ficha)                                | `{animalType, element}`                  |
+| `safari-animal-found`    | `safari-game-manager`               | `safari-compass` (oculta icono), `animal-clickable` (glow verde)                                                                                        | `{animalType, totalFound, totalAnimals}` |
+| `safari-timer-update`    | `safari-game-manager` (tick)        | `safari-compass` (timer + color), `environment-degradation` (cielo/árboles ∝ tiempo)                                                                    | `{timeRemaining, timeLimit}`             |
+| `safari-game-ended`      | `safari-game-manager`               | `game-modes` (→Idle), `safari-compass` (oculta), `animal-info-card` (oculta), `environment-degradation` (restaura a sano)                               | `{won}`                                  |
+| `safari-game-reset`      | `safari-game-manager`               | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano), `animal-spawner` (reparte animales entre spawn points) | —                                        |
+| `vuelo-enter`            | `orb-controller` (cartel Vuelo)     | `vuelo-mode.enter`                                                                                                                                      | —                                        |
+| `vuelo-exit`             | `orb-controller` (cartel principal) | `vuelo-mode.exit`                                                                                                                                       | —                                        |
+| `vuelo-started`/`-ended` | `vuelo-mode`                        | `safari-compass` (HUD sin timer)                                                                                                                        | —                                        |
+| `vuelo-animal-seen`      | `vuelo-mode`                        | `safari-compass` (oculta icono)                                                                                                                         | `{animalType, totalSeen, totalAnimals}`  |
 
 Al añadir comportamiento, **prefiere emitir/escuchar estos eventos** antes que
 llamar componentes entre sí. Para el modo Vuelo, sigue el mismo patrón (ver §7).
@@ -205,6 +205,16 @@ A-Frame.
   (def 300). Dueño de `gameActive`, `animalsFound` (Set), `tick` del timer.
 - **`game-modes`** — alterna `#showcaseAnimals` (Idle) ↔ `#huntAnimals` (Safari)
   según `safari-game-started`/`-ended`.
+- **`animal-spawner`** — en `#gameManager`. En `safari-game-reset` (que se emite al inicio
+  de `startGame`, antes de `safari-game-started`) reparte los 6 animales de `#huntAnimals`
+  entre los spawn points (`[spawn-point]`) al azar (Fisher–Yates), copiando la pose completa
+  (position + rotation) de cada marcador al animal. Así cada partida los animales aparecen en
+  lugares distintos. Si hay <6 marcadores, no toca nada (quedan las posiciones autoradas). Como
+  corre antes de `safari-game-started`, el compás toma el snapshot de las posiciones nuevas.
+- **`debug-visor-toggle`** — en el cubo `#debugToggleCube` (detrás de `#mainCartelGrande`).
+  Al clickearlo (mouse o hand-ray VR) togglea el "visor de debug": sincroniza
+  `window.COLLISION_DEBUG` y `window.SPAWN_DEBUG` y refresca colisiones + spawn points. Es el
+  equivalente in-world del viejo `Ctrl+C` (que sigue existiendo, solo para colisiones).
 - **`vuelo-mode`** — orquestador del modo Vuelo (entrar/salir, vuelo, recolección). Ver §8.
 - **`safari-compass`** — brújula direccional HUD (`#compassUI`): tira de iconos que se
   deslizan apuntando hacia cada animal; timer MSDF que recolorea al bajar el tiempo.
@@ -240,15 +250,25 @@ A-Frame.
 
 ### environment/
 
-- **`forest`** — genera el bosque desde **`src/data/forest.js`** (`FOREST`): cada
-  entrada crea un `composite-tree`; los tipos `normal`/`palma`/`roca` reciben
-  `collision-cylinder` (arbustos/pasto son atravesables). _Ya no se usan `dead` trees:
-  los del mapa se convirtieron en `normal` (con copa)._
-- **`composite-tree`** — arma tronco/copa/colisión/viento según el tipo. Expone
+- **Bosque (estático, sin componente `forest`)** — los ~117 árboles son entities
+  estáticas en **`index.html`**, dentro de `<a-entity id="trees">`, para poder editarlos
+  con el Inspector + aframe-watcher (ver **§11**). Cada uno: `id="forest-N"` (el watcher
+  solo guarda entities con `id`), `position`, `scale="s s s"` (transform) y
+  `composite-tree="type: …"`; los tipos `normal`/`palma`/`roca` llevan además
+  `collision-cylinder` (arbustos/pasto son atravesables). El orden en el DOM define qué
+  árboles se queman primero (cosmético). _El generador por datos (`forest` component +
+  `src/data/forest.js`) fue removido; la fuente de verdad del bosque es el HTML._ _No se
+  usan `dead` trees: son `normal` (con copa)._
+- **`composite-tree`** — arma tronco/copa/colisión/viento según el tipo. **La escala la
+  toma del transform del host (`scale="s s s"`), no de una prop** (así el gizmo del
+  Inspector la edita y persiste). Expone
   `kill()`/`revive()` (idempotentes) para la mecánica de incendio: `kill()` oculta la
   copa (queda solo-tronco), chamusca el tronco y le pone llamas `low-poly-fire` en la
   base; `revive()` restaura todo y quita el fuego. Marca `this.isAlive` en tipos con copa
-  (`normal`/`shrub`/`palma`). **Tinte del tronco:** clona el material por árbol antes de
+  (`normal`/`shrub`/`palma`). **`flammable` (schema, def `true`):** con `flammable: false`
+  el árbol queda con `isAlive=false` → `environment-degradation` lo ignora y no se quema
+  (se usa en el anillo decorativo de fondo `#tree-ring`, que debe quedar intacto durante el
+  incendio). **Tinte del tronco:** clona el material por árbol antes de
   chamuscar (los glTF comparten material; sin clonar, un árbol oscurecía a todos y el
   color original quedaba contaminado → troncos negros tras la partida).
   **Variación de matiz del follaje:** cada instancia guarda un `hueShift`/`lightShift`
@@ -257,16 +277,23 @@ A-Frame.
   material por malla (mismo motivo que el tronco). **Tipo `roca`:** arbusto gris —
   reutiliza el modelo de copa de arbusto (`#samuuCanopyModel`) a ras de suelo, pero se
   desatura a gris (`tintRock`), **no** lleva `canopy-wind` y **no** es `isAlive` (no se
-  quema). Es sólido (colisión, ver `forest`).
+  quema). Es sólido: lleva `collision-cylinder` en su entity de `index.html`.
+- **`spawn-point`** — marcador de spawn de animales del Safari. Entities estáticas en
+  `index.html` (`<a-entity id="spawnPoints">`, `id="spawn-N"`), editables con Inspector +
+  aframe-watcher igual que el bosque (la pose vive en el transform, ver §11). Solo construye un
+  helper visual (anillo + pilar + flecha que apunta a −Z = dirección de mirada del animal),
+  **oculto por defecto** (`window.SPAWN_DEBUG`); expone `updateDebugVisibility()` (mismo patrón
+  que `collision-cube`). `animal-spawner` los descubre con `[spawn-point]` y los reparte.
 - **`low-poly-fire`** — partículas de fuego low-poly (tetraedros que suben/encogen y
   hacen lerp amarillo→naranja→rojo→oscuro). Geometría **compartida** entre instancias
   (perf VR), materiales por partícula. Lo instancia `composite-tree` al quemarse un árbol.
   Schema: `count`/`height`/`radius`/`size`/`speed`.
 - **`environment-degradation`** — en `#gameManager`. Conduce cielo + niebla + muerte de
   árboles + **volumen del loop de fuego** según el tiempo del Safari, con curva
-  **exponencial** (ver §4). Throttle interno y toggles incrementales (no recorre los ~97
-  árboles por frame). Constantes en el archivo: colores, `DEGRADATION_EXP`,
-  `FIRE_MAX_VOLUME`.
+  **exponencial** (ver §4). Descubre los árboles con `querySelectorAll("[composite-tree]")`
+  filtrando `ct.isAlive` (funciona igual con las entities estáticas de `index.html`).
+  Throttle interno y toggles incrementales (no recorre los ~117 árboles por frame).
+  Constantes en el archivo: colores, `DEGRADATION_EXP`, `FIRE_MAX_VOLUME`.
 - **`canopy-wind`** — oscilación de copas.
 - **`screen-fade`** — fade-out/in de pantalla (usado en transiciones de partida). El
   overlay lleva `render-on-top` (depthTest/depthWrite off): como plano `opacity:0` a 0.5m
@@ -370,8 +397,10 @@ por HTTPS, y probar el WebXR inmersivo en el Quest vía `npm run preview` sobre 
 
 ## 10. Gotchas / al editar
 
-- **No metas el grafo de escena en JS** salvo lo ya generado por datos (`forest`).
-  Entities estáticas van en `index.html`.
+- **No metas el grafo de escena en JS.** Todas las entities de la escena — incluido el
+  bosque (`#trees`) — viven en `index.html`. El bosque solía generarse desde datos; ahora
+  es estático para poder editarlo con el Inspector (ver §11). Si volvés a generar algo por
+  JS, que sea la excepción, no la regla.
 - Al añadir un componente nuevo: crearlo en `src/components/<dominio>/`, **registrarlo
   con un import en `main.js`** (sin él, el atributo es un no-op silencioso — justo el
   bug de `audio-unlock`).
@@ -418,6 +447,46 @@ por HTTPS, y probar el WebXR inmersivo en el Quest vía `npm run preview` sobre 
   Rollup lo trata como módulo distinto (mismo source, sin copia física), no comparte chunk, y cada
   entry inlinea su copia después de su A-Frame.
 
-```
+---
 
-```
+## 11. Editar el bosque (y la escena) con el Inspector + aframe-watcher
+
+El bosque (`<a-entity id="trees">` en `index.html`) son **entities estáticas** justamente
+para poder moverlas/rotarlas/escalarlas visualmente con el **A-Frame Inspector** y guardar
+los cambios de vuelta al HTML con **aframe-watcher**. El watcher **solo persiste entities
+que tienen `id`** — por eso cada árbol lleva `id="forest-N"`.
+
+**Flujo (dos terminales):**
+
+1. **`npm run inspect`** — sirve el juego en **HTTP** (`NO_SSL=1`, `http://localhost:3333`).
+   Usá este, **no** `npm run dev`: el Inspector guarda con un POST a `localhost:51234` y
+   desde una página **HTTPS** ese POST se bloquea como _mixed content_ (falla silencioso con
+   "aframe-watcher not running" aunque esté corriendo).
+2. **`npm run watch`** — levanta el aframe-watcher (companion server en `localhost:51234`,
+   vigila `index.html`).
+3. Abrí `http://localhost:3333`, entrá al Inspector con **`Ctrl + Alt + I`**, editá árboles
+   (gizmo de **mover/rotar/escalar**; la escala persiste porque vive en el transform, ver §7)
+   o sus params (`composite-tree="type: …"`), y dale **Save**.
+4. Aceptá el diff en la terminal del watcher → reescribe `index.html` en el sitio.
+5. Cerrá con **`npm run format`** (el watcher no respeta el formato de Prettier).
+
+**Gotchas del flujo:**
+
+- **Solo se guardan entities con `id`.** Si **duplicás** un árbol en el Inspector, asegurate
+  de que el nuevo tenga un `id` único (p.ej. `forest-117`) o no se persistirá.
+- **Solo se editan los hosts.** El tronco/copa/fuego los crea `composite-tree` en runtime
+  (sin `id`), así que no se editan por Inspector — está bien: editás dónde/cómo de cada
+  árbol, no sus mallas internas.
+- **Revisá el diff** (`git diff index.html`): el Inspector a veces reescribe más atributos de
+  los que tocaste (redondeos de posición, etc.).
+- El **orden en el DOM** de los árboles vivos define cuáles se queman primero en el Safari
+  (cosmético) — si reordenás el markup, cambiás ese orden.
+
+**Spawn points de animales (mismo flujo):** `<a-entity id="spawnPoints">` (`id="spawn-N"`,
+componente `spawn-point`) usa exactamente este workflow — la pose (position + rotation) vive
+en el transform del host, editable/persistible por Inspector + watcher. Como el helper está
+oculto por defecto (`window.SPAWN_DEBUG`), **revelalo primero** clickeando el cubo blanco
+detrás del cartel grande (`#debugToggleCube`) para ver los anillos/flechas mientras los movés.
+Cada marcador define la pose que adopta el animal que le toque; la **flecha apunta a −Z** (hacia
+dónde mirará). Podés **agregar** marcadores (más puntos = más variedad; `id` único obligatorio) o
+**borrarlos** (mínimo 6, si no `animal-spawner` deja las posiciones autoradas y avisa por consola).
