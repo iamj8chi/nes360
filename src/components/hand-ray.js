@@ -88,9 +88,13 @@ AFRAME.registerComponent("hand-ray", {
     );
   },
 
-  handsActive: function () {
+  getHtc: function () {
     if (!this.htc) this.htc = this.el.components["hand-tracking-controls"];
-    return !!(this.htc && this.htc.hasPoses);
+    return this.htc;
+  },
+
+  handsActive: function () {
+    return !!(this.getHtc() && this.htc.hasPoses);
   },
 
   controllerActive: function () {
@@ -109,12 +113,29 @@ AFRAME.registerComponent("hand-ray", {
   // acompañe el teleport. Su transform local (pose de muñeca en espacio físico) no cambia;
   // solo se le suma el offset del rig al calcular el mundo.
   reparentWrist: function () {
-    if (this.wristReparented || !this.rigObj || !this.htc) return;
-    const wrist = this.htc.wristObject3D;
+    if (this.wristReparented || !this.rigObj) return;
+    const htc = this.getHtc();
+    const wrist = htc && htc.wristObject3D;
     if (wrist && wrist.parent !== this.rigObj) {
       this.rigObj.add(wrist);
       this.wristReparented = true;
     }
+  },
+
+  // Con MANDOS (Touch), hand-tracking-controls igual reparenta la ficha VR
+  // (#animalInfoCardVR) a su wristObject3D — pero solo mueve ese wrist cuando hay
+  // MANOS reales, así que con mando la ficha quedaba clavada en el origen ("no se
+  // pega al control"). Acá alineamos el wristObject3D con el object3D de la entidad,
+  // que sí posiciona meta-touch-controls en el mando. Ambos cuelgan del rig (tras
+  // reparentWrist), así el transform local coincide en mundo y la ficha viaja con el
+  // mando. En modo manos NO se llama (lo maneja A-Frame vía updateWristObject).
+  anchorWristToController: function () {
+    const htc = this.getHtc();
+    const wrist = htc && htc.wristObject3D;
+    if (!wrist || wrist.parent !== this.rigObj) return;
+    wrist.visible = true;
+    wrist.position.copy(this.el.object3D.position);
+    wrist.quaternion.copy(this.el.object3D.quaternion);
   },
 
   // Define this.origin/this.dir en MUNDO. Devuelve false si no hay fuente válida.
@@ -143,6 +164,12 @@ AFRAME.registerComponent("hand-ray", {
       return true;
     }
     if (this.controllerActive()) {
+      // Anclar la ficha VR al mando: reparentamos el wrist al rig (una vez) y lo
+      // alineamos con la entidad, que meta-touch-controls sí posiciona en el mando.
+      this.resolveRig();
+      this.reparentWrist();
+      this.anchorWristToController();
+
       this.el.object3D.getWorldPosition(this.origin);
       this.el.object3D.getWorldDirection(this.fwd);
       this.dir.copy(this.fwd).multiplyScalar(-1).normalize(); // A-Frame mira a -Z

@@ -36,6 +36,18 @@ AFRAME.registerComponent("safari-game-manager", {
     console.log("Safari Game Manager initialized");
   },
 
+  // Muestra/oculta todos los carteles del menú: el cartel Safari (#carteles) y
+  // el cartel principal (#mainCartelGrande, que a su vez contiene el cubo de
+  // debug #debugToggleCube). Se ocultan al empezar la partida y vuelven al terminar.
+  setCartelesVisible: function (visible) {
+    ["carteles", "mainCartelGrande"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute("visible", visible);
+      }
+    });
+  },
+
   startGame: function () {
     console.log("Starting Safari Game!");
 
@@ -54,11 +66,8 @@ AFRAME.registerComponent("safari-game-manager", {
         this.gameActive = true;
         this.timeRemaining = this.data.timeLimit;
 
-        // Hide carteles
-        const carteles = document.getElementById("carteles");
-        if (carteles) {
-          carteles.setAttribute("visible", false);
-        }
+        // Hide carteles (Safari + main cartel con su cubo de debug)
+        this.setCartelesVisible(false);
 
         // Play game start sound
         const startSound = document.getElementById("soundGameStart");
@@ -84,10 +93,7 @@ AFRAME.registerComponent("safari-game-manager", {
       this.gameActive = true;
       this.timeRemaining = this.data.timeLimit;
 
-      const carteles = document.getElementById("carteles");
-      if (carteles) {
-        carteles.setAttribute("visible", false);
-      }
+      this.setCartelesVisible(false);
 
       const startSound = document.getElementById("soundGameStart");
       if (startSound && startSound.components.sound) {
@@ -200,11 +206,8 @@ AFRAME.registerComponent("safari-game-manager", {
             }
           });
 
-          // Show carteles menu
-          const carteles = document.getElementById("carteles");
-          if (carteles) {
-            carteles.setAttribute("visible", true);
-          }
+          // Show carteles menu (Safari + main cartel con su cubo de debug)
+          this.setCartelesVisible(true);
 
           // Wait a bit then fade in
           setTimeout(() => {
@@ -229,10 +232,7 @@ AFRAME.registerComponent("safari-game-manager", {
           }
         });
 
-        const carteles = document.getElementById("carteles");
-        if (carteles) {
-          carteles.setAttribute("visible", true);
-        }
+        this.setCartelesVisible(true);
       }
     }, 5000);
   },

@@ -433,6 +433,15 @@ por HTTPS, y probar el WebXR inmersivo en el Quest vía `npm run preview` sobre 
   `visible:false` si es vestigial, o `render-on-top`/`depthWrite:false` si debe verse.
 - **Texto VR sin acentos:** el MSDF `Roboto-msdf` del CDN no trae á/é/í/ó/ú/ñ. Usa el atlas
   local de §6 en todo `a-text` (incl. los creados desde JS con `shader:msdf`).
+- **`hand-tracking-controls` secuestra las entities hijas al `wristObject3D`:** cualquier hijo
+  de una entity con `hand-tracking-controls` (p.ej. la ficha VR `#animalInfoCardVR` bajo
+  `#leftHand`) es **reparentado por A-Frame al `wristObject3D` interno** cuando carga el modelo
+  de mano — y eso pasa **también con mandos Touch** (`iterateControllerProfiles`). Pero el wrist
+  solo se mueve con **manos reales** (`updateWristObject` gatea en `controller.hand`), así que con
+  mando la ficha quedaba clavada en el origen ("no se pega al control"). Fix en `hand-ray`
+  (`anchorWristToController`): en modo mando alinea el `wristObject3D` con el `object3D` de la
+  entidad (que sí posiciona `meta-touch-controls`), ambos colgados del rig. En modo manos lo maneja
+  A-Frame. Si movés la ficha VR fuera de `#leftHand`, este secuestro deja de aplicar.
 - **Chunk compartido entre los dos entries evaluado antes de A-Frame (solo prod):** el juego
   (`src/main.js`) **bundlea** A-Frame del npm; la página `/ar` (`src/ar/main.js`) lo toma del
   **CDN**. Cualquier módulo importado por AMBOS entries (p.ej. `low-poly-fire.js`) Rollup lo
