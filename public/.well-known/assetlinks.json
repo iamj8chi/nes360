@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.nes360.twa",
+        "sha256_cert_fingerprints": ["CA:9A:FB:36:60:5A:A2:39:23:2F:42:C8:D5:ED:91:B4:7B:0F:41:27:FD:1C:7E:88:68:CA:4D:11:6B:36:3A:DC"]
+      }
+    }]

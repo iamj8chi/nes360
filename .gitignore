@@ -6,3 +6,25 @@ dist/
 
 # Editor settings
 .vscode/
+
+# Bubblewrap / TWA — proyecto Android generado (NO versionar; el keystore es tu
+# clave de firma privada). Regenerable con `bubblewrap build` desde twa-manifest.
+/android.keystore
+*.keystore
+*.jks
+/twa-manifest.json
+/manifest-checksum.txt
+/store_icon.png
+/build.gradle
+/settings.gradle
+/gradle.properties
+/gradlew
+/gradlew.bat
+/gradle/
+/app/
+/assetlinks.json
+.gradle/
+/build/
+*.apk
+*.aab
+*.idsig
