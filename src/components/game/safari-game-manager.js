@@ -83,7 +83,7 @@ AFRAME.registerComponent("safari-game-manager", {
         setTimeout(() => {
           fadeComponent.fadeIn(() => {
             // Show start message after fade in
-            this.showMessage("FIND ALL 6 ANIMALS!", 3000);
+            this.showMessage("¡ENCUENTRA A LOS 6 ANIMALES!", 3000);
           });
         }, 300);
       });
@@ -102,7 +102,7 @@ AFRAME.registerComponent("safari-game-manager", {
       }
 
       this.el.sceneEl.emit("safari-game-started");
-      this.showMessage("FIND ALL 6 ANIMALS!", 3000);
+      this.showMessage("¡ENCUENTRA A LOS 6 ANIMALES!", 3000);
     }
   },
 
@@ -152,14 +152,14 @@ AFRAME.registerComponent("safari-game-manager", {
         winSound.components.sound.playSound();
       }
 
-      const minutes = Math.floor(
-        (this.data.timeLimit - this.timeRemaining) / 60
-      );
-      const seconds = (this.data.timeLimit - this.timeRemaining) % 60;
-      this.showMessage(
-        `YOU WIN!\nTime: ${minutes}:${seconds.toString().padStart(2, "0")}`,
-        5000
-      );
+      // Tiempo empleado en mm:ss (timeRemaining es float; redondear a segundos enteros).
+      const elapsed = Math.floor(this.data.timeLimit - this.timeRemaining);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      const mmss = `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+      this.showMessage(`¡GANASTE!\nTiempo: ${mmss}`, 5000);
     } else {
       const overSound = document.getElementById("soundGameOver");
       if (overSound && overSound.components.sound) {
@@ -168,7 +168,7 @@ AFRAME.registerComponent("safari-game-manager", {
       }
 
       this.showMessage(
-        `TIME'S UP!\nFound: ${this.animalsFound.size}/${this.totalAnimals}`,
+        `¡SE ACABÓ EL TIEMPO!\nEncontrados: ${this.animalsFound.size}/${this.totalAnimals}`,
         5000
       );
     }
