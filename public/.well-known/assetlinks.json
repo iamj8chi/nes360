@@ -3,6 +3,9 @@
       "target": {
         "namespace": "android_app",
         "package_name": "app.vercel.nes360.twa",
-        "sha256_cert_fingerprints": ["CA:9A:FB:36:60:5A:A2:39:23:2F:42:C8:D5:ED:91:B4:7B:0F:41:27:FD:1C:7E:88:68:CA:4D:11:6B:36:3A:DC"]
+        "sha256_cert_fingerprints": [
+          "CA:9A:FB:36:60:5A:A2:39:23:2F:42:C8:D5:ED:91:B4:7B:0F:41:27:FD:1C:7E:88:68:CA:4D:11:6B:36:3A:DC",
+          "AD:2D:0B:9C:6C:1C:08:99:9C:77:53:FB:EA:F5:68:FF:2C:DF:03:93:85:05:B8:68:3A:01:70:07:5F:6F:D9:D0"
+        ]
       }
     }]
