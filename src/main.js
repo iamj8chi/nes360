@@ -51,6 +51,7 @@ import "./components/hand-ray.js";
 
 // UI helpers
 import "./components/render-on-top.js";
+import "./components/ui/lottie-plane.js";
 
 // Arranque en Quest: entra a WebXR solo cuando corre dentro del APK (no-op en desktop).
 import "./components/quest-immersive-launch.js";

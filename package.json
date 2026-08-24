@@ -16,7 +16,8 @@
   "dependencies": {
     "aframe": "1.7.1",
     "aframe-extras": "7.7.0",
-    "aframe-watcher": "^1.4.0"
+    "aframe-watcher": "^1.4.0",
+    "lottie-web": "^5.13.0"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^1.2.0",

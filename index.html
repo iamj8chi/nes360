@@ -100,6 +100,16 @@
         font-size: 13px;
         line-height: 1.35;
       }
+
+      /* SPIKE del gato Lottie: misma tarjeta, sin el padding pensado para texto.
+         256 / 1.1216 (aspecto del JSON, 950x847) ~= 228. */
+      .info-card--cat {
+        padding: 12px;
+      }
+      .info-card__lottie {
+        width: 256px;
+        height: 228px;
+      }
     </style>
   </head>
   <body>
@@ -138,6 +148,22 @@
           <dd id="animalInfoCardHab"></dd>
         </div>
       </dl>
+    </div>
+
+    <!-- SPIKE: gato Lottie como alternativa DOM a #animalInfoCard.
+         Se activa con animal-info-card="spike: dom|both". OJO: dentro de una sesion
+         WebXR inmersiva el DOM no se compone, asi que esto NO se ve en el visor —
+         es la referencia de fidelidad 2D contra la que se juzga la version WebGL. -->
+    <div id="catSpikeCard" class="info-card info-card--cat" aria-hidden="true">
+      <button
+        id="catSpikeCardClose"
+        class="info-card__close"
+        aria-label="Cerrar"
+        type="button"
+      >
+        ✕
+      </button>
+      <div id="catSpikeLottie" class="info-card__lottie"></div>
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -975,6 +1001,23 @@
               font-image="/assets/fonts/arial-es-msdf.png"
             ></a-text>
           </a-entity>
+
+          <!-- SPIKE: gato Lottie como alternativa in-world a #animalInfoCardVR.
+               Hermano de la ficha y con la MISMA pose de muñeca, para que la
+               comparación sea justa. Al ser hijo directo de #leftHand,
+               hand-tracking-controls lo reparenta al wristObject3D y
+               hand-ray.anchorWristToController lo hace seguir al mando igual que a
+               la ficha: cero código de tracking nuevo.
+               Se activa con animal-info-card="spike: vr|both". Borrar este entity +
+               el import de lottie-plane en main.js revierte el spike por completo. -->
+          <a-entity
+            id="animalCatSpikeVR"
+            position="0 0.2 -0.09"
+            rotation="-45 0 0"
+            visible="false"
+            render-on-top
+            lottie-plane="src: /assets/lottie/404-cat.json; width: 0.4; resolution: 512; fps: 30"
+          ></a-entity>
         </a-entity>
 
         <!-- Right Controller - Point and click controller -->
