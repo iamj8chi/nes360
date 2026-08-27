@@ -558,6 +558,12 @@ nativo (Unity/Godot) — esto último es una reescritura completa, **no** recome
   **+Z** del entity, que apunta **hacia atrás** (los entities de A-Frame miran a −Z).
   Si calculas rumbo/orientación a partir de él, **niega el vector** (`.negate()`), o todo
   saldrá rotado 180° (fue el bug de la brújula en `safari-compass`).
+- **Yaw `atan2(x, z)` ⇒ positivo = IZQUIERDA (bug hermano del anterior):** el yaw de
+  A-Frame crece en sentido **antihorario** visto desde arriba (rotar +Y lleva `(0,0,1)` →
+  `(sinθ,0,cosθ)`), mientras que la **X de un HUD crece hacia la derecha**. Si mapeás un
+  rumbo relativo directo a `position.x`, **negalo**, o el indicador queda **espejado**:
+  apunta al objeto correcto y se centra bien de frente, pero te manda a girar para el
+  lado contrario (fue el segundo bug de `safari-compass`).
 - **HUD en la mano que se recorta/ocluye:** los UIs transparentes pegados al control se
   ordenan por distancia a la cámara y se "cortan" pasado cierto radio. Aplica
   `render-on-top` (depthTest off + renderOrder alto) en vez de pelear con offsets de z.

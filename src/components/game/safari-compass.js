@@ -165,8 +165,12 @@ AFRAME.registerComponent("safari-compass", {
       const animalYaw = Math.atan2(dx, dz);
       const delta = normalizeAngle(animalYaw - camYaw);
 
-      // delta: 0 = dead ahead, negative = to the left, positive = to the right.
-      const t = Math.max(-1, Math.min(1, delta / HALF_FOV));
+      // delta: 0 = dead ahead. El yaw de A-Frame (atan2(x, z)) crece en sentido
+      // ANTIHORARIO visto desde arriba, así que delta POSITIVO = el animal está a
+      // la IZQUIERDA. La X de la tira crece hacia la derecha de la vista, así que
+      // hay que negarlo: sin el signo la brújula queda espejada (apunta al animal
+      // correcto, pero te manda a girar para el lado contrario).
+      const t = Math.max(-1, Math.min(1, -delta / HALF_FOV));
       icon.object3D.position.x = t * STRIP_HALF_WIDTH;
 
       // Fade/shrink icons for animals behind the player (beyond the FOV) as a
