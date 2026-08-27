@@ -1,6 +1,6 @@
 // Safari "the forest is burning" environment arc. As the round timer runs down,
-// the world degrades with progress p, eased exponentially (slow at first, then
-// accelerating toward the deadline) from raw t = 1 - timeRemaining/timeLimit:
+// the world degrades with progress p, which tracks the timer LINEARLY from
+// raw t = 1 - timeRemaining/timeLimit:
 //   - the sky tints from daytime blue toward fire red,
 //   - the fog tints toward smoke,
 //   - living (foliaged) trees turn into dead, trunk-only trees a few at a time.
@@ -16,10 +16,10 @@ const SKY_BURN = "#b3260b";
 const FOG_HEALTHY = "#f5dca6";
 const FOG_BURN = "#4a1505";
 
-// Exponent for the degradation curve: p = t ** DEGRADATION_EXP. >1 keeps the
-// forest healthy through the early game and ramps the fire up sharply near the
-// deadline. Higher = more back-loaded.
-const DEGRADATION_EXP = 3;
+// Exponent for the degradation curve: p = t ** DEGRADATION_EXP. 1 = linear, the
+// fire advances at a steady rate through the whole round. >1 back-loads it
+// (forest healthy early, sharp ramp near the deadline); it was 3 before.
+const DEGRADATION_EXP = 1;
 
 // Peak volume of the burning-forest loop, reached at p = 1.
 const FIRE_MAX_VOLUME = 1.0;
@@ -132,7 +132,7 @@ AFRAME.registerComponent("environment-degradation", {
       this.deadCount = targetDead;
     }
 
-    // Burning-forest loop swells with the same exponential progress.
+    // Burning-forest loop swells with the same progress.
     this.setFireVolume(p * FIRE_MAX_VOLUME);
 
     // Red damage vignette deepens as the fire gets worse.

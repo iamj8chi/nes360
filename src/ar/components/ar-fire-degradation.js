@@ -1,14 +1,16 @@
 // ar-fire-degradation — adaptación de environment-degradation (juego principal) al
-// minijuego AR. Va en <a-scene>. Conduce el incendio según el tiempo restante con
-// la MISMA curva exponencial p = t³: el bosque aguanta sano la primera mitad y el
-// fuego se acelera al final.
+// minijuego AR. Va en <a-scene>. Conduce el incendio según el tiempo restante con una
+// curva exponencial p = t³: el bosque aguanta sano la primera mitad y el fuego se
+// acelera al final. OJO: el juego principal ya NO usa esta curva — allá la degradación
+// pasó a ser lineal (DEGRADATION_EXP = 1); acá se dejó exponencial a propósito, porque
+// la ronda AR dura 1 minuto y el back-loading es lo que la hace tensa.
 //
 // Diferencias vs el original: en AR no hay <a-sky> (el fondo es la cámara real), así
 // que el "cielo se pone rojo" se reemplaza por un vignette DOM rojo. Mata/revive los
 // ar-tree del diorama (decorativos + arbustos que esconden animales) en orden estable,
 // y rampa el volumen del loop de fuego.
 
-const DEGRADATION_EXP = 3; // exponente de la curva (mismo que el juego principal)
+const DEGRADATION_EXP = 3; // exponente de la curva (el juego principal usa 1 = lineal)
 const FIRE_MAX_VOLUME = 0.9;
 const P_EPSILON = 0.004; // throttle: solo reaplicar si p cambió lo suficiente
 

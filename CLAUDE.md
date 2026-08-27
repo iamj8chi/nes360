@@ -20,7 +20,7 @@ Meta Quest vía PWA → TWA (§9). Además hay una **página WebAR** separada en
 ### Estado — Versión 1.0 (los tres objetivos están cumplidos)
 
 1. **Modo Safari** (juego con objetivo, narrativo): el jugador inicia desde el cartel
-   "Safari" y tiene **3 min** para encontrar/"salvar" a los 6 animales antes de que el
+   "Safari" y tiene **2 min** para encontrar/"salvar" a los 6 animales antes de que el
    bosque se incendie. A medida que se agota el tiempo el ambiente se degrada (árboles
    con copa → árboles muertos, cielo azul → rojo, vignette rojo, loop de fuego). Si los
    salva todos a tiempo, el bosque se recupera; si no, queda quemado. **Hecho** (ver §4).
@@ -127,7 +127,7 @@ Secuencia: click en cartel Safari → `safari-start-game` → `safari-game-manag
 hace fade-out (`screen-fade`), resetea (→ `safari-game-reset` → reparte spawns),
 activa `gameActive`, oculta carteles, suena `game-start`, emite `safari-game-started`,
 fade-in, muestra "¡ENCUENTRA A LOS 6 ANIMALES!". `tick` descuenta el timer
-(`timeLimit` **180 s** en el entity `#gameManager`; el schema default sigue siendo 300).
+(`timeLimit` **120 s** en el entity `#gameManager`; el schema default sigue siendo 300).
 Encontrar un animal = clickearlo → `safari-animal-clicked` → si activo, `checkAnimal`
 lo marca, suena `game-found`, glow verde permanente, se oculta su icono del compás.
 6/6 → `endGame(true)` (gana, muestra el tiempo empleado en **mm:ss**). Timer a 0 →
@@ -154,9 +154,10 @@ apuntando hacia cada animal + timer MSDF. `safari-compass` lo maneja (reemplazó
 viejo `progress-ui`).
 
 **Degradación ambiental ("el bosque se incendia")** — `environment-degradation` (en
-`#gameManager`) escucha `safari-timer-update` y avanza `p = t ** 3` con
-`t = 1 - timeRemaining/timeLimit` (**exponencial**: el bosque aguanta sano la primera
-mitad y el incendio se acelera al final; exponente en la constante `DEGRADATION_EXP`).
+`#gameManager`) escucha `safari-timer-update` y avanza `p = t` con
+`t = 1 - timeRemaining/timeLimit` (**lineal**: el incendio avanza a ritmo parejo durante
+toda la ronda). La curva vive en la constante `DEGRADATION_EXP` (1 = lineal; era 3, que
+dejaba el bosque sano la primera mitad y aceleraba al final).
 Conforme `p` sube: tinta el `<a-sky id="sky">` de azul → rojo (y la niebla hacia humo),
 va matando árboles vivos de a poco vía `composite-tree.kill()` (que les pone llamas
 `low-poly-fire` en la base), **sube el volumen del loop de fuego** `#soundFire`
@@ -371,7 +372,7 @@ A-Frame.
   Schema: `count`/`height`/`radius`/`size`/`speed`.
 - **`environment-degradation`** — en `#gameManager`. Conduce cielo + niebla + muerte de
   árboles + **volumen del loop de fuego** según el tiempo del Safari, con curva
-  **exponencial** (ver §4). Descubre los árboles con `querySelectorAll("[composite-tree]")`
+  **lineal** (ver §4). Descubre los árboles con `querySelectorAll("[composite-tree]")`
   filtrando `ct.isAlive` (funciona igual con las entities estáticas de `index.html`).
   Throttle interno y toggles incrementales (no recorre los 213 árboles por frame).
   Constantes en el archivo: colores, `DEGRADATION_EXP`, `FIRE_MAX_VOLUME`.
@@ -701,7 +702,8 @@ build y deploy.
 **Qué es:** apuntás la cámara del teléfono al **marcador Hiro** (AR.js) y sobre él
 aparece un diorama del bosque en miniatura. Los 6 animales se esconden entre arbustos;
 tenés **1 minuto** para tocarlos a todos mientras el bosque se incendia con la **misma
-curva exponencial** `p = t³` del juego grande.
+curva exponencial** `p = t³` — que es la que el juego grande **ya no usa**: ahí la
+degradación pasó a ser lineal (`DEGRADATION_EXP = 1`) y acá se dejó como estaba.
 
 **Es un mundo aparte, a propósito:**
 
