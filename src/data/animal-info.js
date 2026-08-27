@@ -11,8 +11,6 @@
 //
 // TODO: review copy — drafted Spanish text for the Chaco fauna; verify common names,
 // scientific names and conservation status against the project's reference material.
-// Sabido: el arte de `nandu-cartel` dice "Panthera onca" (copy-paste del jaguareté);
-// lo correcto es "Rhea americana" — pendiente de re-export del diseñador.
 
 export const ANIMAL_INFO = {
   flamingo: {
