@@ -415,6 +415,14 @@ Todos viven en el `#cameraRig` y **coexisten**: cada uno escucha un input distin
   `animal-highlighter`, `orb-controller` y `animal-clickable` funcionan sin cambios.
   Apunta desde el nudillo del dedo medio (`AIM_JOINT_INDEX = 11`), no desde la punta del
   índice, que salta al hacer pinch y hacía temblar el láser.
+  **El láser es amarillo (`#FFE520`, el del arte de las fichas) en ambas manos y se
+  desvanece hacia la punta.** El degradado no se puede hacer con una línea de 2 vértices:
+  se dibuja como una tira de `RAY_SEGMENTS` (24) segmentos cuyo atributo `color` tiene
+  **itemSize 4** (RGBA) — three.js activa `USE_COLOR_ALPHA` solo con `vertexColors: true`
+  **y** ese itemSize, y ahí respeta el alfa por vértice. El alfa se escribe una vez en
+  `init` (no depende del largo del rayo); el `tick` solo reparte las posiciones entre el
+  origen y el impacto. El color sale del default del schema: los dos `hand-ray` de
+  `index.html` ya **no** pasan `color`, para tener una sola fuente de verdad.
 - **`flight-locomotion`** — vuelo "tipo ave": en VR, aletear ambos mandos hacia abajo
   empuja en la dirección 3D de la mirada, con `drag`/`gravity` para planear y banking por
   diferencia de altura entre manos; en PC, solo el eje vertical (Space = impulso arriba,

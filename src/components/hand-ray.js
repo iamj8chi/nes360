@@ -19,10 +19,18 @@
 // diferencia de la punta del índice, que salta hacia el pulgar y hacía temblar el láser).
 const AIM_JOINT_INDEX = 11; // middle-finger-phalanx-proximal
 
+// El láser se dibuja como una tira de segmentos con alfa por vértice: opaco en la
+// mano y desvaneciéndose hacia la punta. Un THREE.Line de 2 vértices no alcanza —
+// el degradado necesita vértices intermedios. LineBasicMaterial soporta alfa por
+// vértice si el atributo `color` tiene itemSize 4 (three.js define USE_COLOR_ALPHA).
+const RAY_SEGMENTS = 24;
+const RAY_ALPHA_START = 0.95; // opacidad junto a la mano
+const RAY_ALPHA_EXP = 1.6; // >1 = mantiene el cuerpo visible y apaga rápido la punta
+
 AFRAME.registerComponent("hand-ray", {
   schema: {
     hand: { type: "string", default: "left" }, // 'left' | 'right' (cosmético/diag)
-    color: { type: "color", default: "#00FF00" },
+    color: { type: "color", default: "#FFE520" }, // amarillo del arte de las fichas
     far: { type: "number", default: 20 },
     objects: { type: "string", default: ".clickable, .animal" },
   },
@@ -49,15 +57,34 @@ AFRAME.registerComponent("hand-ray", {
     this.downEl = null; // elemento donde empezó el pinch/gatillo
 
     // Línea visual en MUNDO (hija de la escena, no de la mano, para controlar coords).
+    // RAY_SEGMENTS+1 vértices: las posiciones se recalculan cada frame (origen →
+    // impacto) y el color/alfa se escribe UNA vez acá, porque no depende del largo.
     const geom = new THREE.BufferGeometry();
+    const count = RAY_SEGMENTS + 1;
     geom.setAttribute(
       "position",
-      new THREE.BufferAttribute(new Float32Array(6), 3)
+      new THREE.BufferAttribute(new Float32Array(count * 3), 3)
     );
+    const rgba = new Float32Array(count * 4);
+    const c = new THREE.Color(this.data.color);
+    for (let i = 0; i < count; i++) {
+      const t = i / RAY_SEGMENTS; // 0 en la mano, 1 en la punta
+      rgba[i * 4] = c.r;
+      rgba[i * 4 + 1] = c.g;
+      rgba[i * 4 + 2] = c.b;
+      rgba[i * 4 + 3] = RAY_ALPHA_START * Math.pow(1 - t, RAY_ALPHA_EXP);
+    }
+    geom.setAttribute("color", new THREE.BufferAttribute(rgba, 4));
     this.lineGeom = geom;
     this.line = new THREE.Line(
       geom,
-      new THREE.LineBasicMaterial({ color: new THREE.Color(this.data.color) })
+      new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        // Sin depthWrite para que el tramo transparente de la punta no ocluya lo
+        // que hay detrás (mismo motivo que el overlay de screen-fade, ver §10).
+        depthWrite: false,
+      })
     );
     this.line.visible = false;
     this.line.frustumCulled = false;
@@ -216,15 +243,17 @@ AFRAME.registerComponent("hand-ray", {
       hitEl = o && o.el ? o.el : null;
     }
 
-    // Actualizar la línea (origen → punto final).
+    // Actualizar la línea: repartir los vértices entre el origen y el impacto. El
+    // degradado ya vive en el atributo de color, así que acá solo van posiciones.
     const p = this.lineGeom.attributes.position.array;
-    p[0] = this.origin.x;
-    p[1] = this.origin.y;
-    p[2] = this.origin.z;
-    this.tmp.copy(this.origin).addScaledVector(this.dir, endDist);
-    p[3] = this.tmp.x;
-    p[4] = this.tmp.y;
-    p[5] = this.tmp.z;
+    for (let i = 0; i <= RAY_SEGMENTS; i++) {
+      this.tmp
+        .copy(this.origin)
+        .addScaledVector(this.dir, (endDist * i) / RAY_SEGMENTS);
+      p[i * 3] = this.tmp.x;
+      p[i * 3 + 1] = this.tmp.y;
+      p[i * 3 + 2] = this.tmp.z;
+    }
     this.lineGeom.attributes.position.needsUpdate = true;
     this.line.visible = true;
 
