@@ -21,6 +21,7 @@ import "./components/game/game-modes.js";
 import "./components/game/animal-info-card.js";
 import "./components/game/animal-spawner.js";
 import "./components/game/debug-visor-toggle.js";
+import "./components/game/hold-to-restart.js";
 
 // Animals
 import "./components/animals/animal-highlighter.js";

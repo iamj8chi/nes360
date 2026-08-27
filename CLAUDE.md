@@ -98,6 +98,7 @@ los eventos del juego (los `vuelo-*` de versiones anteriores ya no existen):
 | `safari-timer-update`   | `safari-game-manager` (tick)     | `safari-compass` (timer + color), `environment-degradation` (cielo/niebla/árboles/vignette/volumen ∝ tiempo)                                            | `{timeRemaining, timeLimit}`             |
 | `safari-game-ended`     | `safari-game-manager`            | `game-modes` (→Idle), `safari-compass` (oculta HUD), `environment-degradation` (restaura a sano)                                                        | `{won}`                                  |
 | `safari-game-reset`     | `safari-game-manager`            | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano), `animal-spawner` (reparte animales entre spawn points) | —                                        |
+| `safari-restart`        | `hold-to-restart`                | `safari-game-manager.abortGame` (corta la partida y devuelve al inicio)                                                                                 | —                                        |
 
 Orden importante: `safari-game-reset` se emite **dentro de** `startGame`, **antes** de
 `safari-game-started`. Por eso `animal-spawner` ya movió los animales cuando
@@ -132,6 +133,13 @@ lo marca, suena `game-found`, glow verde permanente, se oculta su icono del comp
 6/6 → `endGame(true)` (gana, muestra el tiempo empleado en **mm:ss**). Timer a 0 →
 `endGame(false)` (pierde, muestra cuántos encontró). `endGame` muestra el mensaje 5 s,
 fade-out, teletransporta el rig a `0 0 0` y resetea la rotación de la cámara, vuelve a Idle.
+
+**Salida de emergencia:** mantener 3 s **A/B/X/Y** en un mando de Quest o **Ctrl** en
+teclado emite `safari-restart` → `safari-game-manager.abortGame`, que cancela la partida
+y devuelve al jugador al inicio con todo reseteado (existe porque el Safari arranca con un
+solo click y antes no había forma de salir salvo esperar el timer). Mientras el botón está
+pulsado se muestra el prompt "Mantén apretado / para reiniciar"; al soltar antes se cancela.
+Lo detecta `hold-to-restart` (§7), que no toca el estado: solo emite el evento.
 
 **Mensajes del juego** (`safari-game-manager.showMessage`): un único `#gameMessage` colgado
 de la cámara, en **`0 -0.35 -2`**. Está **debajo** del centro de la vista a propósito: el
@@ -247,7 +255,19 @@ A-Frame.
 ### game/
 
 - **`safari-game-manager`** — hub de estado y timer del Safari. Schema `timeLimit`
-  (def 300). Dueño de `gameActive`, `animalsFound` (Set), `tick` del timer.
+  (def 300). Dueño de `gameActive`, `animalsFound` (Set), `tick` del timer. La vuelta al
+  punto de partida (fade → teleport a `0 0 0` → `safari-game-ended` → limpiar glows →
+  mostrar carteles) vive en **`returnToStart()`**, compartida por `endGame` (tras los 5 s
+  de mensaje) y **`abortGame()`** (inmediata, escucha `safari-restart`). `showMessage()`
+  sin `duration` deja el mensaje fijo hasta un **`hideMessage()`**; solo hay un auto-hide
+  vivo a la vez, para que el timeout de un mensaje viejo no apague al siguiente.
+- **`hold-to-restart`** — en `<a-scene>`. Detecta el gesto de reinicio: A/B/X/Y del mando
+  (escucha `[abxy]buttondown/up` en la escena, porque los eventos de `meta-touch-controls`
+  burbujean, así cubre las dos manos con un solo listener) o Ctrl del teclado, mantenidos
+  `holdTime` (def 3000 ms) → emite `safari-restart`. Lleva un `Set` de fuentes pulsadas para
+  que soltar un botón mientras otro sigue apretado no cancele. Muestra el prompt reusando
+  `safari-game-manager.showMessage()` **sin duration** (queda fijo) + `hideMessage()`.
+  Con hand tracking puro no hay botones, así que en VR requiere mandos.
 - **`game-modes`** — alterna `#showcaseAnimals` (Idle) ↔ `#huntAnimals` (Safari)
   según `safari-game-started`/`-ended`.
 - **`animal-spawner`** — en `#gameManager`. En `safari-game-reset` (que se emite al inicio

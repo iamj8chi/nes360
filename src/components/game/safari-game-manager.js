@@ -22,9 +22,18 @@ AFRAME.registerComponent("safari-game-manager", {
     this.endGame = this.endGame.bind(this);
     this.resetGame = this.resetGame.bind(this);
     this.checkAnimal = this.checkAnimal.bind(this);
+    this.abortGame = this.abortGame.bind(this);
+
+    // Timeouts pendientes (la vuelta al inicio tras endGame y el auto-hide del
+    // mensaje). Se guardan para poder cancelarlos desde abortGame.
+    this.endTimeout = null;
+    this.messageTimeout = null;
 
     // Listen for start game event
     this.el.sceneEl.addEventListener("safari-start-game", this.startGame);
+
+    // Salida de emergencia (hold-to-restart: A/B/X/Y o Ctrl mantenidos 3 s).
+    this.el.sceneEl.addEventListener("safari-restart", this.abortGame);
 
     // Listen for animal found events
     this.el.sceneEl.addEventListener("safari-animal-clicked", (evt) => {
@@ -174,67 +183,82 @@ AFRAME.registerComponent("safari-game-manager", {
     }
 
     // Wait for message to be visible, then fade out and teleport
-    setTimeout(() => {
-      const cameraRig = document.getElementById("cameraRig");
-      const fadeComponent = cameraRig
-        ? cameraRig.components["screen-fade"]
-        : null;
-
-      if (fadeComponent) {
-        // Fade out
-        fadeComponent.fadeOut(() => {
-          // On faded out - teleport player to starting position
-          if (cameraRig) {
-            cameraRig.setAttribute("position", "0 0 0");
-
-            // Reset camera rotation
-            const head = document.getElementById("head");
-            if (head) {
-              head.object3D.rotation.set(0, 0, 0);
-            }
-          }
-
-          // Hide UI
-          this.el.sceneEl.emit("safari-game-ended", { won: won });
-
-          // Reset all animal highlights
-          const animals = document.querySelectorAll(".animal");
-          animals.forEach((animalEl) => {
-            const clickable = animalEl.components["animal-clickable"];
-            if (clickable) {
-              clickable.reset();
-            }
-          });
-
-          // Show carteles menu (Safari + main cartel con su cubo de debug)
-          this.setCartelesVisible(true);
-
-          // Wait a bit then fade in
-          setTimeout(() => {
-            fadeComponent.fadeIn(() => {
-              console.log("Player teleported back to start");
-            });
-          }, 300);
-        });
-      } else {
-        // Fallback if fade component not available
-        if (cameraRig) {
-          cameraRig.setAttribute("position", "0 0 0");
-        }
-
-        this.el.sceneEl.emit("safari-game-ended", { won: won });
-
-        const animals = document.querySelectorAll(".animal");
-        animals.forEach((animalEl) => {
-          const clickable = animalEl.components["animal-clickable"];
-          if (clickable) {
-            clickable.reset();
-          }
-        });
-
-        this.setCartelesVisible(true);
-      }
+    this.endTimeout = setTimeout(() => {
+      this.endTimeout = null;
+      this.returnToStart(won);
     }, 5000);
+  },
+
+  // Teardown compartido: vuelve al punto de partida con todo restaurado. Lo usan
+  // endGame (tras los 5 s de mensaje) y abortGame (inmediato, ver "safari-restart").
+  returnToStart: function (won) {
+    const cameraRig = document.getElementById("cameraRig");
+    const fadeComponent = cameraRig
+      ? cameraRig.components["screen-fade"]
+      : null;
+
+    // Restaura escena + UI. Todos los reactores de safari-game-ended son
+    // idempotentes, así que esto es seguro incluso si no había partida en curso.
+    const restore = () => {
+      if (cameraRig) {
+        cameraRig.setAttribute("position", "0 0 0");
+
+        // Reset camera rotation
+        const head = document.getElementById("head");
+        if (head) {
+          head.object3D.rotation.set(0, 0, 0);
+        }
+      }
+
+      // Hide UI
+      this.el.sceneEl.emit("safari-game-ended", { won: won });
+
+      // Reset all animal highlights
+      const animals = document.querySelectorAll(".animal");
+      animals.forEach((animalEl) => {
+        const clickable = animalEl.components["animal-clickable"];
+        if (clickable) {
+          clickable.reset();
+        }
+      });
+
+      // Show carteles menu (Safari + main cartel con su cubo de debug)
+      this.setCartelesVisible(true);
+    };
+
+    if (fadeComponent) {
+      fadeComponent.fadeOut(() => {
+        restore();
+
+        // Wait a bit then fade in
+        setTimeout(() => {
+          fadeComponent.fadeIn(() => {
+            console.log("Player teleported back to start");
+          });
+        }, 300);
+      });
+    } else {
+      // Fallback if fade component not available
+      restore();
+    }
+  },
+
+  // Salida de emergencia: reinicia la partida y devuelve al jugador al principio,
+  // sin esperar mensajes ni el final del timer. La dispara hold-to-restart
+  // (mantener A/B/X/Y o Ctrl 3 s) vía el evento "safari-restart".
+  abortGame: function () {
+    console.log("Safari game aborted — returning to start");
+
+    // Si endGame ya estaba mostrando su mensaje, cancelar su vuelta programada
+    // para no teletransportar dos veces.
+    if (this.endTimeout) {
+      clearTimeout(this.endTimeout);
+      this.endTimeout = null;
+    }
+
+    this.hideMessage();
+    this.resetGame(); // gameActive=false, timer y animales a cero (safari-game-reset)
+    this.returnToStart(false);
   },
 
   resetGame: function () {
@@ -295,11 +319,29 @@ AFRAME.registerComponent("safari-game-manager", {
     const onTop = messageEl.components["render-on-top"];
     if (onTop) setTimeout(() => onTop.apply(), 50);
 
+    // Un solo auto-hide vivo a la vez: si no, el timeout de un mensaje anterior
+    // apaga el que se acaba de mostrar (p.ej. el prompt fijo de hold-to-restart).
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+      this.messageTimeout = null;
+    }
+
+    // Sin duration el mensaje queda fijo hasta un hideMessage() explícito.
     if (duration) {
-      setTimeout(() => {
+      this.messageTimeout = setTimeout(() => {
+        this.messageTimeout = null;
         messageEl.setAttribute("visible", false);
       }, duration);
     }
+  },
+
+  hideMessage: function () {
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+      this.messageTimeout = null;
+    }
+    const messageEl = document.getElementById("gameMessage");
+    if (messageEl) messageEl.setAttribute("visible", false);
   },
 
   tick: function (time, timeDelta) {
