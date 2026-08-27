@@ -33,8 +33,26 @@ AFRAME.registerComponent("render-on-top", {
 
   apply: function () {
     const order = this.data.order;
+
+    // Un descendiente puede declarar SU PROPIO render-on-top para quedar por
+    // encima del resto (p.ej. el icono del animal sobre la ficha VR). Si le
+    // pisáramos el renderOrder quedarían empatados, y con empate el sort de
+    // transparentes de three.js decide por su cuenta: fue justo el bug del
+    // icono que se dibujaba DEBAJO de la ficha pese a estar más cerca en z.
+    const owned = new Set();
+    this.el.querySelectorAll("[render-on-top]").forEach((el) => {
+      if (el !== this.el && el.object3D) owned.add(el.object3D);
+    });
+    const isOwned = (node) => {
+      for (let p = node; p; p = p.parent) {
+        if (owned.has(p)) return true;
+      }
+      return false;
+    };
+
     this.el.object3D.traverse((node) => {
       if (!node.isMesh || !node.material) return;
+      if (owned.size && isOwned(node)) return;
       const mats = Array.isArray(node.material)
         ? node.material
         : [node.material];

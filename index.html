@@ -29,19 +29,16 @@
         z-index: 10;
       }
 
-      /* Desktop animal info card — fixed to the right corner, hidden by default. */
+      /* Desktop animal info card — fixed to the right corner, hidden by default.
+         El arte de la ficha ya trae su propio panel (fondo, título, etiquetas),
+         así que el contenedor no aporta chrome: solo posición y transición. */
       .info-card {
         position: absolute;
         right: 16px;
         top: 50%;
         transform: translateY(-50%) translateX(20px);
-        width: 280px;
-        color: #fff;
-        font-family: sans-serif;
-        background: rgba(20, 35, 20, 0.88);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        width: 320px;
         border-radius: 10px;
-        padding: 16px 18px 18px;
         box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
         z-index: 20;
         opacity: 0;
@@ -55,50 +52,43 @@
         pointer-events: auto;
         transform: translateY(-50%) translateX(0);
       }
+      .info-card__art {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+      }
+      /* El arte de la ficha deja un hueco vacío arriba del nombre; el icono
+         hexagonal del animal va ahí. Medidas tomadas del SVG (viewBox 318):
+         el contenido arranca en y≈117.6, así que el icono ocupa y 16..100
+         (lado 84 → 26.4%, top 5.03%). */
+      .info-card__icon {
+        position: absolute;
+        top: 5.03%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 26.4%;
+        height: auto;
+      }
+      /* El botón queda por encima del arte: disco oscuro para que no se pierda. */
       .info-card__close {
         position: absolute;
         top: 8px;
-        right: 10px;
-        background: none;
+        right: 8px;
+        width: 24px;
+        height: 24px;
         border: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 16px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.45);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
         line-height: 1;
         cursor: pointer;
-        padding: 2px;
+        padding: 0;
       }
       .info-card__close:hover {
+        background: rgba(0, 0, 0, 0.7);
         color: #fff;
-      }
-      .info-card__icon {
-        display: block;
-        width: 72px;
-        height: 72px;
-        margin: 0 auto 8px;
-        object-fit: contain;
-      }
-      .info-card__name {
-        margin: 0 0 12px;
-        font-size: 18px;
-        text-align: center;
-      }
-      .info-card__fields {
-        margin: 0;
-      }
-      .info-card__fields > div {
-        margin-bottom: 8px;
-      }
-      .info-card__fields dt {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #ffd178;
-        margin-bottom: 1px;
-      }
-      .info-card__fields dd {
-        margin: 0;
-        font-size: 13px;
-        line-height: 1.35;
       }
     </style>
   </head>
@@ -118,26 +108,8 @@
       >
         ✕
       </button>
+      <img id="animalInfoCardImg" class="info-card__art" src="" alt="" />
       <img id="animalInfoCardIcon" class="info-card__icon" src="" alt="" />
-      <h2 id="animalInfoCardName" class="info-card__name"></h2>
-      <dl class="info-card__fields">
-        <div>
-          <dt>Nombre científico</dt>
-          <dd id="animalInfoCardSci"></dd>
-        </div>
-        <div>
-          <dt>Estado de Conservación</dt>
-          <dd id="animalInfoCardCons"></dd>
-        </div>
-        <div>
-          <dt>Nutrición</dt>
-          <dd id="animalInfoCardNut"></dd>
-        </div>
-        <div>
-          <dt>Hábitat</dt>
-          <dd id="animalInfoCardHab"></dd>
-        </div>
-      </dl>
     </div>
 
     <!-- fog="type: exponential; color: #FFD178; density: 0.02"-->>
@@ -165,7 +137,7 @@
       <!-- Safari Game Manager -->
       <a-entity
         id="gameManager"
-        safari-game-manager="timeLimit: 120"
+        safari-game-manager="timeLimit: 180"
         environment-degradation
       ></a-entity>
 
@@ -238,6 +210,16 @@
         <!-- Cartel images -->
         <img id="cartelSafari" src="assets/img/cartel-safari.png" />
         <img id="cartelMain" src="assets/img/cartel-main.png" />
+        <img id="cartelCreditos" src="assets/img/cartel-creditos.png" />
+
+        <!-- Fichas de animal: el arte trae el texto horneado, una imagen por
+             especie. Ver animal-info-card + ANIMAL_INFO (texto accesible). -->
+        <img id="flamengoCartel" src="assets/ui/cards/flamengo-cartel.png" />
+        <img id="jaguareteCartel" src="assets/ui/cards/jaguarete-cartel.png" />
+        <img id="nanduCartel" src="assets/ui/cards/nandu-cartel.png" />
+        <img id="jurumiCartel" src="assets/ui/cards/jurumi-cartel.png" />
+        <img id="taguaCartel" src="assets/ui/cards/tagua-cartel.png" />
+        <img id="tatuCartel" src="assets/ui/cards/tatu-cartel.png" />
 
         <!-- Audio assets -->
         <audio
@@ -422,14 +404,33 @@
           scale="6.5 3.5 0.05"
           color="#a85432"
         ></a-box>
+        <!-- Anverso: créditos del proyecto, visible al rodear el cartel.
+             - rotation 0 180 0: sin esto el texto sale espejado (y el plano,
+               que es FrontSide, no se vería desde atrás).
+             - Ninguna de las dos caras lleva `side: double` a propósito: así
+               cada una se ve solo desde su lado y no se superponen.
+             - z -0.16 y no -0.06: el a-box marrón ocupa -0.055..-0.005 y
+               #debugToggleCube -0.097..-0.037; más cerca habría z-fighting. -->
+        <a-image
+          id="mainCartelBack"
+          src="#cartelCreditos"
+          position="0 3 -0.16"
+          rotation="0 180 0"
+          width="7"
+          height="4"
+          material="shader: flat; transparent: true"
+        ></a-image>
         <a-box position="2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box
         ><a-box position="-2 1 -0.15" scale="0.2 3 0.2" color="#a85432"></a-box>
         <!-- Cubo de debug: oculto detrás del cartel (-Z local). Al clickearlo togglea
-             el visor de colisiones + spawn points invisibles. Ver debug-visor-toggle. -->
+             el visor de colisiones + spawn points invisibles. Ver debug-visor-toggle.
+             z -0.22 (antes -0.067): tiene que quedar MÁS atrás que #mainCartelBack
+             (z -0.16), si no el cartel de créditos lo tapa desde atrás y deja de ser
+             clickeable — que es el único lado desde el que se llega. -->
         <a-box
           id="debugToggleCube"
           class="clickable"
-          position="2.771 4.384 -0.067"
+          position="2.771 4.384 -0.22"
           scale="0.4 0.4 0.06"
           color="#FFFFFF"
           material="shader: flat; color: #8c2f1c"
@@ -443,7 +444,7 @@
         gltf-model="#islaModel"
         position="0 0.01304 0"
         rotation="0 180 0"
-        scale="10 10 10"
+        scale="5 5 5"
         shadow="receive: true; cast: false"
       ></a-entity>
 
@@ -802,179 +803,42 @@
           hand-tracking-controls="hand: left; modelStyle: mesh"
           hand-ray="hand: left; color: #00FF00; far: 20"
         >
-          <!-- VR animal info card — attached to the left hand, toggled by animal-info-card.
-               Mirrors the desktop card layout (icon, title, gold-label/white-value rows).
-               All surfaces use side: double so the card never vanishes when the wrist
-               tilts and the back faces the camera. -->
-          <a-entity
+          <!-- Ficha VR: una sola imagen por especie (el arte trae título,
+               etiquetas y valores horneados). La maneja animal-info-card.
+               - side: double porque al girar la muñeca la cara trasera queda
+                 hacia la cámara.
+               - render-on-top: si no, el HUD pegado a la mano se recorta por el
+                 sort de transparencias al extender el brazo (ver §10). -->
+          <a-image
             id="animalInfoCardVR"
+            src="#jaguareteCartel"
             position="0 0.2 -0.09"
             rotation="-45 0 0"
+            width="0.42"
+            height="0.42"
             visible="false"
+            material="shader: flat; transparent: true; side: double"
             render-on-top
           >
-            <a-plane
-              width="0.4"
-              height="0.52"
-              material="shader: flat; color: #142314; opacity: 0.92; transparent: true; side: double"
-            ></a-plane>
+            <!-- Icono hexagonal sobre el hueco que la ficha deja arriba del
+                 nombre. Mismas medidas que la versión DOM, llevadas a metros:
+                 lado 0.2641×0.42 y centro a 0.3176×0.42 del centro hacia arriba.
+                 render-on-top apaga el depthTest, así que el z solo NO alcanza:
+                 con el mismo renderOrder que la ficha el icono se dibujaba
+                 debajo. Por eso lleva su propio render-on-top con order mayor
+                 (el del padre respeta a los hijos que declaran el suyo), más un
+                 pelín de z para que tampoco haya z-fighting si algún día se
+                 vuelve a activar el depth test. -->
             <a-image
               id="animalInfoCardVRIcon"
               src="#jaguareteCheck"
-              width="0.085"
-              height="0.085"
-              position="0 0.2 0.003"
+              width="0.111"
+              height="0.111"
+              position="0 0.133 0.004"
               material="shader: flat; transparent: true; side: double"
+              render-on-top="order: 1000"
             ></a-image>
-            <a-text
-              id="animalInfoCardVRName"
-              value=""
-              align="center"
-              anchor="center"
-              baseline="center"
-              width="0.32"
-              wrap-count="18"
-              color="#FFFFFF"
-              position="0 0.135 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-
-            <!-- Nombre científico -->
-            <a-text
-              value="NOMBRE CIENTÍFICO"
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="42"
-              color="#FFD178"
-              position="-0.185 0.075 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-            <a-text
-              id="animalInfoCardVRSci"
-              value=""
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="30"
-              color="#FFFFFF"
-              position="-0.185 0.05 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-
-            <!-- Estado de Conservación -->
-            <a-text
-              value="ESTADO DE CONSERVACIÓN"
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="42"
-              color="#FFD178"
-              position="-0.185 0.005 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-            <a-text
-              id="animalInfoCardVRCons"
-              value=""
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="30"
-              color="#FFFFFF"
-              position="-0.185 -0.02 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-
-            <!-- Nutrición -->
-            <a-text
-              value="NUTRICIÓN"
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="42"
-              color="#FFD178"
-              position="-0.185 -0.075 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-            <a-text
-              id="animalInfoCardVRNut"
-              value=""
-              align="left"
-              anchor="left"
-              baseline="top"
-              width="0.36"
-              wrap-count="30"
-              color="#FFFFFF"
-              position="-0.185 -0.092 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-
-            <!-- Hábitat -->
-            <a-text
-              value="HÁBITAT"
-              align="left"
-              anchor="left"
-              baseline="center"
-              width="0.36"
-              wrap-count="42"
-              color="#FFD178"
-              position="-0.185 -0.175 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-            <a-text
-              id="animalInfoCardVRHab"
-              value=""
-              align="left"
-              anchor="left"
-              baseline="top"
-              width="0.36"
-              wrap-count="30"
-              color="#FFFFFF"
-              position="-0.185 -0.192 0.003"
-              shader="msdf"
-              negate="false"
-              side="double"
-              font="/assets/fonts/arial-es-msdf.json"
-              font-image="/assets/fonts/arial-es-msdf.png"
-            ></a-text>
-          </a-entity>
+          </a-image>
         </a-entity>
 
         <!-- Right Controller - Point and click controller -->
@@ -1267,7 +1131,7 @@
         ></a-entity>
         <a-entity
           id="palma-5"
-          position="8.561 0 -6.524"
+          position="7.729 0 -7.734"
           scale="4.8 4.8 4.8"
           composite-tree="type: palma"
           collision-cylinder

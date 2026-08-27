@@ -83,7 +83,7 @@ AFRAME.registerComponent("safari-game-manager", {
         setTimeout(() => {
           fadeComponent.fadeIn(() => {
             // Show start message after fade in
-            this.showMessage("¡ENCUENTRA A LOS 6 ANIMALES!", 3000);
+            this.showMessage("¡ENCUENTRA A\nLOS 6 ANIMALES!", 3000);
           });
         }, 300);
       });
@@ -102,7 +102,7 @@ AFRAME.registerComponent("safari-game-manager", {
       }
 
       this.el.sceneEl.emit("safari-game-started");
-      this.showMessage("¡ENCUENTRA A LOS 6 ANIMALES!", 3000);
+      this.showMessage("¡ENCUENTRA A\nLOS 6 ANIMALES!", 3000);
     }
   },
 
@@ -254,9 +254,18 @@ AFRAME.registerComponent("safari-game-manager", {
     if (!messageEl) {
       messageEl = document.createElement("a-text");
       messageEl.setAttribute("id", "gameMessage");
-      messageEl.setAttribute("position", "0 0.5 -2");
+      // Debajo del centro de la vista, para no pisar el HUD de la brújula.
+      // Ojo: el mensaje está a z -2 y #compassUI a z -1, así que lo que importa
+      // es el ÁNGULO, no la Y. La brújula ocupa de ~9° (timer) a ~20° (iconos);
+      // "0 0.5 -2" caía en 14°, o sea justo en el medio. Con y -0.35 el mensaje
+      // queda en ~-10°, con margen de sobra para el texto de 2 líneas (todos los
+      // mensajes lo son) — más aún desde que el texto se achicó (ver width abajo).
+      messageEl.setAttribute("position", "0 -0.35 -2");
       messageEl.setAttribute("align", "center");
-      messageEl.setAttribute("width", "4");
+      // En a-text el tamaño de glifo es width/wrapCount (wrapCount def 40), así
+      // que el width es el control de tamaño: 2.6 = ~35% más chico que el 4
+      // original. Si hay que retocar el tamaño del mensaje, es este número.
+      messageEl.setAttribute("width", "2.6");
       messageEl.setAttribute("color", "#FFFFFF");
       messageEl.setAttribute("shader", "msdf");
       // Local MSDF atlas that includes Spanish accents + ñ (the CDN Roboto-msdf
@@ -267,6 +276,9 @@ AFRAME.registerComponent("safari-game-manager", {
       // Add black outline for better visibility
       messageEl.setAttribute("outline-width", "15%");
       messageEl.setAttribute("outline-color", "#000000");
+      // Al estar por debajo del horizonte, el terreno lo ocluía (antes quedaba
+      // contra el cielo y no hacía falta). render-on-top lo deja siempre visible.
+      messageEl.setAttribute("render-on-top", "");
 
       if (camera) {
         camera.appendChild(messageEl);
@@ -277,6 +289,11 @@ AFRAME.registerComponent("safari-game-manager", {
 
     messageEl.setAttribute("value", text);
     messageEl.setAttribute("visible", true);
+
+    // a-text reconstruye su malla al cambiar el value, así que hay que re-aplicar
+    // el render-on-top o el mensaje nuevo vuelve a ocluirse contra el terreno.
+    const onTop = messageEl.components["render-on-top"];
+    if (onTop) setTimeout(() => onTop.apply(), 50);
 
     if (duration) {
       setTimeout(() => {

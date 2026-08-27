@@ -20,7 +20,7 @@ Meta Quest vía PWA → TWA (§9). Además hay una **página WebAR** separada en
 ### Estado — Versión 1.0 (los tres objetivos están cumplidos)
 
 1. **Modo Safari** (juego con objetivo, narrativo): el jugador inicia desde el cartel
-   "Safari" y tiene **2 min** para encontrar/"salvar" a los 6 animales antes de que el
+   "Safari" y tiene **3 min** para encontrar/"salvar" a los 6 animales antes de que el
    bosque se incendie. A medida que se agota el tiempo el ambiente se degrada (árboles
    con copa → árboles muertos, cielo azul → rojo, vignette rojo, loop de fuego). Si los
    salva todos a tiempo, el bosque se recupera; si no, queda quemado. **Hecho** (ver §4).
@@ -126,12 +126,20 @@ Secuencia: click en cartel Safari → `safari-start-game` → `safari-game-manag
 hace fade-out (`screen-fade`), resetea (→ `safari-game-reset` → reparte spawns),
 activa `gameActive`, oculta carteles, suena `game-start`, emite `safari-game-started`,
 fade-in, muestra "¡ENCUENTRA A LOS 6 ANIMALES!". `tick` descuenta el timer
-(`timeLimit` **120 s** en el entity `#gameManager`; el schema default sigue siendo 300).
+(`timeLimit` **180 s** en el entity `#gameManager`; el schema default sigue siendo 300).
 Encontrar un animal = clickearlo → `safari-animal-clicked` → si activo, `checkAnimal`
 lo marca, suena `game-found`, glow verde permanente, se oculta su icono del compás.
 6/6 → `endGame(true)` (gana, muestra el tiempo empleado en **mm:ss**). Timer a 0 →
 `endGame(false)` (pierde, muestra cuántos encontró). `endGame` muestra el mensaje 5 s,
 fade-out, teletransporta el rig a `0 0 0` y resetea la rotación de la cámara, vuelve a Idle.
+
+**Mensajes del juego** (`safari-game-manager.showMessage`): un único `#gameMessage` colgado
+de la cámara, en **`0 -0.35 -2`**. Está **debajo** del centro de la vista a propósito: el
+HUD de la brújula ocupa de ~9° (timer) a ~20° (iconos) y el mensaje estaba en 14°, o sea
+justo encima. Ojo al comparar posiciones: el mensaje está a `z -2` y `#compassUI` a `z -1`,
+así que lo que importa es el **ángulo**, no la `y`. Lleva `render-on-top` porque al quedar
+bajo el horizonte el terreno lo ocluía, y `showMessage` lo re-aplica tras cambiar el `value`
+(el `a-text` MSDF reconstruye su malla).
 
 **HUD brújula** (`#compassUI`): tira de iconos frente a la cámara que se deslizan
 apuntando hacia cada animal + timer MSDF. `safari-compass` lo maneja (reemplazó al
@@ -154,8 +162,17 @@ jugador siempre vuelve a un bosque vivo.
 
 **Ficha de animal** (`animal-info-card`): dos superficies según `sceneEl.is('vr-mode')`
 — DOM overlay (`#animalInfoCard`, desktop) o entity en la mano izquierda
-(`#animalInfoCardVR`). Contenido desde **`src/data/animal-info.js`** (`ANIMAL_INFO`,
-fuente única de verdad; copy en español, marcada con TODO de revisión).
+(`#animalInfoCardVR`). **Ya no se compone en runtime**: desde el arte final es **una sola
+imagen cuadrada por especie** (`public/assets/ui/cards/<animal>-cartel.png`, 1024²) con
+título, etiquetas y valores horneados; el componente solo cambia el `src`. Encima del hueco
+que el arte deja arriba del nombre va el **icono hexagonal** del animal (`*-check.png`),
+superpuesto en las dos superficies (`#animalInfoCardIcon` en DOM, `#animalInfoCardVRIcon`
+en VR). Medidas tomadas del SVG (viewBox 318, el contenido arranca en y≈117.6): el icono
+ocupa y 16..100, o sea lado 26.4% y top 5.03% de la ficha. Antes eran un
+`a-plane` + icono + 9 `a-text` MSDF en VR y un `<img>`+`<h2>`+`<dl>` en desktop.
+**`src/data/animal-info.js` (`ANIMAL_INFO`) se conserva** y sigue siendo la fuente de verdad
+**textual**: da el `alt` accesible del overlay, el guard de tipo desconocido, y es el texto
+contra el que se regenera el arte. Si cambiás un texto ahí, hay que re-exportar la ficha.
 
 ---
 
@@ -187,14 +204,25 @@ fuente única de verdad; copy en español, marcada con TODO de revisión).
   `/assets/...` (sin hash ni transform). Por eso `<a-asset-item src="assets/foo.glb">`
   funciona igual en dev y prod. Referencia siempre con rutas root-relativas en HTML;
   **no** los importes desde JS. Subcarpetas por tipo: `models/` (`.glb`), `sfx/`
-  (audio), `img/`, `ui/` (PNG), `fonts/` (atlas MSDF).
+  (audio), `img/`, `ui/` (PNG de iconos), `ui/cards/` (fichas de animal, 1024²),
+  `fonts/` (atlas MSDF).
 - Modelos `.glb` (en **`public/assets/models/`**) exportados de Blender/Blockbench.
-  Los **fuentes** de arte (`.bbmodel` de Blockbench) viven en **`art-src/`** en la raíz
-  (versionados, pero **fuera** de `public/` para no desplegarse). Audio crudo y demás
+  Los **fuentes** de arte (`.bbmodel` de Blockbench, y los `.svg` de las fichas en
+  `art-src/pop-up/`) viven en **`art-src/`** en la raíz (versionados, pero **fuera** de
+  `public/` para no desplegarse). Audio crudo y demás
   binarios pesados, fuera del repo. Total actual de assets ~5 MB; el más pesado es
   `models/ground.glb` (476 KB) y `models/scenario.glb` (156 KB) — presupuesto sano VR.
+- **Rasterizar las fichas (`art-src/pop-up/*.svg` → `public/assets/ui/cards/*.png`):** los
+  SVG del diseñador traen `viewBox` **sin `width`/`height`**, así que hay que inyectarlos
+  antes de rasterizar o salen 0×0/borrosos (por eso tampoco se usan como textura directa,
+  ver §10). También traen `<image xlink:href="F:\Work\...">` con rutas Windows rotas: son
+  sobras de bleed entre artboards de Illustrator, referenciadas desde grupos con `clip-path`
+  enteramente en `y` negativo — **invisibles**, no hace falta pedir re-export. Receta:
+  `sed 's|viewBox="0 0 318 318"|width="318" height="318" viewBox="0 0 318 318"|' in.svg > tmp.svg`
+  y `npx -y sharp-cli -i tmp.svg -o out.png resize 1024 1024`.
 - Quirk de nombres: el tipo de animal es **`flamingo`** pero el archivo es
-  **`flamengo`**. Helpers `animalAssetName/animalIconAssetId/animalIconUrl` en
+  **`flamengo`** (y el SVG de diseño viene como `flamenco` — se normaliza a `flamengo` al
+  copiar, para no agregar un tercer mapeo). Helpers `animalAssetName/animalIconAssetId/animalIconUrl` en
   `data/animal-info.js` encapsulan el mapeo. Si tocas esto, céntralo en un solo lugar.
 - **Fuente del texto VR (MSDF):** los `<a-text>` usan un atlas **local**
   `public/assets/fonts/arial-es-msdf.{json,png}` (Arial) en vez del `Roboto-msdf` del
@@ -228,7 +256,9 @@ A-Frame.
   (position + rotation) de cada marcador al animal. Así cada partida los animales aparecen en
   lugares distintos. Si hay <6 marcadores, no toca nada (quedan las posiciones autoradas). Como
   corre antes de `safari-game-started`, el compás toma el snapshot de las posiciones nuevas.
-- **`debug-visor-toggle`** — en el cubo `#debugToggleCube` (detrás de `#mainCartelGrande`).
+- **`debug-visor-toggle`** — en el cubo `#debugToggleCube` (detrás de `#mainCartelGrande`,
+  a `z -0.22`: tiene que quedar **más atrás que `#mainCartelBack`** (z −0.16) o el cartel de
+  créditos lo tapa desde atrás, que es el único lado desde el que se ve/clickea).
   Al clickearlo (mouse o hand-ray VR) togglea el "visor de debug": sincroniza
   `window.COLLISION_DEBUG` y `window.SPAWN_DEBUG` y refresca colisiones + spawn points. Es el
   equivalente in-world del viejo `Ctrl+C` (que sigue existiendo, solo para colisiones).
@@ -236,11 +266,19 @@ A-Frame.
   deslizan apuntando hacia cada animal; timer MSDF que recolorea al bajar el tiempo
   (blanco → amarillo <40 s → rojo <15 s). **Reemplazó a `progress-ui`** (ya borrado).
   Expone `setTimerVisible()`, hoy sin llamadores (lo usaba el ex-modo Vuelo).
+- **`#mainCartelGrande` (en `index.html`, sin componente propio)** — el cartel de bienvenida
+  es un `a-image` plano (`#mainCartel`, 7×4) más un **anverso de créditos**
+  (`#mainCartelBack`, `src="#cartelCreditos"`, `rotation="0 180 0"`, `z -0.16`). Ninguna de
+  las dos caras lleva `side: double` **a propósito**: al ser `FrontSide` cada una se ve solo
+  desde su lado y no se superponen. El `rotation 0 180 0` es obligatorio o el texto sale
+  espejado. `safari-game-manager.setCartelesVisible()` togglea el **padre**, así que el
+  anverso se oculta/muestra solo.
 - **`orb-controller`** — hover/click de carteles. Hoy **solo** maneja `.orb-start` →
   `safari-start-game`; las clases `.orb-minigame`/`.orb-exit` del ex-modo Vuelo ya no
   existen en el HTML ni en el componente. El cartel principal (`#mainCartelGrande`) es
   **decorativo**: no lleva `orb-controller`, solo aloja el cubo de debug.
-- **`animal-info-card`** — ficha de animal en DOM (desktop) o mano izq (VR).
+- **`animal-info-card`** — ficha de animal en DOM (desktop) o mano izq (VR). Una imagen
+  por especie (§4); solo rutea la superficie y cambia el `src`.
 - **`staggered-start`** — desfasa el inicio de las animaciones glTF para que no
   arranquen sincronizadas (`maxOffset`).
 
@@ -389,7 +427,8 @@ Todos viven en el `#cameraRig` y **coexisten**: cada uno escucha un input distin
 
 - **`render-on-top`** (`src/components/render-on-top.js`) — helper de UI. Recorre las
   mallas descendientes del entity y les pone `depthTest/depthWrite=false` + `renderOrder`
-  alto, para que un HUD pegado a la mano nunca se ocluya/recorte por profundidad. Aplicado
+  alto (**salvo** los subárboles de descendientes que declaren su propio `render-on-top`:
+  ver el gotcha de renderOrder empatado en §10), para que un HUD pegado a la mano nunca se ocluya/recorte por profundidad. Aplicado
   a `#animalInfoCardVR` (la ficha VR se cortaba al extender el brazo por el sort de
   transparencias) y al overlay de `screen-fade` (evitar que ocluya el fuego). Reaplica al
   cargar, tras unos delays y al abrir cada ficha (el texto MSDF reconstruye su malla al
@@ -533,6 +572,19 @@ nativo (Unity/Godot) — esto último es una reescritura completa, **no** recome
   `opacity:0`— escribe en el depth buffer por defecto y puede ocluir partículas/HUD detrás
   (pasó con el cilindro de colisión y el overlay de `screen-fade` tapando el fuego).
   `visible:false` si es vestigial, o `render-on-top`/`depthWrite:false` si debe verse.
+- **SVG de diseño → siempre rasterizar a PNG, nunca usar como textura:** los `.svg` no
+  tienen resolución intrínseca; A-Frame los sube a la GPU al tamaño de layout que decida el
+  navegador, que en Quest/móvil suele dar textura borrosa o 0×0 (y peor si el SVG solo trae
+  `viewBox`, como los de `art-src/pop-up/`). Receta de rasterizado en §6.
+- **renderOrder empatado ⇒ el z-offset no decide nada:** `render-on-top` apaga el
+  `depthTest`, así que quién queda encima lo resuelve el sort de transparentes de three.js:
+  `renderOrder` primero y recién después la distancia. Si dos superficies apiladas comparten
+  `renderOrder` (que es lo que pasaba al ponerle el componente al padre, que se lo aplicaba a
+  todos los descendientes), **acercar el hijo unos milímetros en z no alcanza** — el icono de
+  la ficha VR se dibujaba DEBAJO pese a estar más cerca. La solución es un `renderOrder`
+  mayor en el hijo (`render-on-top="order: 1000"`), y que el padre respete a los hijos que
+  declaran el suyo. El z-offset se mantiene igual, pero como defensa para el día que se
+  vuelva a activar el depth test, no como mecanismo de orden.
 - **Texto VR sin acentos:** el MSDF `Roboto-msdf` del CDN no trae á/é/í/ó/ú/ñ. Usa el atlas
   local de §6 en todo `a-text` (incl. los creados desde JS con `shader:msdf`).
 - **`hand-tracking-controls` secuestra las entities hijas al `wristObject3D`:** cualquier hijo
