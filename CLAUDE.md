@@ -324,16 +324,26 @@ A-Frame.
 - **`collision-responder`** — en el `cameraRig`: chequea a altura de cabeza y desliza
   a lo largo de la superficie (slide) o revierte a la última posición válida.
 - **`boundary-collision`** — anillo: empuja al jugador de vuelta si sale del
-  `radius` (60 en index.html; default del schema es 45).
+  `radius` (**26.7** en index.html, el borde de la isla; default del schema es 45).
 
 ### environment/
 
-- **Bosque (estático, sin componente `forest`)** — las **213** entities con
+- **Escala del mundo (contexto para cualquier coordenada):** el terreno es `#scenario`
+  (`isla.glb`) a **escala 5**, o sea que la isla llega a **±46.9** en X/Z. Sobre eso: los
+  árboles internos viven dentro de **radio 22**, el anillo decorativo de fondo a **40**, y
+  el jugador está encerrado en **26.7** (`boundary-collision`). Si tocás una de estas
+  medidas, revisá las otras tres y los **spawn points** (§11), que tienen que caer dentro
+  del área caminable y entre árboles.
+- **Bosque (estático, sin componente `forest`)** — las **115** entities con
   `composite-tree` viven en **`index.html`**, dentro de `<a-entity id="trees">`, para
   poder editarlas con el Inspector + aframe-watcher (ver **§11**). Reparto por tipo:
-  **46 `normal`**, **40 `pasto`**, **13 `shrub`**, **12 `palma`**, **6 `roca`**, más
-  **96 `ring-N`** del anillo decorativo de fondo `#tree-ring` (no inflamables, ver
-  `flammable` abajo). Cada uno: `id` único con prefijo por tipo (`normal-N`, `pasto-N`,
+  **23 `pasto`**, **12 `normal`**, **9 `shrub`**, **7 `palma`** (los internos, todos
+  dentro de radio ~23, bien adentro del límite de 26.7), más **64 `ring-N`** del anillo decorativo de fondo `#tree-ring`,
+  ahora a **radio 40** (eran 96: al acercarlos de 75 a 40 la circunferencia se redujo a la
+  mitad y quedaban al doble de densidad, así que se podó uno de cada tres repartido por
+  ángulo) (no inflamables, ver `flammable` abajo). El tipo **`roca`** sigue
+  soportado por `composite-tree` pero **ya no se usa** en la escena: las 6 que había
+  quedaban fuera del radio 22 y se podaron al compactar el mapa. Cada uno: `id` único con prefijo por tipo (`normal-N`, `pasto-N`,
   `ring-N`, …) — el watcher solo guarda entities con `id` —, `position`,
   `scale="s s s"` (transform) y
   `composite-tree="type: …"`; los tipos `normal`/`palma`/`roca` llevan además
@@ -374,7 +384,7 @@ A-Frame.
   árboles + **volumen del loop de fuego** según el tiempo del Safari, con curva
   **lineal** (ver §4). Descubre los árboles con `querySelectorAll("[composite-tree]")`
   filtrando `ct.isAlive` (funciona igual con las entities estáticas de `index.html`).
-  Throttle interno y toggles incrementales (no recorre los 213 árboles por frame).
+  Throttle interno y toggles incrementales (no recorre los 115 árboles por frame).
   Constantes en el archivo: colores, `DEGRADATION_EXP`, `FIRE_MAX_VOLUME`.
 - **`canopy-wind`** — oscilación de copas.
 - **`screen-fade`** — fade-out/in de pantalla (usado en transiciones de partida). El
@@ -402,7 +412,7 @@ Todos viven en el `#cameraRig` y **coexisten**: cada uno escucha un input distin
   Locomoción desktop la da `movement-controls` de aframe-extras (`speed: 0.2`).
 - **`pinch-teleport`** — locomoción de **caminar con manos desnudas** (hand tracking).
   Apuntar al suelo con la mano elegida (`hand`, def `left`) + pinch → teletransporta el
-  rig al punto, dentro de `maxRange` (60 en el HTML) y validando contra
+  rig al punto, dentro de `maxRange` (**26.7** en el HTML, igual que el boundary) y validando contra
   `collision-manager`. Muestra `#teleportMarker` como destino. Se **inhibe** si ese
   frame el `hand-ray` de esa mano apunta a un `.clickable`/`.animal` (la UI manda),
   porque el pinch también es el "click".
@@ -462,6 +472,14 @@ Todos viven en el `#cameraRig` y **coexisten**: cada uno escucha un input distin
   transparencias) y al overlay de `screen-fade` (evitar que ocluya el fuego). Reaplica al
   cargar, tras unos delays y al abrir cada ficha (el texto MSDF reconstruye su malla al
   cambiar de valor).
+- **`render-order`** (`src/components/render-order.js`) — hermano del anterior, pero para
+  geometría del **mundo**: fija el `renderOrder` de las mallas descendientes **sin tocar
+  `depthTest`/`depthWrite`**. Se usa cuando dos superficies transparentes apiladas necesitan
+  un orden fijo pero **tienen que seguir ocluyéndose** contra la escena (árboles, terreno) —
+  ahí `render-on-top` sería el error, porque apaga el depth test. Aplicado a
+  `#startCartelImg` (el botón Safari agujereaba el cartel grande de atrás, ver §10).
+  Regla práctica: HUD pegado a cámara/mano → `render-on-top`; capas apiladas en el mundo →
+  `render-order`.
 
 ---
 
@@ -620,6 +638,16 @@ nativo (Unity/Godot) — esto último es una reescritura completa, **no** recome
   mayor en el hijo (`render-on-top="order: 1000"`), y que el padre respete a los hijos que
   declaran el suyo. El z-offset se mantiene igual, pero como defensa para el día que se
   vuelva a activar el depth test, no como mecanismo de orden.
+- **Dos imágenes transparentes apiladas ⇒ el orden depende del ÁNGULO de la cámara:**
+  three.js ordena los transparentes por la profundidad del **origen** de cada objeto, no por
+  píxel. Un plano chico y **descentrado** montado delante de uno grande (el botón Safari
+  sobre `#mainCartel`, ~21° a la derecha) invierte el orden apenas girás la cabeza hacia él:
+  su origen queda "más lejos" que el centro del grande, se dibuja **primero**, escribe
+  profundidad y el de atrás **falla el depth test** → por los píxeles transparentes del de
+  adelante se ve el **cielo**, no la imagen de abajo. Acercarlo en z **no** arregla nada
+  (mirándolo de frente ya estaba más cerca; el problema aparece al girar). Fix: `renderOrder`
+  explícito con **`render-order`** en la capa de adelante, que a diferencia de
+  `render-on-top` deja el depth test activo.
 - **Texto VR sin acentos:** el MSDF `Roboto-msdf` del CDN no trae á/é/í/ó/ú/ñ. Usa el atlas
   local de §6 en todo `a-text` (incl. los creados desde JS con `shader:msdf`).
 - **`hand-tracking-controls` secuestra las entities hijas al `wristObject3D`:** cualquier hijo
@@ -688,6 +716,22 @@ detrás del cartel grande (`#debugToggleCube`) para ver los anillos/flechas mien
 Cada marcador define la pose que adopta el animal que le toque; la **flecha apunta a −Z** (hacia
 dónde mirará). Podés **agregar** marcadores (más puntos = más variedad; `id` único obligatorio) o
 **borrarlos** (mínimo 6, si no `animal-spawner` deja las posiciones autoradas y avisa por consola).
+
+**Animales — cuál se edita dónde.** Hay tres grupos y cada uno se mueve distinto:
+
+- **Idle / vitrina (`#showcaseAnimals`)** — el arco de 6 que mira al jugador en el spawn.
+  Llevan `id="showcase-<tipo>"` (`showcase-flamingo`, `showcase-jaguarete`, …) justamente
+  para que el watcher los persista: movelos/rotalos con el gizmo y **Save**. Antes no
+  tenían `id` y las ediciones del Inspector se perdían en silencio.
+- **Safari (`#huntAnimals`)** — tienen `id` (`flamengo`, `jaguarete`, …), pero **editarlos
+  no sirve de nada**: `animal-spawner` les copia la pose de un `spawn-N` al azar en cada
+  partida (las posiciones del HTML son solo el fallback para cuando hay <6 marcadores).
+  Para cambiar **dónde aparecen**, mové los **spawn points**, como arriba.
+- **Flamencos decorativos del cielo (`#animals`)** — **no** son editables por Inspector y
+  por eso **no llevan `id`**: `animal-behavior` les reescribe `position` y `rotation` en cada
+  `tick` (órbita + wiggle), así que el gizmo no los mueve y guardar dejaría congelado un
+  punto cualquiera de la órbita. Se los reubica editando su `position` (el centro de la
+  órbita, que el componente captura en `init`) y `radius`/`pathRotation` en el HTML a mano.
 
 ---
 
