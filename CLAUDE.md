@@ -280,9 +280,11 @@ A-Frame.
 - **`debug-visor-toggle`** — en el cubo `#debugToggleCube` (detrás de `#mainCartelGrande`,
   a `z -0.22`: tiene que quedar **más atrás que `#mainCartelBack`** (z −0.16) o el cartel de
   créditos lo tapa desde atrás, que es el único lado desde el que se ve/clickea).
-  Al clickearlo (mouse o hand-ray VR) togglea el "visor de debug": sincroniza
-  `window.COLLISION_DEBUG` y `window.SPAWN_DEBUG` y refresca colisiones + spawn points. Es el
-  equivalente in-world del viejo `Ctrl+C` (que sigue existiendo, solo para colisiones).
+  Togglea el "visor de debug": sincroniza `window.COLLISION_DEBUG` y `window.SPAWN_DEBUG`
+  y refresca colisiones + spawn points. **Hoy se abre con `Ctrl+D`**: el cubo está
+  `visible="false"` para no ensuciar la escena publicada, y un entity invisible no recibe
+  raycast, así que dejó de ser clickeable (quitarle el `visible="false"` lo devuelve a
+  mano dentro del headset). `Ctrl+C` sigue aparte en `collision-manager`, solo colisiones.
 - **`safari-compass`** — brújula direccional HUD (`#compassUI`): tira de iconos que se
   deslizan apuntando hacia cada animal; timer MSDF que recolorea al bajar el tiempo
   (blanco → amarillo <40 s → rojo <15 s). **Reemplazó a `progress-ui`** (ya borrado).
@@ -405,11 +407,19 @@ A-Frame.
 Todos viven en el `#cameraRig` y **coexisten**: cada uno escucha un input distinto
 (thumbstick / pinch / aleteo / teclado), así que no compiten entre sí.
 
-- **`vr-locomotion`** (`movement.js`) — locomoción por thumbstick en VR (evento
-  `axismove`, solo mandos). Schema: `speed` (def 5.0), `acceleration`, `deceleration`,
-  `deadZone`, `controllerHand` (def `left`), `useHeadDirection`. Flag de runtime
-  `this.enabled` (def true) — hoy **nadie lo pone en false** (lo hacía `vuelo-mode`).
-  Locomoción desktop la da `movement-controls` de aframe-extras (`speed: 0.2`).
+- **`vr-locomotion`** (`movement.js`) — desplazamiento por thumbstick en VR, solo mandos.
+  **Los DOS sticks mueven** (`controllerHand: both`) y **ningún stick gira**: se gira
+  girando la cabeza. Schema: `speed` (def 5.0), `acceleration`, `deceleration`, `deadZone`,
+  `controllerHand` (def `both`), `useHeadDirection`. Si los dos sticks están en uso manda
+  el más empujado. Flag de runtime `this.enabled` (def true) — hoy nadie lo pone en false.
+  **Ojo con dos trampas que lo tenían muerto:** (a) la mano NO se puede deducir del atributo
+  `hand-controls` —estas entidades usan `meta-touch-controls`—, y (b) en `axismove`
+  xr-standard el thumbstick son los ejes **2 y 3** (0 y 1 son el touchpad, siempre 0). Por eso
+  ahora se escucha **`thumbstickmoved`** (detail `{x, y}`), con `axismove` solo de respaldo.
+  **`movement-controls` se monta SIN el control `gamepad`** (`controls: keyboard, touch`):
+  era `gamepad-controls` de aframe-extras quien movía con el stick izquierdo y **rotaba con
+  el derecho**; si se lo deja, el izquierdo mueve dos veces y el derecho vuelve a girar.
+  Locomoción desktop (WASD) la sigue dando `movement-controls` (`speed: 0.2`).
 - **`pinch-teleport`** — locomoción de **caminar con manos desnudas** (hand tracking).
   Apuntar al suelo con la mano elegida (`hand`, def `left`) + pinch → teletransporta el
   rig al punto, dentro de `maxRange` (**26.7** en el HTML, igual que el boundary) y validando contra

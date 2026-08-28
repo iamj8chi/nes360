@@ -439,6 +439,7 @@
              clickeable — que es el único lado desde el que se llega. -->
         <a-box
           id="debugToggleCube"
+          visible="false"
           class="clickable"
           position="2.771 4.384 -0.22"
           scale="0.4 0.4 0.06"
@@ -713,8 +714,8 @@
       <a-entity
         id="cameraRig"
         position="0 0 0"
-        movement-controls="enabled: true; speed: 0.2;"
-        vr-locomotion="controllerHand: left"
+        movement-controls="enabled: true; speed: 0.2; controls: keyboard, touch"
+        vr-locomotion="controllerHand: both"
         flight-locomotion="enabled: false"
         pinch-teleport="hand: left; maxRange: 26.7"
         boundary-collision="radius: 26.7"
