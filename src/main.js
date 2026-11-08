@@ -25,6 +25,7 @@ import "./components/game/hold-to-restart.js";
 import "./components/game/cinematic-lock.js";
 import "./components/game/ending-good.js";
 import "./components/game/ending-bad.js";
+import "./components/game/demo-mode.js";
 
 // Animals
 import "./components/animals/animal-highlighter.js";

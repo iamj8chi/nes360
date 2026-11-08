@@ -54,6 +54,9 @@ modo Safari (el único juego) al tocar locomoción.
 | `npm run preview`      | Sirve el build (mismas opciones que dev: 3333/HTTPS/host)             |
 | `npm run inspect`      | Dev server en **HTTP** (`NO_SSL=1`) para el Inspector — ver §11       |
 | `npm run watch`        | aframe-watcher: persiste ediciones del Inspector a `index.html` (§11) |
+| `npm run demo`         | Modo demo: el Safari se juega solo (`/?demo=partida`, HTTP) — ver §4  |
+| `npm run demo:bueno`   | Modo demo directo al final bueno (`/?demo=bueno`)                     |
+| `npm run demo:malo`    | Modo demo directo al final malo (`/?demo=malo`)                       |
 | `npm run format`       | Prettier sobre todo el repo                                           |
 | `npm run format:check` | Verifica formato sin escribir (CI-friendly)                           |
 
@@ -62,6 +65,9 @@ modo Safari (el único juego) al tocar locomoción.
   avisará del cert no confiable una vez — aceptar.
 - Para probar en un Quest: `npm run dev`, abrir `https://<IP-de-tu-Mac>:3333` en el
   navegador del headset (misma Wi-Fi).
+- Los scripts `demo*` levantan Vite en HTTP localhost (como `inspect`) y abren el
+  navegador en la URL de la demo. Si ya hay un dev server en el 3333 (puerto fijo), abrí la
+  URL a mano: `https://localhost:3333/?demo=bueno`. También anda en producción.
 - No hay tests ni linter aparte de Prettier. No hay CI configurado en el repo.
 
 ---
@@ -179,6 +185,14 @@ adelante. Durante un final `abortGame` no llama a `resetGame`, porque eso revivi
 bosque con la cinemática todavía en pantalla. Mientras el botón está pulsado se muestra el
 prompt "Mantén apretado / para reiniciar"; al soltar antes se cancela. Lo detecta
 `hold-to-restart` (§7), que no toca el estado: solo emite el evento.
+
+**Modo demo** (`demo-mode`, §7): con `?demo=partida|bueno|malo` en la URL el Safari se
+juega solo y se repite sin fin, para presentar o revisar los finales sin jugar. `partida`
+es un bot que camina (ruta A\* por `src/utils/grid-path.js`), clickea a los 6 y llega al
+final bueno. `bueno` marca a los 6 de una. `malo` marca a `&encontrados=N` (def 3) y corre
+el timer ×24 para que se vea el incendio. Juega por los mismos caminos que un jugador
+(click en el cartel y en los animales); se corta con la salida de emergencia. Sin el
+parámetro es un no-op, así que el APK (que abre `/`) no se entera.
 
 **Mensajes del juego** (`safari-game-manager.showMessage`): un único `#gameMessage` colgado
 de la cámara, en **`0 -0.35 -2`**. Está **debajo** del centro de la vista a propósito: el
@@ -341,12 +355,31 @@ A-Frame.
   offset y el yaw reales de la cámara en VR. También exporta `worldYaw(object3D)` y
   `cameraYaw(sceneEl)`; el yaw sale del cuaternión con orden YXZ, así que es estable aunque
   se mire hacia abajo.
+- **`demo-mode`** — en `<a-scene>`. Modo demo por URL (§4). Lee `?demo=` en `init`; sin
+  él no hace nada. Aprieta el cartel Safari (`mouseenter` + `click` en `.orb-start`), y en
+  `safari-game-started` corre el guion del modo. El autopiloto de `partida` planifica cada
+  tramo con A\* (`grid-path`) esquivando `collision-cylinder`/`-cube` y los otros animales,
+  gira el rig hacia donde camina, baja el pitch de `look-controls` al animal y le hace
+  `mouseenter` → `click` → cierra la ficha. **Pausa el `collision-responder`** del rig
+  mientras camina y lo devuelve al terminar (la ruta ya esquiva, y el responder lo hacía
+  avanzar a los tirones). Loop: en `safari-game-ended` vuelve a arrancar a los 4 s. En
+  `safari-restart` se corta hasta recargar. Si el `AudioContext` está suspendido (sin gesto
+  del usuario) muestra "Click para activar el sonido". Pensado para desktop: en VR mueve el
+  rig solo y marea.
+- **`src/utils/grid-path.js`** (helper, no componente) — A\* sobre una grilla XZ de la isla
+  para el autopiloto de `demo-mode`: `buildGrid` (celdas bloqueadas a < `clearance` de un
+  obstáculo o fuera del radio), `findPath` (ruta hasta una celda a ≤ `reach` del objetivo
+  con línea de visión, suavizada) y `lineFree`. Reemplazó a un esquive reactivo que se
+  trababa contra el centro del cartel de 7 m y en el bolsillo entre su borde y un árbol.
 - **`animal-spawner`** — en `#gameManager`. En `safari-game-reset` (que se emite al inicio
   de `startGame`, antes de `safari-game-started`) reparte los 6 animales de `#huntAnimals`
   entre los spawn points (`[spawn-point]`) al azar (Fisher–Yates), copiando la pose completa
   (position + rotation) de cada marcador al animal. Así cada partida los animales aparecen en
   lugares distintos. Si hay <6 marcadores, no toca nada (quedan las posiciones autoradas). Como
   corre antes de `safari-game-started`, el compás toma el snapshot de las posiciones nuevas.
+  _Desde `d864106` estaba registrado en `main.js` pero **no montado** en `#gameManager`
+  (no-op silencioso, como `audio-unlock`): los animales salían siempre en sus posiciones
+  autoradas. Se montó junto con el modo demo._
 - **`debug-visor-toggle`** — en el cubo `#debugToggleCube` (detrás de `#mainCartelGrande`,
   a `z -0.22`: tiene que quedar **más atrás que `#mainCartelBack`** (z −0.16) o el cartel de
   créditos lo tapa desde atrás, que es el único lado desde el que se ve/clickea).

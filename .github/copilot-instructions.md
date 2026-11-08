@@ -48,7 +48,11 @@ src="/src/main.js">`.
   `safari-game-ended`.
 - Non-component helpers live in `src/utils/` (e.g. `place-rig.js`, used by the
   endings to put the player's head at a point regardless of their real-world VR
-  position).
+  position; `grid-path.js`, the A\* used by the demo autopilot).
+- **Demo mode:** `?demo=partida|bueno|malo` (or `npm run demo`, `demo:bueno`,
+  `demo:malo`) makes the Safari play itself in a loop via `demo-mode` on
+  `<a-scene>`. It drives the game through the same events/clicks a player would and
+  is a no-op without the URL parameter.
 - **Registration order does not matter** — `registerComponent` only defines;
   A-Frame instantiates components when entities attach. Discovery (e.g.
   `collision-manager`) happens at runtime via `querySelectorAll`.
