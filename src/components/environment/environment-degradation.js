@@ -27,6 +27,10 @@ const FIRE_MAX_VOLUME = 1.0;
 // Peak opacity of the red damage vignette at p = 1.
 const VIGNETTE_MAX = 0.8;
 
+// Final bueno: la camioneta se aleja del incendio, así que el loop de fuego se
+// apaga en este tiempo (ms) en vez de cortarse de golpe.
+const FIRE_FADE_OUT_MS = 4000;
+
 AFRAME.registerComponent("environment-degradation", {
   init: function () {
     this.currentP = 0;
@@ -44,6 +48,8 @@ AFRAME.registerComponent("environment-degradation", {
     this.onTimer = this.onTimer.bind(this);
     this.onEnded = this.onEnded.bind(this);
     this.onReset = this.onReset.bind(this);
+    this.onEndingStarted = this.onEndingStarted.bind(this);
+    this.fireFade = null; // {from, elapsed} mientras se apaga el fuego (final bueno)
 
     setTimeout(() => {
       this.sky = document.getElementById("sky");
@@ -57,6 +63,7 @@ AFRAME.registerComponent("environment-degradation", {
       scene.addEventListener("safari-timer-update", this.onTimer);
       scene.addEventListener("safari-game-ended", this.onEnded);
       scene.addEventListener("safari-game-reset", this.onReset);
+      scene.addEventListener("safari-ending-started", this.onEndingStarted);
 
       console.log(
         `Environment degradation ready (${this.trees.length} living trees)`
@@ -92,13 +99,42 @@ AFRAME.registerComponent("environment-degradation", {
     // teleported back in front of the sign — restore the forest and sky to
     // normal for both win and loss so they return to a healthy world.
     this.recovering = false;
+    this.fireFade = null;
     this.stopFire();
     this.applyP(0, true);
   },
 
   onReset: function () {
+    this.fireFade = null;
     this.stopFire();
     this.applyP(0, true);
+  },
+
+  // Arranca un final (a negro). El vignette rojo es feedback de "te estás
+  // quemando" durante la ronda: en la cinemática se apaga en los dos finales.
+  //  - Ganó: la camioneta se aleja → el fuego se apaga de a poco (ver tick).
+  //  - Perdió: el bosque queda quemado (p = 1) y el fuego sigue sonando; el
+  //    final malo pasa en medio del incendio.
+  // El restore a sano lo sigue haciendo onEnded, en safari-game-ended.
+  onEndingStarted: function (evt) {
+    this.setVignette(0);
+    if (evt.detail && evt.detail.won) {
+      this.fireFade = {
+        from: this.currentP * FIRE_MAX_VOLUME,
+        elapsed: 0,
+      };
+    }
+  },
+
+  tick: function (time, delta) {
+    if (!this.fireFade) return;
+    this.fireFade.elapsed += delta;
+    const k = Math.min(1, this.fireFade.elapsed / FIRE_FADE_OUT_MS);
+    this.setFireVolume(this.fireFade.from * (1 - k));
+    if (k >= 1) {
+      this.fireFade = null;
+      this.stopFire();
+    }
   },
 
   // Apply degradation state p∈[0,1]. Sky/fog tint every meaningful step; trees
@@ -223,5 +259,6 @@ AFRAME.registerComponent("environment-degradation", {
     scene.removeEventListener("safari-timer-update", this.onTimer);
     scene.removeEventListener("safari-game-ended", this.onEnded);
     scene.removeEventListener("safari-game-reset", this.onReset);
+    scene.removeEventListener("safari-ending-started", this.onEndingStarted);
   },
 });

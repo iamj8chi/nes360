@@ -53,6 +53,7 @@ AFRAME.registerComponent("animal-info-card", {
     // Hide the card whenever the mode changes so it never lingers stale.
     this.el.sceneEl.addEventListener("safari-game-started", this.hide);
     this.el.sceneEl.addEventListener("safari-game-ended", this.hide);
+    this.el.sceneEl.addEventListener("safari-ending-started", this.hide);
     this.el.sceneEl.addEventListener("enter-vr", this.hide);
     this.el.sceneEl.addEventListener("exit-vr", this.hide);
   },
@@ -130,6 +131,7 @@ AFRAME.registerComponent("animal-info-card", {
     );
     this.el.sceneEl.removeEventListener("safari-game-started", this.hide);
     this.el.sceneEl.removeEventListener("safari-game-ended", this.hide);
+    this.el.sceneEl.removeEventListener("safari-ending-started", this.hide);
     this.el.sceneEl.removeEventListener("enter-vr", this.hide);
     this.el.sceneEl.removeEventListener("exit-vr", this.hide);
     if (this.closeBtn) {

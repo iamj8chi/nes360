@@ -67,6 +67,8 @@ AFRAME.registerComponent("safari-compass", {
       scene.addEventListener("safari-animal-found", this.onFound);
       scene.addEventListener("safari-timer-update", this.onTimer);
       scene.addEventListener("safari-game-ended", this.onEnded);
+      // Los finales arrancan a negro: el HUD se apaga ahí, no al volver al menú.
+      scene.addEventListener("safari-ending-started", this.onEnded);
       scene.addEventListener("safari-game-reset", this.onReset);
 
       console.log("Safari compass initialized");
@@ -187,6 +189,7 @@ AFRAME.registerComponent("safari-compass", {
     scene.removeEventListener("safari-animal-found", this.onFound);
     scene.removeEventListener("safari-timer-update", this.onTimer);
     scene.removeEventListener("safari-game-ended", this.onEnded);
+    scene.removeEventListener("safari-ending-started", this.onEnded);
     scene.removeEventListener("safari-game-reset", this.onReset);
   },
 });

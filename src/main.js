@@ -22,6 +22,9 @@ import "./components/game/animal-info-card.js";
 import "./components/game/animal-spawner.js";
 import "./components/game/debug-visor-toggle.js";
 import "./components/game/hold-to-restart.js";
+import "./components/game/cinematic-lock.js";
+import "./components/game/ending-good.js";
+import "./components/game/ending-bad.js";
 
 // Animals
 import "./components/animals/animal-highlighter.js";
@@ -43,6 +46,7 @@ import "./components/environment/canopy-wind.js";
 import "./components/environment/screen-fade.js";
 import "./components/environment/shadow-control.js";
 import "./components/environment/environment-degradation.js";
+import "./components/environment/ending-treadmill.js";
 
 // Movement (VR locomotion)
 import "./components/movement.js";

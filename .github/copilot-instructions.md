@@ -4,7 +4,10 @@
 
 "No Estan Solos" is a 360° VR safari game built with **A-Frame** (WebGL) and
 bundled with **Vite**. The player finds 6 native animals within a time limit, on
-desktop or in VR. See `README.md` for run/build instructions.
+desktop or in VR. The round ends with one of two look-only cutscenes (good ending:
+caged animals driven away from the fire in a pickup; bad ending: the saved animals
+in a circle around the player). See `README.md` for run/build instructions and
+`CLAUDE.md` for the full architecture guide.
 
 ## Tech stack & workflow
 
@@ -37,10 +40,15 @@ src="/src/main.js">`.
   `collision/`, `environment/`, `performance/`, plus `movement.js`.
 - **Cross-component communication is event-based.** Components emit and listen
   on `this.el.sceneEl` with the `safari-*` event names (`safari-start-game`,
-  `safari-animal-clicked`, `safari-animal-found`, `safari-timer-update`,
-  `safari-game-ended`, `safari-game-reset`). `safari-game-manager` owns game
+  `safari-game-started`, `safari-animal-clicked`, `safari-animal-found`,
+  `safari-timer-update`, `safari-ending-started`, `safari-game-ended`,
+  `safari-game-reset`, `safari-restart`). `safari-game-manager` owns game
   state. When adding behavior, prefer emitting/handling these events over direct
-  cross-component calls.
+  cross-component calls. Anything an ending sets up is torn down on
+  `safari-game-ended`.
+- Non-component helpers live in `src/utils/` (e.g. `place-rig.js`, used by the
+  endings to put the player's head at a point regardless of their real-world VR
+  position).
 - **Registration order does not matter** — `registerComponent` only defines;
   A-Frame instantiates components when entities attach. Discovery (e.g.
   `collision-manager`) happens at runtime via `querySelectorAll`.

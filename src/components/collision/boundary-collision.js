@@ -4,6 +4,9 @@ AFRAME.registerComponent("boundary-collision", {
     radius: { type: "number", default: 45 }, // Match boundary ring radius
     centerX: { type: "number", default: 0 },
     centerZ: { type: "number", default: 0 },
+    // false = no empuja. Lo apaga cinematic-lock durante los finales del Safari:
+    // la camioneta del final bueno está lejos de la isla, fuera del radio.
+    enabled: { type: "boolean", default: true },
   },
 
   init: function () {
@@ -13,6 +16,8 @@ AFRAME.registerComponent("boundary-collision", {
   },
 
   tick: function () {
+    if (!this.data.enabled) return;
+
     // Get current world position
     this.el.object3D.getWorldPosition(this.currentPosition);
 

@@ -22,9 +22,11 @@ Meta Quest vía PWA → TWA (§9). Además hay una **página WebAR** separada en
 1. **Modo Safari** (juego con objetivo, narrativo): el jugador inicia desde el cartel
    "Safari" y tiene **2 min** para encontrar/"salvar" a los 6 animales antes de que el
    bosque se incendie. A medida que se agota el tiempo el ambiente se degrada (árboles
-   con copa → árboles muertos, cielo azul → rojo, vignette rojo, loop de fuego). Si los
-   salva todos a tiempo, el bosque se recupera; si no, queda quemado. **Hecho** (ver §4).
-   Es el **único modo de juego**.
+   con copa → árboles muertos, cielo azul → rojo, vignette rojo, loop de fuego). Cierra
+   con una de **dos cinemáticas**: si los salva a todos, se los lleva enjaulados en una
+   camioneta lejos del incendio; si no, los que salvó se reúnen en círculo con el logo y
+   "No los salvaste a todos, intenta nuevamente.". **Hecho** (ver §4, "Finales"). Es el
+   **único modo de juego**.
 2. **Locomoción libre**: lo que antes se planeó como un "**modo Vuelo**" separado
    (sandbox con su propio cartel, entrada/salida y estado) **ya no existe**. El
    componente `vuelo-mode` fue **eliminado** junto con todos los eventos `vuelo-*`;
@@ -89,20 +91,27 @@ Los componentes **no se llaman directo**; emiten/escuchan eventos en
 `this.el.sceneEl`. El hub de estado es **`safari-game-manager`**. Estos son **todos**
 los eventos del juego (los `vuelo-*` de versiones anteriores ya no existen):
 
-| Evento                  | Emisor                           | Quién reacciona                                                                                                                                         | Payload                                  |
-| ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `safari-start-game`     | `orb-controller` (cartel Safari) | `safari-game-manager.startGame`                                                                                                                         | —                                        |
-| `safari-game-started`   | `safari-game-manager`            | `safari-compass` (muestra HUD + snapshot de posiciones), `game-modes` (→Safari), `environment-degradation` (arranca sano + loop de fuego)               | —                                        |
-| `safari-animal-clicked` | `animal-clickable`               | `safari-game-manager` (cuenta hallazgo si `gameActive`), `animal-info-card` (abre ficha)                                                                | `{animalType, element}`                  |
-| `safari-animal-found`   | `safari-game-manager`            | `safari-compass` (oculta icono), `animal-clickable` (glow verde)                                                                                        | `{animalType, totalFound, totalAnimals}` |
-| `safari-timer-update`   | `safari-game-manager` (tick)     | `safari-compass` (timer + color), `environment-degradation` (cielo/niebla/árboles/vignette/volumen ∝ tiempo)                                            | `{timeRemaining, timeLimit}`             |
-| `safari-game-ended`     | `safari-game-manager`            | `game-modes` (→Idle), `safari-compass` (oculta HUD), `environment-degradation` (restaura a sano)                                                        | `{won}`                                  |
-| `safari-game-reset`     | `safari-game-manager`            | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano), `animal-spawner` (reparte animales entre spawn points) | —                                        |
-| `safari-restart`        | `hold-to-restart`                | `safari-game-manager.abortGame` (corta la partida y devuelve al inicio)                                                                                 | —                                        |
+| Evento                  | Emisor                           | Quién reacciona                                                                                                                                                                                                                                                                                         | Payload                                  |
+| ----------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `safari-start-game`     | `orb-controller` (cartel Safari) | `safari-game-manager.startGame`                                                                                                                                                                                                                                                                         | —                                        |
+| `safari-game-started`   | `safari-game-manager`            | `safari-compass` (muestra HUD + snapshot de posiciones), `game-modes` (→Safari), `environment-degradation` (arranca sano + loop de fuego)                                                                                                                                                               | —                                        |
+| `safari-animal-clicked` | `animal-clickable`               | `safari-game-manager` (cuenta hallazgo si `gameActive`), `animal-info-card` (abre ficha)                                                                                                                                                                                                                | `{animalType, element}`                  |
+| `safari-animal-found`   | `safari-game-manager`            | `safari-compass` (oculta icono), `animal-clickable` (glow verde)                                                                                                                                                                                                                                        | `{animalType, totalFound, totalAnimals}` |
+| `safari-timer-update`   | `safari-game-manager` (tick)     | `safari-compass` (timer + color), `environment-degradation` (cielo/niebla/árboles/vignette/volumen ∝ tiempo)                                                                                                                                                                                            | `{timeRemaining, timeLimit}`             |
+| `safari-ending-started` | `safari-game-manager` (a negro)  | `ending-good`/`ending-bad` (arman su final según `won`), `ending-treadmill`, `cinematic-lock` (traba locomoción), `game-modes` (oculta todos los sets), `safari-compass` (oculta HUD), `animal-info-card` (cierra ficha), `environment-degradation` (apaga vignette; si ganó, apaga el fuego de a poco) | `{won, found: [animalType…]}`            |
+| `safari-game-ended`     | `safari-game-manager`            | `game-modes` (→Idle), `safari-compass` (oculta HUD), `environment-degradation` (restaura a sano), `ending-good`/`ending-bad`/`ending-treadmill` (desarman), `cinematic-lock` (destraba)                                                                                                                 | `{won}`                                  |
+| `safari-game-reset`     | `safari-game-manager`            | `animal-clickable.reset`, `safari-compass` (reset), `environment-degradation` (restaura a sano), `animal-spawner` (reparte animales entre spawn points)                                                                                                                                                 | —                                        |
+| `safari-restart`        | `hold-to-restart`                | `safari-game-manager.abortGame` (corta la partida, o salta el final, y devuelve al inicio)                                                                                                                                                                                                              | —                                        |
 
 Orden importante: `safari-game-reset` se emite **dentro de** `startGame`, **antes** de
 `safari-game-started`. Por eso `animal-spawner` ya movió los animales cuando
 `safari-compass` toma su snapshot de posiciones.
+
+Al terminar la partida el orden es `safari-ending-started` (a negro, arranca la
+cinemática) → … `duration` … → `safari-game-ended` (a negro de nuevo, ya de vuelta en
+el menú). **Todo lo que arma un final se desarma en `safari-game-ended`**, que también
+emite el skip (`abortGame` → `returnToStart`). Así no hace falta un evento de "fin del
+final" aparte.
 
 Al añadir comportamiento, **prefiere emitir/escuchar estos eventos** antes que
 llamar componentes entre sí. La página `/ar` tiene su **propio** bus (`ar-*`), aislado
@@ -130,16 +139,46 @@ fade-in, muestra "¡ENCUENTRA A LOS 6 ANIMALES!". `tick` descuenta el timer
 (`timeLimit` **120 s** en el entity `#gameManager`; el schema default sigue siendo 300).
 Encontrar un animal = clickearlo → `safari-animal-clicked` → si activo, `checkAnimal`
 lo marca, suena `game-found`, glow verde permanente, se oculta su icono del compás.
-6/6 → `endGame(true)` (gana, muestra el tiempo empleado en **mm:ss**). Timer a 0 →
-`endGame(false)` (pierde, muestra cuántos encontró). `endGame` muestra el mensaje 5 s,
-fade-out, teletransporta el rig a `0 0 0` y resetea la rotación de la cámara, vuelve a Idle.
+6/6 → `endGame(true)` (gana). Timer a 0 → `endGame(false)` (pierde). `endGame` suena
+win/over y llama a **`playEnding(won)`**: fade a negro → `safari-ending-started
+{won, found}` → fade-in → la cinemática corre `goodEndingDuration` (12 s) o
+`badEndingDuration` (10 s) → `returnToStart` (fade, rig a `0 0 0` sin rotación, cámara
+reseteada, `safari-game-ended`, carteles, Idle). Ya **no** hay mensaje de "¡GANASTE!
+mm:ss" ni de "x/6": los finales lo reemplazan.
+
+**Finales** (guion "NES 360 ENDINGS"). En los dos el jugador **solo puede mover la
+cabeza**: `cinematic-lock` apaga WASD, sticks, pinch-teleport y el boundary.
+
+- **Bueno** (`ending-good`, `#endingGood`): el jugador va en la **caja de una camioneta**
+  entre **6 jaulas** con los animales salvados, por un camino de tierra que se aleja del
+  incendio; adelante aparece el **logo** (`#endingGoodLogo`). El escenario está en
+  **`x 600`**, lejos de la isla: mientras dura se ocultan `#scenario`, `#trees`, `#floor` y
+  `#sky`, y se pone un cielo propio en degradé (azul adelante, rojo atrás) más una niebla
+  más rala. La camioneta **no se mueve**: el mundo pasa (`ending-treadmill`), a velocidad
+  constante y con la camioneta como marco fijo, para no marear en VR. El fuego del fondo
+  queda fijo atrás y el loop de fuego se apaga en ~4 s. Camioneta y jaulas son un
+  **placeholder de primitivas** (ver el comentario en `#endingTruck` para cambiarlas por
+  `.glb`).
+- **Malo** (`ending-bad`, `#endingBad`): pasa **en la isla quemada** (p = 1, el fuego
+  sigue). Los animales **que salvó** aparecen en círculo a su alrededor; los huecos marcan
+  a los que faltaron, y con 0 encontrados el círculo queda vacío. Encima aparecen el logo y
+  "No los salvaste a todos, intenta nuevamente." sobre una placa oscura. El grupo se rota
+  hacia donde mira el jugador, así el logo queda adelante.
+
+El jugador se ubica con **`placeRigAt`** (`src/utils/place-rig.js`), que compensa el
+offset y el yaw reales de la cabeza en VR. Por eso `returnToStart` resetea también la
+**rotación del rig**. Los dos grupos arrancan **pausados** (sin tick de mixers, fuego ni
+viento mientras están ocultos) y solo se reproducen durante su final.
 
 **Salida de emergencia:** mantener 3 s **A/B/X/Y** en un mando de Quest o **Ctrl** en
 teclado emite `safari-restart` → `safari-game-manager.abortGame`, que cancela la partida
 y devuelve al jugador al inicio con todo reseteado (existe porque el Safari arranca con un
-solo click y antes no había forma de salir salvo esperar el timer). Mientras el botón está
-pulsado se muestra el prompt "Mantén apretado / para reiniciar"; al soltar antes se cancela.
-Lo detecta `hold-to-restart` (§7), que no toca el estado: solo emite el evento.
+solo click y antes no había forma de salir salvo esperar el timer). **También salta los
+finales.** Un token (`endingToken`) evita que un final abortado durante su primer fade siga
+adelante. Durante un final `abortGame` no llama a `resetGame`, porque eso reviviría el
+bosque con la cinemática todavía en pantalla. Mientras el botón está pulsado se muestra el
+prompt "Mantén apretado / para reiniciar"; al soltar antes se cancela. Lo detecta
+`hold-to-restart` (§7), que no toca el estado: solo emite el evento.
 
 **Mensajes del juego** (`safari-game-manager.showMessage`): un único `#gameMessage` colgado
 de la cámara, en **`0 -0.35 -2`**. Está **debajo** del centro de la vista a propósito: el
@@ -163,7 +202,9 @@ va matando árboles vivos de a poco vía `composite-tree.kill()` (que les pone l
 `low-poly-fire` en la base), **sube el volumen del loop de fuego** `#soundFire`
 (`fire.mp3`, pico en `FIRE_MAX_VOLUME`) y opaca un **vignette rojo de daño** pegado a
 la cámara (plano con textura de canvas generada en `createVignette()`, pico en
-`VIGNETTE_MAX`). En `safari-game-ended` (sea victoria o derrota)
+`VIGNETTE_MAX`). En `safari-ending-started` apaga el vignette y, si ganó, baja el fuego a 0
+en `FIRE_FADE_OUT_MS`; si perdió, deja el bosque quemado para el final malo. En
+`safari-game-ended` (sea victoria o derrota)
 y en `safari-game-started/-reset` restaura todo a sano (cielo azul, árboles revividos sin
 fuego, sonido detenido): como `safari-game-ended` se emite durante el fade-a-negro
 mientras teletransporta al jugador frente al cartel, el reset es imperceptible y el
@@ -215,6 +256,12 @@ contra el que se regenera el arte. Si cambiás un texto ahí, hay que re-exporta
   **no** los importes desde JS. Subcarpetas por tipo: `models/` (`.glb`), `sfx/`
   (audio), `img/`, `ui/` (PNG de iconos), `ui/cards/` (fichas de animal, 1024²),
   `fonts/` (atlas MSDF).
+- **Finales (§4):** `img/logo-nes.png` es el logo "No Están Solos" en blanco con fondo
+  **transparente**, y lo usan los dos finales. ⚠️ El que está hoy es un **recorte
+  provisorio** de `cartel-main.png`, con el verde convertido en transparente; hay que
+  reemplazarlo por el PNG del diseñador con el mismo nombre (no hace falta tocar código).
+  `img/jaula-barras.png` (128², marco + 4 barrotes) es la textura de las jaulas y se usa
+  con `alphaTest`, no con `transparent`.
 - Modelos `.glb` (en **`public/assets/models/`**) exportados de Blender/Blockbench.
   Los **fuentes** de arte (`.bbmodel` de Blockbench, y los `.svg` de las fichas en
   `art-src/pop-up/`) viven en **`art-src/`** en la raíz (versionados, pero **fuera** de
@@ -256,10 +303,13 @@ A-Frame.
 ### game/
 
 - **`safari-game-manager`** — hub de estado y timer del Safari. Schema `timeLimit`
-  (def 300). Dueño de `gameActive`, `animalsFound` (Set), `tick` del timer. La vuelta al
-  punto de partida (fade → teleport a `0 0 0` → `safari-game-ended` → limpiar glows →
-  mostrar carteles) vive en **`returnToStart()`**, compartida por `endGame` (tras los 5 s
-  de mensaje) y **`abortGame()`** (inmediata, escucha `safari-restart`). `showMessage()`
+  (def 300), `goodEndingDuration` (12000 ms) y `badEndingDuration` (10000 ms). Dueño de
+  `gameActive`, `animalsFound` (Set), `tick` del timer. `endGame` → **`playEnding()`**
+  (fades + `safari-ending-started` + duración del final, ver §4). La vuelta al punto de
+  partida (fade → teleport a `0 0 0` + rotación del rig a 0 → `safari-game-ended` →
+  limpiar glows → mostrar carteles) vive en **`returnToStart()`**, compartida por el final
+  (al terminar su duración) y **`abortGame()`** (inmediata, escucha `safari-restart`).
+  `endingToken` invalida los callbacks de un final abortado. `showMessage()`
   sin `duration` deja el mensaje fijo hasta un **`hideMessage()`**; solo hay un auto-hide
   vivo a la vez, para que el timeout de un mensaje viejo no apague al siguiente.
 - **`hold-to-restart`** — en `<a-scene>`. Detecta el gesto de reinicio: A/B/X/Y del mando
@@ -270,7 +320,27 @@ A-Frame.
   `safari-game-manager.showMessage()` **sin duration** (queda fijo) + `hideMessage()`.
   Con hand tracking puro no hay botones, así que en VR requiere mandos.
 - **`game-modes`** — alterna `#showcaseAnimals` (Idle) ↔ `#huntAnimals` (Safari)
-  según `safari-game-started`/`-ended`.
+  según `safari-game-started`/`-ended`. En `safari-ending-started` oculta los tres sets
+  (`setEnding`), porque los finales traen sus propios animales.
+- **`cinematic-lock`** — en el `#cameraRig`. Entre `safari-ending-started` y
+  `safari-game-ended` apaga `movement-controls` (WASD), `vr-locomotion.enabled`,
+  `pinch-teleport.enabled` (y corta un apuntado en curso) y `boundary-collision`
+  (`enabled: false`, porque la camioneta está fuera del radio). La cabeza queda libre.
+- **`ending-good`** — en `#endingGood` (final bueno, §4). Muestra el escenario, oculta la
+  isla (`WORLD_IDS`), sube al jugador a `#endingGoodSeat` con `placeRigAt`, pone niebla
+  propia (restaura la densidad; el color lo restaura `environment-degradation`) y anima la
+  opacidad del logo. Crea un **cielo en degradé por vértice** (esfera `BackSide`,
+  `fog: false`), así no depende del mapeo UV de `a-sky`. Pausa el grupo en `renderstart` y
+  lo reproduce solo durante el final.
+- **`ending-bad`** — en `#endingBad` (final malo, §4). Rota el grupo al yaw de la cámara,
+  lleva al jugador a `#endingBadAnchor` y muestra solo los hijos con `data-animal-type` que
+  están en `found`, con un pop escalonado (no hay clip de caminar). Hace fade-in del logo,
+  la placa y el texto. Mismo patrón de pausa que `ending-good`.
+- **`src/utils/place-rig.js`** (helper, no componente) — `placeRigAt(rigEl, target, yaw)`
+  ubica el rig para que la **cabeza** quede en `target` mirando a `yaw`, compensando el
+  offset y el yaw reales de la cámara en VR. También exporta `worldYaw(object3D)` y
+  `cameraYaw(sceneEl)`; el yaw sale del cuaternión con orden YXZ, así que es estable aunque
+  se mire hacia abajo.
 - **`animal-spawner`** — en `#gameManager`. En `safari-game-reset` (que se emite al inicio
   de `startGame`, antes de `safari-game-started`) reparte los 6 animales de `#huntAnimals`
   entre los spawn points (`[spawn-point]`) al azar (Fisher–Yates), copiando la pose completa
@@ -327,6 +397,7 @@ A-Frame.
   a lo largo de la superficie (slide) o revierte a la última posición válida.
 - **`boundary-collision`** — anillo: empuja al jugador de vuelta si sale del
   `radius` (**26.7** en index.html, el borde de la isla; default del schema es 45).
+  `enabled` (def true): lo apaga `cinematic-lock` durante los finales.
 
 ### environment/
 
@@ -392,7 +463,13 @@ A-Frame.
 - **`screen-fade`** — fade-out/in de pantalla (usado en transiciones de partida). El
   overlay lleva `render-on-top` (depthTest/depthWrite off): como plano `opacity:0` a 0.5m
   de la cámara escribía profundidad y ocluía el fuego; así no ocluye nada y aun cubre todo
-  durante el fade.
+  durante el fade. Su `renderOrder` es **999**: cualquier `render-on-top` que tenga que
+  quedar **debajo** del fade (logo y texto del final malo) lleva un `order` menor.
+- **`ending-treadmill`** — en `#endingScenery` (final bueno). Mueve en +Z los hijos con
+  clase **`ending-prop`** a `speed` m/s y los recicla `length` metros adelante al pasar
+  `behind`. Además corre el `offset` de una textura de tierra generada en canvas sobre
+  `#endingRoad`. Al terminar restaura las posiciones del HTML. Los props son
+  `composite-tree` con `flammable: false`, así `environment-degradation` no los quema.
 - **`shadow-control`** — control de sombras (atributo `shadow-control="enabled: false"`
   en la escena).
 
@@ -742,6 +819,17 @@ dónde mirará). Podés **agregar** marcadores (más puntos = más variedad; `id
   `tick` (órbita + wiggle), así que el gizmo no los mueve y guardar dejaría congelado un
   punto cualquiera de la órbita. Se los reubica editando su `position` (el centro de la
   órbita, que el componente captura en `init`) y `radius`/`pathRotation` en el HTML a mano.
+
+**Finales (`#endingGood`, `#endingBad`).** Todo lleva `id` (camioneta, jaulas
+`ending-cage-N`, animales `ending-good-<tipo>`/`ending-bad-<tipo>`, props `ending-prop-N`,
+logo) y se edita con el mismo flujo, con dos detalles:
+
+- Arrancan con `visible="false"`: para verlos en el Inspector hay que activar
+  `visible`, y **volver a ponerlo en false antes de guardar**.
+- `ending-bad` rota `#endingBad` en runtime, pero solo cuando arranca el final. Las poses
+  del HTML son las de "el jugador mirando a −Z" (hueco del círculo y logo hacia −Z). Las
+  `z` de los `ending-prop` son la posición **inicial** del treadmill: se restauran al
+  terminar cada final.
 
 ---
 

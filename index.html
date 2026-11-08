@@ -213,6 +213,11 @@
         <img id="cartelMain" src="assets/img/cartel-main.png" />
         <img id="cartelCreditos" src="assets/img/cartel-creditos.png" />
 
+        <!-- Finales del Safari: logo "No Están Solos" (PNG transparente) y los
+             barrotes de las jaulas de la camioneta (recorte con alphaTest). -->
+        <img id="logoNes" src="assets/img/logo-nes.png" />
+        <img id="jaulaBarras" src="assets/img/jaula-barras.png" />
+
         <!-- Fichas de animal: el arte trae el texto horneado, una imagen por
              especie. Ver animal-info-card + ANIMAL_INFO (texto accesible). -->
         <img id="flamengoCartel" src="assets/ui/cards/flamengo-cartel.png" />
@@ -710,6 +715,716 @@
         ></a-entity>
       </a-entity>
 
+      <!-- ============================================================
+           FINALES DEL SAFARI (ver CLAUDE.md §4). Ocultos y pausados hasta
+           safari-ending-started; los arma ending-good / ending-bad y los desarma
+           safari-game-ended. Todo con id para editarlo con Inspector + watcher.
+           ============================================================ -->
+
+      <!-- FINAL BUENO: el jugador va en la caja de una camioneta, entre las jaulas
+           con los 6 animales, alejándose del incendio; adelante aparece el logo.
+           Lejos de la isla (x 600: fuera del plano de agua, que llega a ±250, y de
+           todos los colliders). La camioneta mira a −Z y NO se mueve: el camino
+           pasa (ending-treadmill). Mientras dura, ending-good oculta la isla. -->
+      <a-entity id="endingGood" position="600 0 0" visible="false" ending-good>
+        <!-- Camioneta cabina simple: PLACEHOLDER de primitivas. Para cambiarla por
+             el modelo final, reemplazar los hijos de #endingTruckBody por
+             gltf-model="#camionetaModel" (piso de la caja a y 0.95, caja de
+             z −0.05 a 2.8, interior ±1.1 en x). -->
+        <a-entity id="endingTruck">
+          <a-entity id="endingTruckBody">
+            <!-- Bajo carrocería = piso de la caja (tope en y 0.95) -->
+            <a-box
+              position="0 0.725 -0.15"
+              width="2.3"
+              height="0.45"
+              depth="5.9"
+              color="#4f8a8b"
+            ></a-box>
+            <!-- Paredes de la caja + portón trasero -->
+            <a-box
+              position="-1.11 1.2 1.375"
+              width="0.08"
+              height="0.5"
+              depth="2.85"
+              color="#4f8a8b"
+            ></a-box>
+            <a-box
+              position="1.11 1.2 1.375"
+              width="0.08"
+              height="0.5"
+              depth="2.85"
+              color="#4f8a8b"
+            ></a-box>
+            <a-box
+              position="0 1.2 2.76"
+              width="2.3"
+              height="0.5"
+              depth="0.08"
+              color="#4f8a8b"
+            ></a-box>
+            <!-- Cabina (techo a y 1.95: la cabeza del jugador queda por encima) -->
+            <a-box
+              position="0 1.45 -0.9"
+              width="2.2"
+              height="1"
+              depth="1.6"
+              color="#5c9a9b"
+            ></a-box>
+            <!-- Capot -->
+            <a-box
+              position="0 1.125 -2.4"
+              width="2.3"
+              height="0.35"
+              depth="1.4"
+              color="#4f8a8b"
+            ></a-box>
+            <!-- Vidrios: luneta (hacia la caja), laterales y parabrisas -->
+            <a-plane
+              position="0 1.6 -0.095"
+              width="1.7"
+              height="0.45"
+              color="#22313a"
+            ></a-plane>
+            <a-plane
+              position="1.105 1.6 -0.9"
+              rotation="0 90 0"
+              width="1.2"
+              height="0.45"
+              color="#22313a"
+            ></a-plane>
+            <a-plane
+              position="-1.105 1.6 -0.9"
+              rotation="0 -90 0"
+              width="1.2"
+              height="0.45"
+              color="#22313a"
+            ></a-plane>
+            <a-plane
+              position="0 1.6 -1.705"
+              rotation="0 180 0"
+              width="1.9"
+              height="0.5"
+              color="#22313a"
+            ></a-plane>
+            <!-- Paragolpes, faros y luces traseras -->
+            <a-box
+              position="0 0.62 -3.17"
+              width="2.4"
+              height="0.22"
+              depth="0.14"
+              color="#9a9a9a"
+            ></a-box>
+            <a-box
+              position="0 0.62 2.87"
+              width="2.4"
+              height="0.22"
+              depth="0.14"
+              color="#9a9a9a"
+            ></a-box>
+            <a-box
+              position="-0.8 1.05 -3.11"
+              width="0.35"
+              height="0.18"
+              depth="0.04"
+              material="shader: flat; color: #fff6c8"
+            ></a-box>
+            <a-box
+              position="0.8 1.05 -3.11"
+              width="0.35"
+              height="0.18"
+              depth="0.04"
+              material="shader: flat; color: #fff6c8"
+            ></a-box>
+            <a-box
+              position="-0.95 1.2 2.81"
+              width="0.12"
+              height="0.25"
+              depth="0.04"
+              material="shader: flat; color: #c0201a"
+            ></a-box>
+            <a-box
+              position="0.95 1.2 2.81"
+              width="0.12"
+              height="0.25"
+              depth="0.04"
+              material="shader: flat; color: #c0201a"
+            ></a-box>
+            <!-- Ruedas -->
+            <a-cylinder
+              position="-1.12 0.45 -2.3"
+              rotation="0 0 90"
+              radius="0.45"
+              height="0.3"
+              segments-radial="12"
+              color="#1e1e1e"
+            ></a-cylinder>
+            <a-cylinder
+              position="1.12 0.45 -2.3"
+              rotation="0 0 90"
+              radius="0.45"
+              height="0.3"
+              segments-radial="12"
+              color="#1e1e1e"
+            ></a-cylinder>
+            <a-cylinder
+              position="-1.12 0.45 1.8"
+              rotation="0 0 90"
+              radius="0.45"
+              height="0.3"
+              segments-radial="12"
+              color="#1e1e1e"
+            ></a-cylinder>
+            <a-cylinder
+              position="1.12 0.45 1.8"
+              rotation="0 0 90"
+              radius="0.45"
+              height="0.3"
+              segments-radial="12"
+              color="#1e1e1e"
+            ></a-cylinder>
+          </a-entity>
+
+          <!-- Lugar del jugador: adelante en el pasillo de la caja, contra la
+               cabina. y = piso de la caja; el rotation define hacia dónde mira
+               (−Z = hacia adelante). Lo usa ending-good con utils/place-rig.js. -->
+          <a-entity id="endingGoodSeat" position="0 0.95 0.5"></a-entity>
+
+          <!-- Jaulas: dos columnas de 3 a los costados de la caja, pasillo central
+               para el jugador. Una draw call por jaula; los barrotes son una
+               textura con alphaTest (recorte opaco, sin sort de transparentes). -->
+          <a-entity id="endingCages">
+            <a-box
+              id="ending-cage-0"
+              position="-0.72 1.375 0.5"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+            <a-box
+              id="ending-cage-1"
+              position="0.72 1.375 0.5"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+            <a-box
+              id="ending-cage-2"
+              position="-0.72 1.375 1.35"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+            <a-box
+              id="ending-cage-3"
+              position="0.72 1.375 1.35"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+            <a-box
+              id="ending-cage-4"
+              position="-0.72 1.375 2.2"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+            <a-box
+              id="ending-cage-5"
+              position="0.72 1.375 2.2"
+              width="0.65"
+              height="0.85"
+              depth="0.9"
+              material="shader: flat; src: #jaulaBarras; alphaTest: 0.5; side: double"
+            ></a-box>
+          </a-entity>
+
+          <!-- Los 6 animales salvados, uno por jaula. Sin animal-clickable ni
+               sound: son decorado. Escalas para que entren en 0.65 x 0.85 x 0.9. -->
+          <a-entity
+            id="ending-good-flamingo"
+            gltf-model="#flamengoModel"
+            position="-0.72 0.95 0.46"
+            scale="0.9 0.9 0.9"
+            animation-mixer="clip: idle"
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+          <a-entity
+            id="ending-good-nandu"
+            gltf-model="#nanduModel"
+            position="0.72 0.95 0.55"
+            scale="0.62 0.62 0.62"
+            animation-mixer
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+          <a-entity
+            id="ending-good-jaguarete"
+            gltf-model="#jaguareteModel"
+            position="-0.72 0.95 1.24"
+            scale="0.52 0.52 0.52"
+            animation-mixer
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+          <a-entity
+            id="ending-good-jurumi"
+            gltf-model="#jurumiModel"
+            position="0.72 0.95 1.35"
+            scale="0.62 0.62 0.62"
+            animation-mixer
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+          <a-entity
+            id="ending-good-tagua"
+            gltf-model="#taguaModel"
+            position="-0.72 0.95 2.2"
+            scale="0.8 0.8 0.8"
+            animation-mixer
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+          <a-entity
+            id="ending-good-tatu"
+            gltf-model="#tatuModel"
+            position="0.72 0.95 2.25"
+            scale="1 1 1"
+            animation-mixer
+            staggered-start="maxOffset: 1.6"
+          ></a-entity>
+        </a-entity>
+
+        <!-- Camino de tierra + sabana. El camino es fijo y su textura (generada por
+             ending-treadmill) corre; los .ending-prop avanzan en +Z y se reciclan
+             adelante. El suelo son dos franjas a los lados del camino, no un plano
+             debajo, para evitar z-fighting a la distancia. -->
+        <a-entity
+          id="endingScenery"
+          ending-treadmill="speed: 8; length: 200; behind: 40"
+        >
+          <a-entity
+            id="endingRoad"
+            geometry="primitive: plane; width: 4.5; height: 300"
+            material="color: #ffffff; roughness: 1"
+            rotation="-90 0 0"
+            position="0 0 -100"
+          ></a-entity>
+          <a-entity
+            id="endingGroundLeft"
+            geometry="primitive: plane; width: 300; height: 300"
+            material="color: #a89a5c; roughness: 1"
+            rotation="-90 0 0"
+            position="-152.25 0 -100"
+          ></a-entity>
+          <a-entity
+            id="endingGroundRight"
+            geometry="primitive: plane; width: 300; height: 300"
+            material="color: #a89a5c; roughness: 1"
+            rotation="-90 0 0"
+            position="152.25 0 -100"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-0"
+            class="ending-prop"
+            position="-4.37 0 -157.2"
+            rotation="0 65 0"
+            scale="2.2 2.2 2.2"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-1"
+            class="ending-prop"
+            position="3.36 0 -148.95"
+            rotation="0 297 0"
+            scale="2.2 2.2 2.2"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-2"
+            class="ending-prop"
+            position="11.3 0 -144.37"
+            rotation="0 248 0"
+            scale="5.0 5.0 5.0"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-3"
+            class="ending-prop"
+            position="8.26 0 -135.32"
+            rotation="0 130 0"
+            scale="1.9 1.9 1.9"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-4"
+            class="ending-prop"
+            position="-3.6 0 -131.04"
+            rotation="0 212 0"
+            scale="2.3 2.3 2.3"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-5"
+            class="ending-prop"
+            position="-6.98 0 -123.57"
+            rotation="0 329 0"
+            scale="1.8 1.8 1.8"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-6"
+            class="ending-prop"
+            position="-8.74 0 -118.13"
+            rotation="0 203 0"
+            scale="1.8 1.8 1.8"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-7"
+            class="ending-prop"
+            position="5.48 0 -108.58"
+            rotation="0 130 0"
+            scale="2.1 2.1 2.1"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-8"
+            class="ending-prop"
+            position="-10.62 0 -104.31"
+            rotation="0 322 0"
+            scale="1.9 1.9 1.9"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-9"
+            class="ending-prop"
+            position="17.9 0 -92.94"
+            rotation="0 314 0"
+            scale="5.4 5.4 5.4"
+            composite-tree="type: palma; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-10"
+            class="ending-prop"
+            position="-15.91 0 -86.67"
+            rotation="0 101 0"
+            scale="5.7 5.7 5.7"
+            composite-tree="type: palma; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-11"
+            class="ending-prop"
+            position="5.75 0 -82.59"
+            rotation="0 56 0"
+            scale="2.0 2.0 2.0"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-12"
+            class="ending-prop"
+            position="-4.44 0 -73.93"
+            rotation="0 187 0"
+            scale="2.3 2.3 2.3"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-13"
+            class="ending-prop"
+            position="-17.56 0 -66.77"
+            rotation="0 42 0"
+            scale="5.7 5.7 5.7"
+            composite-tree="type: palma; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-14"
+            class="ending-prop"
+            position="-19.45 0 -60.45"
+            rotation="0 116 0"
+            scale="4.8 4.8 4.8"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-15"
+            class="ending-prop"
+            position="8.89 0 -54.05"
+            rotation="0 4 0"
+            scale="1.8 1.8 1.8"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-16"
+            class="ending-prop"
+            position="5.26 0 -46.77"
+            rotation="0 158 0"
+            scale="2.2 2.2 2.2"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-17"
+            class="ending-prop"
+            position="15.36 0 -38.46"
+            rotation="0 248 0"
+            scale="5.5 5.5 5.5"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-18"
+            class="ending-prop"
+            position="3.45 0 -31.36"
+            rotation="0 268 0"
+            scale="2.1 2.1 2.1"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-19"
+            class="ending-prop"
+            position="5.71 0 -24.32"
+            rotation="0 348 0"
+            scale="2.0 2.0 2.0"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-20"
+            class="ending-prop"
+            position="-14.5 0 -18.57"
+            rotation="0 261 0"
+            scale="4.7 4.7 4.7"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-21"
+            class="ending-prop"
+            position="7.58 0 -13.1"
+            rotation="0 81 0"
+            scale="1.9 1.9 1.9"
+            composite-tree="type: shrub; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-22"
+            class="ending-prop"
+            position="-11.86 0 -5.68"
+            rotation="0 241 0"
+            scale="4.6 4.6 4.6"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-23"
+            class="ending-prop"
+            position="-5.76 0 0.58"
+            rotation="0 291 0"
+            scale="2.1 2.1 2.1"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-24"
+            class="ending-prop"
+            position="14.43 0 7.59"
+            rotation="0 32 0"
+            scale="5.7 5.7 5.7"
+            composite-tree="type: palma; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-25"
+            class="ending-prop"
+            position="-5.47 0 18.15"
+            rotation="0 20 0"
+            scale="2.0 2.0 2.0"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-26"
+            class="ending-prop"
+            position="-3.62 0 25.33"
+            rotation="0 212 0"
+            scale="2.0 2.0 2.0"
+            composite-tree="type: pasto; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-prop-27"
+            class="ending-prop"
+            position="17.6 0 29.66"
+            rotation="0 330 0"
+            scale="5.6 5.6 5.6"
+            composite-tree="type: normal; flammable: false"
+          ></a-entity>
+        </a-entity>
+
+        <!-- Incendio atrás (+Z): fijo respecto de la camioneta. Está lejos, así que
+             casi no tiene paralaje y se lee como "el fuego que dejamos atrás". -->
+        <a-entity id="endingFireLine">
+          <a-entity
+            id="ending-fire-tree-0"
+            position="-14 0 32"
+            scale="5 5 5"
+            composite-tree="type: dead; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-tree-1"
+            position="-4 0 36"
+            scale="5.5 5.5 5.5"
+            composite-tree="type: dead; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-tree-2"
+            position="7 0 31"
+            scale="5 5 5"
+            composite-tree="type: dead; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-tree-3"
+            position="17 0 35"
+            scale="4.5 4.5 4.5"
+            composite-tree="type: dead; flammable: false"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-0"
+            position="-12 0 32"
+            scale="7 7 7"
+            low-poly-fire="count: 16"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-1"
+            position="2 0 35"
+            scale="8 8 8"
+            low-poly-fire="count: 16"
+          ></a-entity>
+          <a-entity
+            id="ending-fire-2"
+            position="15 0 33"
+            scale="7 7 7"
+            low-poly-fire="count: 16"
+          ></a-entity>
+        </a-entity>
+
+        <!-- Logo, adelante (del lado que no se quema). Aparece a los pocos
+             segundos (ending-good anima material.opacity). fog: false para que
+             la niebla no lo lave. -->
+        <a-image
+          id="endingGoodLogo"
+          src="#logoNes"
+          position="0 11 -35"
+          width="16"
+          height="9.36"
+          material="shader: flat; transparent: true; opacity: 0; fog: false"
+        ></a-image>
+      </a-entity>
+
+      <!-- FINAL MALO: en la isla, en medio del bosque quemado. Los animales que el
+           jugador SALVÓ forman un círculo a su alrededor (los huecos son los que
+           faltaron) y aparecen el logo y el texto. ending-bad rota todo el grupo
+           hacia donde mira el jugador y lo lleva al centro (#endingBadAnchor).
+           Slots a radio 2.5 en 30°, 90°, …, 330° mirando al centro: queda un hueco
+           justo adelante para ver el logo. -->
+      <a-entity id="endingBad" visible="false" ending-bad>
+        <a-entity id="endingBadAnchor" position="0 0 0"></a-entity>
+
+        <a-entity
+          id="ending-bad-tatu"
+          data-animal-type="tatu"
+          gltf-model="#tatuModel"
+          position="-1.25 0 -2.165"
+          rotation="0 210 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+        <a-entity
+          id="ending-bad-jaguarete"
+          data-animal-type="jaguarete"
+          gltf-model="#jaguareteModel"
+          position="-2.5 0 0"
+          rotation="0 270 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+        <a-entity
+          id="ending-bad-nandu"
+          data-animal-type="nandu"
+          gltf-model="#nanduModel"
+          position="-1.25 0 2.165"
+          rotation="0 330 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+        <a-entity
+          id="ending-bad-flamingo"
+          data-animal-type="flamingo"
+          gltf-model="#flamengoModel"
+          position="1.25 0 2.165"
+          rotation="0 30 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer="clip: idle"
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+        <a-entity
+          id="ending-bad-tagua"
+          data-animal-type="tagua"
+          gltf-model="#taguaModel"
+          position="2.5 0 0"
+          rotation="0 90 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+        <a-entity
+          id="ending-bad-jurumi"
+          data-animal-type="jurumi"
+          gltf-model="#jurumiModel"
+          position="1.25 0 -2.165"
+          rotation="0 150 0"
+          scale="1.5 1.5 1.5"
+          visible="false"
+          animation-mixer
+          staggered-start="maxOffset: 1.6"
+        ></a-entity>
+
+        <!-- Logo + texto. render-on-top para que los árboles quemados no los
+             tapen, con order < 999 para que el fade a negro (999) los cubra. -->
+        <a-image
+          id="endingBadLogo"
+          src="#logoNes"
+          position="0 3 -6"
+          width="4.5"
+          height="2.63"
+          material="shader: flat; transparent: true; opacity: 0"
+          render-on-top="order: 940"
+        ></a-image>
+        <!-- Placa oscura detrás del texto: sin ella se perdía contra el fuego y
+             los troncos quemados. Entre el logo (940) y el texto (950). -->
+        <a-plane
+          id="endingBadTextBg"
+          position="0 1.2 -6.02"
+          width="4.6"
+          height="0.95"
+          material="shader: flat; color: #000000; transparent: true; opacity: 0"
+          render-on-top="order: 945"
+        ></a-plane>
+        <a-text
+          id="endingBadText"
+          value="No los salvaste a todos,\nintenta nuevamente."
+          position="0 1.2 -6"
+          align="center"
+          baseline="center"
+          width="7"
+          color="#FFFFFF"
+          opacity="0"
+          shader="msdf"
+          negate="false"
+          font="/assets/fonts/arial-es-msdf.json"
+          font-image="/assets/fonts/arial-es-msdf.png"
+          render-on-top="order: 950"
+        ></a-text>
+      </a-entity>
+
       <!-- Camera rig with WASD and VR controls -->
       <a-entity
         id="cameraRig"
@@ -723,6 +1438,7 @@
         screen-fade="fadeDuration: 1000"
         safari-compass
         animal-info-card
+        cinematic-lock
       >
         <!-- Camera -->
         <a-entity

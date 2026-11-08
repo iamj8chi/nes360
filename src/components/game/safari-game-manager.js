@@ -1,6 +1,10 @@
 AFRAME.registerComponent("safari-game-manager", {
   schema: {
     timeLimit: { type: "number", default: 300 }, // 5 minutes in seconds
+    // Cuánto dura cada final (ms), contados desde que la pantalla queda en negro
+    // hasta que arranca el fade de vuelta al menú. Ver playEnding().
+    goodEndingDuration: { type: "number", default: 12000 },
+    badEndingDuration: { type: "number", default: 10000 },
   },
 
   init: function () {
@@ -28,6 +32,11 @@ AFRAME.registerComponent("safari-game-manager", {
     // mensaje). Se guardan para poder cancelarlos desde abortGame.
     this.endTimeout = null;
     this.messageTimeout = null;
+
+    // Token del final en curso. Los callbacks de playEnding lo comparan antes de
+    // seguir: abortGame/startGame lo incrementan, así un final abortado a mitad del
+    // fade no emite safari-ending-started ni programa una segunda vuelta al inicio.
+    this.endingToken = 0;
 
     // Listen for start game event
     this.el.sceneEl.addEventListener("safari-start-game", this.startGame);
@@ -59,6 +68,7 @@ AFRAME.registerComponent("safari-game-manager", {
 
   startGame: function () {
     console.log("Starting Safari Game!");
+    this.endingToken++;
 
     // Get fade component
     const cameraRig = document.getElementById("cameraRig");
@@ -154,39 +164,55 @@ AFRAME.registerComponent("safari-game-manager", {
     this.gameActive = false;
 
     // Play appropriate end game sound
-    if (won) {
-      const winSound = document.getElementById("soundGameWin");
-      if (winSound && winSound.components.sound) {
-        winSound.components.sound.stopSound();
-        winSound.components.sound.playSound();
-      }
-
-      // Tiempo empleado en mm:ss (timeRemaining es float; redondear a segundos enteros).
-      const elapsed = Math.floor(this.data.timeLimit - this.timeRemaining);
-      const minutes = Math.floor(elapsed / 60);
-      const seconds = elapsed % 60;
-      const mmss = `${minutes.toString().padStart(2, "0")}:${seconds
-        .toString()
-        .padStart(2, "0")}`;
-      this.showMessage(`¡GANASTE!\nTiempo: ${mmss}`, 5000);
-    } else {
-      const overSound = document.getElementById("soundGameOver");
-      if (overSound && overSound.components.sound) {
-        overSound.components.sound.stopSound();
-        overSound.components.sound.playSound();
-      }
-
-      this.showMessage(
-        `¡SE ACABÓ EL TIEMPO!\nEncontrados: ${this.animalsFound.size}/${this.totalAnimals}`,
-        5000
-      );
+    const sound = document.getElementById(
+      won ? "soundGameWin" : "soundGameOver"
+    );
+    if (sound && sound.components.sound) {
+      sound.components.sound.stopSound();
+      sound.components.sound.playSound();
     }
 
-    // Wait for message to be visible, then fade out and teleport
-    this.endTimeout = setTimeout(() => {
-      this.endTimeout = null;
-      this.returnToStart(won);
-    }, 5000);
+    this.hideMessage();
+    this.playEnding(won);
+  },
+
+  // Cinemática de cierre (los finales del guion "NES 360 ENDINGS"):
+  //   fade a negro → safari-ending-started {won, found} → fade-in → el final corre
+  //   `duration` ms → returnToStart (fade, teleport, safari-game-ended, menú).
+  // Este componente solo lleva la secuencia; cada final lo arma su propio componente
+  // (ending-good / ending-bad), y cinematic-lock apaga la locomoción. Todos desarman
+  // en safari-game-ended, así que el skip con hold-to-restart (abortGame) sale gratis.
+  playEnding: function (won) {
+    const token = ++this.endingToken;
+    const found = Array.from(this.animalsFound);
+    const duration = won
+      ? this.data.goodEndingDuration
+      : this.data.badEndingDuration;
+
+    const cameraRig = document.getElementById("cameraRig");
+    const fade = cameraRig ? cameraRig.components["screen-fade"] : null;
+
+    const begin = () => {
+      if (token !== this.endingToken) return; // abortado durante el fade
+      this.el.sceneEl.emit("safari-ending-started", { won, found });
+      this.endTimeout = setTimeout(() => {
+        this.endTimeout = null;
+        if (token !== this.endingToken) return;
+        this.returnToStart(won);
+      }, duration);
+    };
+
+    if (!fade) {
+      begin();
+      return;
+    }
+
+    fade.fadeOut(() => {
+      begin();
+      setTimeout(() => {
+        if (token === this.endingToken) fade.fadeIn();
+      }, 300);
+    });
   },
 
   // Teardown compartido: vuelve al punto de partida con todo restaurado. Lo usan
@@ -202,6 +228,9 @@ AFRAME.registerComponent("safari-game-manager", {
     const restore = () => {
       if (cameraRig) {
         cameraRig.setAttribute("position", "0 0 0");
+        // Los finales rotan el rig para que el jugador mire hacia la camioneta /
+        // el logo (ver utils/place-rig.js); el menú se juega con el rig sin rotar.
+        cameraRig.object3D.rotation.set(0, 0, 0);
 
         // Reset camera rotation
         const head = document.getElementById("head");
@@ -249,15 +278,20 @@ AFRAME.registerComponent("safari-game-manager", {
   abortGame: function () {
     console.log("Safari game aborted — returning to start");
 
-    // Si endGame ya estaba mostrando su mensaje, cancelar su vuelta programada
-    // para no teletransportar dos veces.
+    // Si había un final en curso (o su fade inicial), invalidarlo y cancelar su
+    // vuelta programada para no teletransportar dos veces.
+    this.endingToken++;
     if (this.endTimeout) {
       clearTimeout(this.endTimeout);
       this.endTimeout = null;
     }
 
     this.hideMessage();
-    this.resetGame(); // gameActive=false, timer y animales a cero (safari-game-reset)
+    // Durante un final gameActive ya es false y NO se resetea acá: safari-game-reset
+    // revive el bosque al instante, con la cinemática todavía en pantalla. La
+    // restauración la hace safari-game-ended (a negro) y el reset completo, el
+    // próximo startGame.
+    if (this.gameActive) this.resetGame(); // timer y animales a cero (safari-game-reset)
     this.returnToStart(false);
   },
 
